@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+dist/
+
+# POG-VIBE Local State
+~/.pog-coder-vibe/
+performance.json
+vibe-learning.db
+snapshots/
+
+# Environment / Secret Files
+.env
+.env.*
+!.env.example
+
+# Logs and Debug
+*.log
+*.txt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo

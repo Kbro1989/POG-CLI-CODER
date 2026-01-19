@@ -1,0 +1,52 @@
+{
+  "name": "pog-coder-vibe",
+  "displayName": "POG-CODER-VIBE",
+  "description": "Optimized AI coding companion with ternary routing",
+  "version": "1.0.0",
+  "publisher": "pog-community",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "AI",
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vibe-explorer",
+          "title": "Vibe State",
+          "icon": "$(rocket)"
+        }
+      ]
+    },
+    "views": {
+      "vibe-explorer": [
+        {
+          "type": "webview",
+          "id": "vibe.viewer",
+          "name": "Vibe Viewer",
+          "icon": "$(rocket)"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "pog-coder-vibe": "file:.."
+  }
+}

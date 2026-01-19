@@ -1,0 +1,23 @@
+{
+    "react-vite-internal": {
+        "description": "Standard React + Vite + TypeScript starter",
+        "init": "npm create vite@latest . -- --template react-ts",
+        "install": "npm install",
+        "devCommand": "npm run dev",
+        "defaultPort": 5173
+    },
+    "nextjs-vibe": {
+        "description": "Next.js 14+ with Tailwind and App Router",
+        "init": "npx -y create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\"",
+        "install": "npm install",
+        "devCommand": "npm run dev",
+        "defaultPort": 3000
+    },
+    "fastify-api": {
+        "description": "High-performance Fastify API with TypeScript",
+        "init": "npm init -y && npm install fastify @fastify/autoload @fastify/sensible",
+        "install": "npm install -D typescript @types/node ts-node",
+        "devCommand": "npm start",
+        "defaultPort": 3000
+    }
+}

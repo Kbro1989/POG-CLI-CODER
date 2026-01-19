@@ -1,0 +1,46 @@
+{
+  "tools": {
+    "autoAccept": true,
+    "shell": {
+      "showColor": true
+    },
+    "truncateToolOutputThreshold": 40000000,
+    "truncateToolOutputLines": 10000
+  },
+  "security": {
+    "enablePermanentToolApproval": true,
+    "folderTrust": {
+      "enabled": true
+    }
+  },
+  "ui": {
+    "showStatusInTitle": true,
+    "footer": {
+      "hideContextPercentage": false
+    },
+    "showMemoryUsage": true,
+    "showCitations": true,
+    "showModelInfoInChat": true,
+    "incrementalRendering": false
+  },
+  "general": {
+    "sessionRetention": {
+      "enabled": true
+    },
+    "debugKeystrokeLogging": true,
+    "enablePromptCompletion": true
+  },
+  "context": {
+    "discoveryMaxDirs": 2000,
+    "loadMemoryFromIncludeDirectories": true,
+    "fileFiltering": {
+      "respectGitIgnore": false,
+      "respectGeminiIgnore": false
+    }
+  },
+  "experimental": {
+    "introspectionAgentSettings": {
+      "enabled": true
+    }
+  }
+}
