@@ -22,7 +22,7 @@ export class BioIntelligenceLimb implements NeuralLimb {
 
     async canHandle(intent: Intent): Promise<boolean> {
         const prompt = intent.prompt.toLowerCase();
-        const keywords = ['medical', 'health', 'heart', 'cough', 'sound', 'skin', 'pathology', 'biological', 'clinical', 'diagnosis'];
+        const keywords = ['medical', 'heart', 'cough', 'sound', 'skin', 'pathology', 'biological', 'clinical', 'diagnosis'];
         const matchesKeyword = keywords.some(k => prompt.includes(k));
 
         // Specific esoteric substrates

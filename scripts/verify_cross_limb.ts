@@ -11,7 +11,15 @@ const mockConfig: VibeConfig = {
     projectId: 'cross-limb-test',
     projectRoot: process.cwd(),
     pogDir: path.join(process.cwd(), '.pog_coder_vibe'),
-    enabledServices: []
+    enabledServices: [],
+    agentName: 'POG-VIBE-TEST',
+    wsPort: 3000,
+    maxSnapshotAge: 86400000,
+    circuitBreakerThreshold: 3,
+    circuitBreakerCooldown: 10000,
+    embeddingDimensions: 384,
+    logLevel: 'info',
+    errorTrackerModelPath: undefined
 };
 
 // Mock Preview Server
