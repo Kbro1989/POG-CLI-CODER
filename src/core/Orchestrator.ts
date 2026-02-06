@@ -170,7 +170,7 @@ export class FreeOrchestrator extends EventEmitter {
     this.hexagramLimb = new HexagramLimb(this.hexagramManager);
 
     // Initialize Knowledge Limbs (Phase 20)
-    const gutenbergLimb = new GutenbergLimb(this.vectorDB, config);
+    const gutenbergLimb = new GutenbergLimb(this.vectorDB, config, this.geminiService);
     const yoloLimb = new YoloLimb();
 
     // Initialize AI Dispatcher Limb

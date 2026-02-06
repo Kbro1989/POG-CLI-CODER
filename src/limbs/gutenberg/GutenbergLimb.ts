@@ -3,6 +3,8 @@ import { Result, VibeConfig } from '../../core/models.js';
 import pino from 'pino';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { StyleAnalyzer } from './StyleAnalyzer.js';
+import { GeminiService } from '../../core/GeminiService.js';
 
 const logger = pino({
     name: 'GutenbergLimb',
@@ -58,10 +60,12 @@ export class GutenbergLimb implements NeuralLimb {
     private readonly GUTENDEX_API = 'https://gutendex.com/books';
     private readonly RATE_LIMIT_MS = 1000;
     private lastRequestTime = 0;
-    private vectorDB: any; // Using any to avoid circular dependency issues for now, or use loose coupling
+    private vectorDB: any;
+    private gemini: GeminiService | undefined;
 
-    constructor(vectorDB?: any, config?: VibeConfig) {
+    constructor(vectorDB?: any, config?: VibeConfig, gemini?: GeminiService | undefined) {
         this.vectorDB = vectorDB;
+        this.gemini = gemini;
         const pogDir = config?.pogDir || join(process.cwd(), '.pog-coder-vibe');
         this.GUTENBERG_CACHE = join(pogDir, 'gutenberg-cache');
 
@@ -344,15 +348,38 @@ export class GutenbergLimb implements NeuralLimb {
 
         logger.info({ bookId: book.id, domain, title: book.title }, 'Book cached successfully');
 
-        // Integrating Learning Mechanism
+
+        // Integrating Learning Mechanism with Style Analysis
         if (this.vectorDB && typeof this.vectorDB.addLesson === 'function') {
             try {
-                await this.vectorDB.addLesson(text, {
-                    source: `gutenberg:${book.id}`,
-                    category: domain,
-                    timestamp: Date.now()
+                const styleProfile = StyleAnalyzer.analyze(text);
+
+                // Generate embedding if Gemini service is available
+                let embedding = new Float32Array(0);
+                if (this.gemini) {
+                    // Truncate text for embedding if too long (Gemini limits)
+                    const textForEmbedding = text.slice(0, 10000);
+                    const embedResult = await this.gemini.embed(textForEmbedding);
+                    if (embedResult.ok) {
+                        embedding = new Float32Array(embedResult.value);
+                    }
+                }
+
+                await this.vectorDB.addLesson({
+                    id: `gutenberg-${book.id}`,
+                    text: text,
+                    embedding: embedding,
+                    sessionId: 'gutenberg-ingestion',
+                    projectId: 'global',
+                    errorType: '',
+                    createdAt: Date.now(),
+                    metadata: {
+                        source: `gutenberg:${book.id}`,
+                        category: domain,
+                        styleProfile // Inject style data
+                    }
                 });
-                logger.info({ bookId: book.id }, 'Book ingested into VectorDB memory');
+                logger.info({ bookId: book.id, style: styleProfile }, 'Book ingested with style profile and embedding');
             } catch (err) {
                 logger.error({ err, bookId: book.id }, 'Failed to index book into VectorDB');
             }
