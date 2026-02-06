@@ -15,6 +15,21 @@ import { fileURLToPath } from 'url';
 import readline from 'readline';
 import pino from 'pino';
 import * as fs from 'fs';
+import { Writable } from 'stream';
+
+// ===== QOL: LOG TOGGLE =====
+// Default: hide JSON logs, press Ctrl+F12 to reveal
+let showLogs = false;
+
+const logToggleStream = new Writable({
+  write(chunk, encoding, callback) {
+    if (showLogs) {
+      process.stderr.write(chunk, encoding, callback);
+    } else {
+      callback();
+    }
+  }
+});
 
 // Resolve project root strictly for .env discovery
 const __filename = fileURLToPath(import.meta.url);
@@ -37,7 +52,7 @@ const logger = pino({
   name: 'CLI',
   level: process.env['VIBE_LOG_LEVEL'] || 'info',
   base: { hostname: 'POG-VIBE' }
-});
+}, logToggleStream);
 
 interface CommandHandler {
   readonly pattern: RegExp;
@@ -77,6 +92,8 @@ class VibeCLI {
 
     // Setup event listeners
     this.setupEventListeners();
+
+    // Note: Logs are hidden by default. Use 'debug' command to toggle visibility.
 
     logger.info({
       projectRoot,
@@ -161,7 +178,6 @@ class VibeCLI {
       void this.shutdown();
     });
 
-    // Handle Ctrl+C gracefully
     process.on('SIGINT', (): void => {
       // eslint-disable-next-line no-console
       console.log('\n\n👋 Shutting down gracefully...');
@@ -171,6 +187,9 @@ class VibeCLI {
       })();
     });
   }
+
+  // Note: setupLogToggle was removed due to raw mode conflicts with readline.
+  // Use the 'debug' command instead to toggle log visibility.
 
   async start(): Promise<void> {
     // Initialize orchestrator
@@ -277,6 +296,16 @@ class VibeCLI {
       description: 'health           - Run substrate health audit',
       handler: async (): Promise<void> => {
         await this.performAudit();
+      }
+    },
+    {
+      pattern: /^debug$/i,
+      description: 'debug            - Toggle JSON log visibility',
+      handler: (): void => {
+        showLogs = !showLogs;
+        const status = showLogs ? chalk.green('VISIBLE') : chalk.gray('HIDDEN');
+        // eslint-disable-next-line no-console
+        console.log(`\n🔧 Debug Logs: ${status}\n`);
       }
     },
     {

@@ -151,7 +151,7 @@ export class FreeOrchestrator extends EventEmitter {
     const bioIntelligenceLimb = new BioIntelligenceLimb(config);
 
     // Initialize Knowledge Limbs (Phase 20)
-    const gutenbergLimb = new GutenbergLimb(this.vectorDB);
+    const gutenbergLimb = new GutenbergLimb();
 
     // Initialize AI Dispatcher Limb
     const aiLimb = new AILimb(config);
