@@ -1,0 +1,8 @@
+{
+    "name": "hello-ai-gateway",
+    "version": "1.0.0",
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20240502.0",
+        "wrangler": "^3.53.0"
+    }
+}

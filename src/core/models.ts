@@ -218,6 +218,11 @@ export interface VibeConfig {
   readonly projectId: string;
   readonly errorTrackerModelPath?: string | undefined;
   readonly enabledServices: string[];
+  readonly cloudflareGatewayUrl?: string | undefined;
+  readonly monitorModel?: string | undefined;
+  readonly snapshotModel?: string | undefined;
+  readonly criticModel?: string | undefined;
+  readonly healThreshold?: 'low' | 'medium' | 'high' | 'critical' | undefined;
 }
 
 export const enum AgentTerminateMode {

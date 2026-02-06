@@ -17,6 +17,7 @@ export const IMMUTABLE_RULES = `
 - **PRODUCTION-GRADE**: You do not write "examples". You write the final, shipping code. Optimized, documented, and resilient.
 - **POG-VIBE IDENTITY**: You are the orchestrator of an "Ollama Code Editor". You are local-first, privacy-focused, and extremely performant.
 - **INTERACTIVE FEEDBACK**: Do not spin in error loops. If the structure is ambiguous, use \`pauseForUserFeedback\` to request a "Human-in-the-Loop" reality check.
+- **PERSISTENCE LAW**: If you need to create or modify code, you MUST use the \`FileSystem\` tool. Proposing code in text blocks is for communication only; it will not be saved.
 `;
 
 export function constructInitialPrompt(userPrompt: string): string {
@@ -32,7 +33,7 @@ Manifest Schema:
   "goal": "High-level technical objective",
   "steps": [
     { 
-      "tool": "Sandbox|GitManager|WebAppForge|Wrangler|gcloud|manage_event_triggers|route_model|evaluate_result|emit_execution_manifest",
+      "tool": "Sandbox|GitManager|WebAppForge|Wrangler|gcloud|FileSystem|manage_event_triggers|route_model|evaluate_result|emit_execution_manifest",
       "args": ["arg1", "arg2"], 
       "reasoning": "Why this step is necessary",
       "rollback": "Optional command to reverse this step on failure"

@@ -31,8 +31,11 @@ export class ServiceDiscovery {
         const extensions = await this.checkCloudExtensions();
         results.push(...extensions.map(ext => this.withEnabled(ext)));
 
-        // 3. Audit MCP Servers (Simulated/Config-based)
+        // 3. Audit MCP Servers
         results.push(this.withEnabled(await this.checkMCPServers()));
+
+        // 4. Audit Knowledge Limbs (Phase 20)
+        results.push(this.withEnabled(await this.checkKnowledgeLimbs()));
 
         return results;
     }
@@ -85,8 +88,7 @@ export class ServiceDiscovery {
             { id: 'healthcare', name: 'Bio Intelligence (MedGemma)', status: 'INACTIVE', type: 'EXTENSION' },
             { id: 'documentai', name: 'Document AI', status: 'INACTIVE', type: 'EXTENSION' },
             { id: 'vision', name: 'Cloud Vision', status: 'INACTIVE', type: 'EXTENSION' },
-            { id: 'mediaforge', name: 'Media Forge (Imagen/Veo)', status: 'INACTIVE', type: 'EXTENSION' },
-            { id: 'gutenberg', name: 'Gutenberg Knowledge', status: 'INACTIVE', type: 'EXTENSION' }
+            { id: 'mediaforge', name: 'Media Forge (Imagen/Veo)', status: 'INACTIVE', type: 'EXTENSION' }
         ];
 
         let deps: Record<string, string> = {};
@@ -111,7 +113,7 @@ export class ServiceDiscovery {
 
         return extensions.map(ext => {
             const id = ext.id;
-            const depKey = `@google-cloud/${id === 'healthcare' ? 'healthcare' : id === 'documentai' ? 'document-ai' : id === 'gutenberg' ? 'storage' : 'vision'}`;
+            const depKey = `@google-cloud/${id === 'healthcare' ? 'healthcare' : id === 'documentai' ? 'document-ai' : 'vision'}`;
             const isInstalled = !!deps[depKey] || !!coreDeps[depKey];
             const isAuthorized = this.isServiceAuthorized(id);
 
@@ -150,6 +152,16 @@ export class ServiceDiscovery {
         } catch {
             return { id: 'mcp_gitkraken', name: 'MCP GitKraken', status: 'INACTIVE', type: 'MCP' };
         }
+    }
+
+    private async checkKnowledgeLimbs(): Promise<Omit<ServiceStatus, 'enabled'>> {
+        return {
+            id: 'gutenberg',
+            name: 'Gutenberg Knowledge',
+            status: 'ACTIVE',
+            type: 'EXTENSION',
+            details: 'Substrate: READY (Local)'
+        };
     }
 }
 

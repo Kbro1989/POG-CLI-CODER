@@ -56,7 +56,59 @@ export class ModelExecutor {
             return { ok: true, value: { model, response, latency: Date.now() - startTime } };
         } catch (ollamaError) {
             this.logger.warn({ model, error: ollamaError }, 'Ollama execution failed, attempting fallback to Gemini');
-            return this.callGeminiFallback(prompt, undefined, tools);
+            const geminiResult = await this.callGeminiFallback(prompt, undefined, tools);
+
+            if (geminiResult.ok) return geminiResult;
+
+            // 4. Try Cloudflare AI Gateway Fallback
+            this.logger.warn({ model, error: geminiResult.error }, 'Gemini fallback failed, attempting Cloudflare AI Gateway');
+            return this.callCloudflareGateway(prompt, model, startTime);
+        }
+    }
+
+    private async callCloudflareGateway(
+        prompt: string,
+        model: string,
+        startTime: number
+    ): Promise<Result<ModelResponse>> {
+        const gatewayUrl = this.config.cloudflareGatewayUrl;
+        if (!gatewayUrl) {
+            return { ok: false, error: new Error('Cloudflare AI Gateway URL not configured') };
+        }
+
+        try {
+            // Map models to Cloudflare equivalents
+            let cfModel = "@cf/meta/llama-3.1-8b-instruct";
+            if (model.includes('qwen') || model.includes('coder')) {
+                cfModel = "@cf/meta/llama-3.1-8b-instruct"; // Best coding fallback on CF
+            }
+
+            const response = await fetch(gatewayUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: cfModel,
+                    messages: [{ role: 'user', content: prompt }]
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Cloudflare Gateway failed (${response.status}): ${errorText}`);
+            }
+
+            const data = await response.json() as any;
+            return {
+                ok: true,
+                value: {
+                    model: `cloudflare:${cfModel}`,
+                    response: data.response || data.result?.response || JSON.stringify(data),
+                    latency: Date.now() - startTime
+                }
+            };
+        } catch (error) {
+            this.logger.error({ error }, 'Cloudflare AI Gateway fallback failed critically');
+            return { ok: false, error: error as Error };
         }
     }
 
@@ -65,6 +117,7 @@ export class ModelExecutor {
         modelOverride?: string,
         tools?: Tool[]
     ): Promise<Result<ModelResponse>> {
+        const startTime = Date.now();
         try {
             if (!this.geminiService) {
                 throw new Error('Gemini Service is not initialized (check GOOGLE_API_KEY)');
@@ -75,8 +128,8 @@ export class ModelExecutor {
 
             return result;
         } catch (geminiError) {
-            this.logger.error({ geminiError }, 'All model attempts failed (Local + Cloud)');
-            return { ok: false, error: geminiError as Error };
+            this.logger.warn({ geminiError }, 'Gemini execution failed, attempting Cloudflare AI Gateway');
+            return this.callCloudflareGateway(prompt, modelOverride || 'gemini-2.0-flash', startTime);
         }
     }
 

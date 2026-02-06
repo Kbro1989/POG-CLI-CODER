@@ -105,9 +105,12 @@ Output ONLY a JSON object:
 }
 `;
 
-        // Use Gemini 3 Pro for deep reflection - the "Top Brain" of the system
+        // Use custom critic model if configured (e.g., yi-coder, deepseek-coder)
+        const criticModel = this.config.criticModel || 'gemini:gemini-3-pro-preview';
+        this.logger.debug({ criticModel }, 'Invoking adversarial critic');
+
         const criticPromptAugmented = this.architectureDigest.inject(criticPrompt);
-        const result = await this.executor.callModel('gemini:gemini-3-pro-preview', criticPromptAugmented);
+        const result = await this.executor.callModel(criticModel, criticPromptAugmented);
         if (isErr(result)) {
             this.logger.warn({ error: result.error }, 'Top Brain critic failed, falling back to Flash baseline');
             const backupResult = await this.executor.callModel('gemini:gemini-3-flash-preview', criticPromptAugmented);

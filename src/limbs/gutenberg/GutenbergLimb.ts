@@ -1,5 +1,5 @@
 import { NeuralLimb, Intent, Execution } from '../core/NeuralLimb.js';
-import { Result } from '../../core/models.js';
+import { Result, VibeConfig } from '../../core/models.js';
 import pino from 'pino';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
@@ -54,14 +54,17 @@ export class GutenbergLimb implements NeuralLimb {
     type = 'analytical' as const;
     capabilities = ['gutenberg_search', 'gutenberg_ingest', 'gutenberg_styles'];
 
-    private readonly GUTENBERG_CACHE = 'D:/pog-gutenberg';
+    private readonly GUTENBERG_CACHE: string;
     private readonly GUTENDEX_API = 'https://gutendex.com/books';
     private readonly RATE_LIMIT_MS = 1000;
     private lastRequestTime = 0;
     private vectorDB: any; // Using any to avoid circular dependency issues for now, or use loose coupling
 
-    constructor(vectorDB?: any) {
+    constructor(vectorDB?: any, config?: VibeConfig) {
         this.vectorDB = vectorDB;
+        const pogDir = config?.pogDir || join(process.cwd(), '.pog-coder-vibe');
+        this.GUTENBERG_CACHE = join(pogDir, 'gutenberg-cache');
+
         if (!existsSync(this.GUTENBERG_CACHE)) {
             mkdirSync(this.GUTENBERG_CACHE, { recursive: true });
             logger.info({ path: this.GUTENBERG_CACHE }, 'Created Gutenberg cache directory');

@@ -20,7 +20,12 @@ const ConfigSchema = z.object({
   logLevel: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
   projectId: z.string().min(1),
   errorTrackerModelPath: z.string().optional(),
-  enabledServices: z.array(z.string()).default(['gemini', 'ollama', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge'])
+  enabledServices: z.array(z.string()).default(['gemini', 'ollama', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge', 'gutenberg']),
+  cloudflareGatewayUrl: z.string().url().optional(),
+  monitorModel: z.string().optional(),
+  snapshotModel: z.string().optional(),
+  criticModel: z.string().optional(),
+  healThreshold: z.enum(['low', 'medium', 'high', 'critical']).optional()
 });
 
 type ConfigInput = z.input<typeof ConfigSchema>;
@@ -82,7 +87,12 @@ export class ConfigManager {
       logLevel: (process.env['VIBE_LOG_LEVEL'] as VibeConfig['logLevel']) || overrides?.logLevel || fileConfig.logLevel || 'info',
       projectId: process.env['POG_PROJECT_ID'] || overrides?.projectId || fileConfig.projectId || projectRoot.split(/[\\/]/).pop() || 'default-project',
       errorTrackerModelPath: process.env['POG_ERROR_TRACKER_PATH'] || overrides?.errorTrackerModelPath || fileConfig.errorTrackerModelPath || '',
-      enabledServices: overrides?.enabledServices || fileConfig.enabledServices || ['gemini', 'ollama', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision']
+      enabledServices: overrides?.enabledServices || fileConfig.enabledServices || ['gemini', 'ollama', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision'],
+      cloudflareGatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'] || overrides?.cloudflareGatewayUrl || fileConfig.cloudflareGatewayUrl,
+      monitorModel: process.env['VIBE_MONITOR_MODEL'] || overrides?.monitorModel || fileConfig.monitorModel,
+      snapshotModel: process.env['VIBE_SNAPSHOT_MODEL'] || overrides?.snapshotModel || fileConfig.snapshotModel,
+      criticModel: process.env['VIBE_CRITIC_MODEL'] || overrides?.criticModel || fileConfig.criticModel,
+      healThreshold: (process.env['VIBE_HEAL_THRESHOLD'] as VibeConfig['healThreshold']) || overrides?.healThreshold || fileConfig.healThreshold
     } as any; // Cast for now to satisfy strict Zod vs Interface drift
 
     // Validate

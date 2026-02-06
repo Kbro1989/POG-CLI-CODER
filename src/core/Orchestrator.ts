@@ -42,6 +42,7 @@ import { MediaForgeLimb } from '../limbs/media/MediaForgeLimb.js';
 import { BioIntelligenceLimb } from '../limbs/bio/BioIntelligenceLimb.js';
 import { GutenbergLimb } from '../limbs/gutenberg/GutenbergLimb.js';
 import { NeuralLimb } from '../limbs/core/NeuralLimb.js';
+import { FileSystemLimb } from '../limbs/core/FileSystemLimb.js';
 import { constructInitialPrompt, PLANNING_PROMPT } from './SystemPrompts.js';
 import { ContextBuilder } from '../context/ContextBuilder.js';
 import { CodebaseIndexer } from '../learning/CodebaseIndexer.js';
@@ -151,10 +152,13 @@ export class FreeOrchestrator extends EventEmitter {
     const bioIntelligenceLimb = new BioIntelligenceLimb(config);
 
     // Initialize Knowledge Limbs (Phase 20)
-    const gutenbergLimb = new GutenbergLimb();
+    const gutenbergLimb = new GutenbergLimb(this.vectorDB, config);
 
     // Initialize AI Dispatcher Limb
     const aiLimb = new AILimb(config);
+
+    // Initialize FileSystem Limb (Phase 23: Persistence Fix)
+    const fileSystemLimb = new FileSystemLimb(config, sandbox);
 
     // Store limbs in collection for dynamic tool routing
     this.limbs = [
@@ -163,7 +167,8 @@ export class FreeOrchestrator extends EventEmitter {
       mediaForgeLimb,
       bioIntelligenceLimb,
       gutenbergLimb,
-      aiLimb
+      aiLimb,
+      fileSystemLimb
     ];
 
     // Initialize KeyVault for API key rotation
@@ -323,8 +328,13 @@ export class FreeOrchestrator extends EventEmitter {
         affectedFiles: report.affectedFiles
       }, 'Monitor Agent detected issue - triggering auto-healing');
 
-      // Auto-heal critical and high-severity TSC errors
-      if (report.category === 'tsc' && (report.severity === 'critical' || report.severity === 'high')) {
+      // Auto-heal based on threshold (defaulting to high/critical)
+      const threshold = this.config.healThreshold || 'high';
+      const severities: string[] = ['low', 'medium', 'high', 'critical'];
+      const reportIndex = severities.indexOf(report.severity);
+      const thresholdIndex = severities.indexOf(threshold);
+
+      if (report.category === 'tsc' && reportIndex >= thresholdIndex) {
         void this.handleAutoHeal(report);
       }
     });
@@ -354,11 +364,15 @@ ${errorSummary}
 
 Fix these errors. Do not use placeholders or TODOs. Provide production-ready fixes.`;
 
-    // Execute the fix using the top-tier model (Gemini 3 Pro Preview or qwen2.5:14b)
-    const result = await this.executeIntent(healPrompt);
+    // Execute the fix using the Adversarial Loop (Generator + Critic)
+    const result = await this.adversarialOrchestrator.generateValidatedCode(
+      healPrompt,
+      this.config.criticModel || 'gemini:gemini-3-pro-preview', // Use configured critic
+      { fileName: report.affectedFiles[0] }
+    );
 
     if (result.ok) {
-      this.logger.info('Auto-heal workflow completed successfully');
+      this.logger.info('Auto-heal workflow completed successfully using Adversarial Loop');
     } else {
       this.logger.error({ error: result.error }, 'Auto-heal workflow failed');
     }
@@ -618,6 +632,10 @@ Perform the current step and output results. If verifying, ensure you run the ne
     if (functionCalls && functionCalls.length > 0) {
       this.logger.info({ count: functionCalls.length }, 'Formal Tool Calls Detected');
       for (const call of functionCalls) {
+        // Interference Check (Phase 22)
+        const interference = await this.checkMonitorInterference();
+        if (interference) return interference;
+
         let result: Result<any> = { ok: false, error: new Error(`No handler for tool: ${call.name}`) };
 
         // Dynamic routing to limb that owns the tool
@@ -668,6 +686,10 @@ Perform the current step and output results. If verifying, ensure you run the ne
     if (commands.length > 0) {
       this.logger.info({ count: commands.length }, 'Tool Calls (Sandbox) Detected');
       for (const cmd of commands) {
+        // Interference Check (Phase 22)
+        const interference = await this.checkMonitorInterference();
+        if (interference) return interference;
+
         const execResult = await this.sandbox.execute(cmd);
 
         if (!execResult.ok) {
@@ -702,6 +724,27 @@ Perform the current step and output results. If verifying, ensure you run the ne
       status: 'continue',
       nextMessage
     };
+  }
+
+  /**
+   * Checks background health and interrupts if critical errors are found.
+   */
+  private async checkMonitorInterference(): Promise<AgentTurnResult | null> {
+    if (!this.monitorAgent) return null;
+
+    const errors = (this.monitorAgent as any).tscMonitor?.getCurrentErrors() || [];
+    const criticalErrors = errors.filter((e: any) => e.severity === 'error' || e.severity === 'critical');
+
+    if (criticalErrors.length > 0) {
+      this.logger.warn({ errorCount: criticalErrors.length }, 'MONITOR INTERFERENCE: Critical TSC errors detected during execution');
+      return {
+        status: 'stop',
+        terminateReason: AgentTerminateMode.ERROR,
+        finalResult: `INTERRUPT: Background Monitor detected ${criticalErrors.length} critical TypeScript error(s). Execution aborted to prevent compound failures. Please fix the following:\n${criticalErrors.slice(0, 5).map((e: any) => `- ${e.file}:${e.line} [${e.code}] ${e.message}`).join('\n')}`
+      };
+    }
+
+    return null;
   }
 
   /**
@@ -899,7 +942,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      tool: { type: Type.STRING, enum: ['Sandbox', 'GitManager', 'WebAppForge', 'Wrangler', 'gcloud'] },
+                      tool: { type: Type.STRING, enum: ['Sandbox', 'GitManager', 'WebAppForge', 'Wrangler', 'gcloud', 'FileSystem'] },
                       args: { type: Type.ARRAY, items: { type: Type.STRING } },
                       reasoning: { type: Type.STRING },
                       rollback: { type: Type.STRING, description: 'Command to run if this step fails.' }

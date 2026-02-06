@@ -41,15 +41,16 @@ export class MonitorAgent extends EventEmitter {
     private isRunning: boolean = false;
     private healthCheckInterval?: NodeJS.Timeout;
 
-    // Models used for background auditing
-    private readonly MONITOR_MODEL = process.env['VIBE_MONITOR_MODEL'] || 'tinyllama:latest';
-    private readonly SNAPSHOT_MODEL = process.env['VIBE_SNAPSHOT_MODEL'] || 'qwen2.5-coder:7b-instruct-q4_K_M';
+    private readonly MONITOR_MODEL: string;
+    private readonly SNAPSHOT_MODEL: string;
 
     constructor(
         config: VibeConfig,
         private readonly executor: ModelExecutor
     ) {
         super();
+        this.MONITOR_MODEL = config.monitorModel || process.env['VIBE_MONITOR_MODEL'] || 'tinyllama:latest';
+        this.SNAPSHOT_MODEL = config.snapshotModel || process.env['VIBE_SNAPSHOT_MODEL'] || 'qwen2.5-coder:7b-instruct-q4_K_M';
         this.tscMonitor = new TSCMonitor(config.projectRoot);
         this.astWatcher = new ASTWatcher(config);
     }

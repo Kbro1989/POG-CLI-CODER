@@ -168,18 +168,32 @@ export class Sandbox {
 
   extractCommands(text: string): string[] {
     const commands: string[] = [];
-    // More robust regex for various shell types
-    const codeBlockRegex = /```(?:bash|sh|shell|powershell|ps1|batch|cmd)?\n([\s\S]*?)```/gi;
+    // Only extract blocks explicitly marked as shell/bash/sh/powershell/cmd
+    // If no language is specified, we check if it looks like a command.
+    const codeBlockRegex = /```(bash|sh|shell|powershell|ps1|batch|cmd|)\n([\s\S]*?)```/gi;
     let match;
 
     while ((match = codeBlockRegex.exec(text)) !== null) {
-      const block = match[1]?.trim();
-      if (block) {
-        const lines = block.split('\n')
-          .map(l => l.trim())
-          .filter(l => l && !l.startsWith('#') && !l.startsWith('//'));
-        commands.push(...lines);
+      const lang = (match[1] || '').toLowerCase();
+      const block = match[2]?.trim();
+
+      if (!block) continue;
+
+      // If language specified and NOT a shell type, ignore it
+      const shellLangs = ['bash', 'sh', 'shell', 'powershell', 'ps1', 'batch', 'cmd', ''];
+      if (lang && !shellLangs.includes(lang)) {
+        continue;
       }
+
+      // If no language, and it contains common programming keywords, ignore it (likely a code snippet)
+      if (!lang && /\b(function|class|export|import|const|let|interface|types|from)\b/.test(block)) {
+        continue;
+      }
+
+      const lines = block.split('\n')
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith('#') && !l.startsWith('//'));
+      commands.push(...lines);
     }
 
     return commands;
