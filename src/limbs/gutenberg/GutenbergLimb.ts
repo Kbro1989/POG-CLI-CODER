@@ -56,11 +56,12 @@ export class GutenbergLimb implements NeuralLimb {
 
     private readonly GUTENBERG_CACHE = 'D:/pog-gutenberg';
     private readonly GUTENDEX_API = 'https://gutendex.com/books';
-    private readonly RATE_LIMIT_MS = 1000; // 1 request per second (polite)
+    private readonly RATE_LIMIT_MS = 1000;
     private lastRequestTime = 0;
+    private vectorDB: any; // Using any to avoid circular dependency issues for now, or use loose coupling
 
-    constructor() {
-        // Ensure cache directory exists
+    constructor(vectorDB?: any) {
+        this.vectorDB = vectorDB;
         if (!existsSync(this.GUTENBERG_CACHE)) {
             mkdirSync(this.GUTENBERG_CACHE, { recursive: true });
             logger.info({ path: this.GUTENBERG_CACHE }, 'Created Gutenberg cache directory');
@@ -87,6 +88,80 @@ export class GutenbergLimb implements NeuralLimb {
 
         return { ok: false, error: new Error('Unknown Gutenberg action. Use: search, ingest, or styles') };
     }
+
+    getTools(): any[] {
+        return [
+            {
+                functionDeclarations: [
+                    {
+                        name: 'gutenberg_search',
+                        description: 'Search or retrieve 60k+ books from Project Gutenberg by domain, author, or topic.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                search: { type: 'string', description: 'General search term' },
+                                authors: { type: 'array', items: { type: 'string' }, description: 'Specific authors' },
+                                domains: { type: 'array', items: { type: 'string' }, description: 'Literary domains (e.g., science, mathematics)' },
+                                limit: { type: 'number', description: 'Maximum number of results' }
+                            }
+                        }
+                    },
+                    {
+                        name: 'gutenberg_ingest',
+                        description: 'Download and cache books for local knowledge base ingestion.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                search: { type: 'string' },
+                                authors: { type: 'array', items: { type: 'string' } },
+                                domains: { type: 'array', items: { type: 'string' } }
+                            }
+                        }
+                    },
+                    {
+                        name: 'gutenberg_styles',
+                        description: 'List available author styles and domains currently in the local cache.',
+                        parameters: {
+                            type: 'object',
+                            properties: {}
+                        }
+                    }
+                ]
+            }
+        ];
+    }
+
+    async handleToolCall(name: string, args: any): Promise<Result<any>> {
+        logger.info({ tool: name, args }, 'Executing Gutenberg tool call');
+
+        switch (name) {
+            case 'gutenberg_search':
+                const searchResult = await this.searchBooks(args);
+                return {
+                    ok: true,
+                    value: {
+                        output: `Found ${searchResult.length} books.`,
+                        data: { books: searchResult.slice(0, 5) }
+                    }
+                };
+            case 'gutenberg_ingest':
+                const booksToIngest = await this.searchBooks(args);
+                const ingestResult = await this.ingestBooks(booksToIngest);
+                return {
+                    ok: true,
+                    value: {
+                        output: `Ingested ${ingestResult.success}/${ingestResult.total} books.`,
+                        data: ingestResult
+                    }
+                };
+            case 'gutenberg_styles':
+                const styles = await this.handleListStyles();
+                return styles;
+            default:
+                return { ok: false, error: new Error(`Unknown Gutenberg tool: ${name}`) };
+        }
+    }
+
 
     private async handleSearch(prompt: string): Promise<Result<Execution>> {
         try {
@@ -265,6 +340,20 @@ export class GutenbergLimb implements NeuralLimb {
         });
 
         logger.info({ bookId: book.id, domain, title: book.title }, 'Book cached successfully');
+
+        // Integrating Learning Mechanism
+        if (this.vectorDB && typeof this.vectorDB.addLesson === 'function') {
+            try {
+                await this.vectorDB.addLesson(text, {
+                    source: `gutenberg:${book.id}`,
+                    category: domain,
+                    timestamp: Date.now()
+                });
+                logger.info({ bookId: book.id }, 'Book ingested into VectorDB memory');
+            } catch (err) {
+                logger.error({ err, bookId: book.id }, 'Failed to index book into VectorDB');
+            }
+        }
     }
 
     private inferDomain(book: BookMetadata): string {

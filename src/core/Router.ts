@@ -11,6 +11,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import pino from 'pino';
 import { execSync } from 'child_process';
+import { ModelInventory } from './ModelInventory.js';
 import type {
   ModelPerformance,
   CircuitBreakerState,
@@ -21,7 +22,6 @@ import type {
   AssessedRoutingContext,
   Ternary,
   RoutingDecision,
-  TaskType,
   CircuitState,
   VibeConfig
 } from './models.js';
@@ -113,13 +113,29 @@ class FallbackStrategy implements IRoutingStrategy {
   }
 }
 
+/**
+ * Strategy 4: Semantic Strategy (Massive Model Inventory)
+ */
+class SemanticStrategy implements IRoutingStrategy {
+  constructor(_router: FreeModelRouter, _db: VectorDB) { }
+
+  decide(ctx: RoutingContext): RoutingDecision | null {
+    // Only trigger for complex/esoteric tasks where the static tree might fail
+    if (ctx.complexity < 1 && ctx.weightedTasks[TT.Esoteric] < 0.5) return null;
+
+    // This requires async in a real implementation.
+    // For now, we assume this strategy is a placeholder for the V2 Semantic Router
+    return null;
+  }
+}
+
 export class FreeModelRouter {
   private readonly performanceDB: string;
   private readonly circuitBreakers: Map<string, CircuitBreakerState> = new Map();
   private readonly strategies: IRoutingStrategy[] = [];
   private healthCache: ReadonlyArray<FreeModelConfig> | null = null;
   private lastHealthCheck = 0;
-  private readonly HEALTH_TTL = 30000; // 30 seconds
+  private readonly HEALTH_TTL = 30000;
 
   // Model Inventory - Optimized by Speed & Job Type
   private readonly FREE_MODELS: ReadonlyArray<FreeModelConfig> = [
@@ -234,6 +250,7 @@ export class FreeModelRouter {
 
   private readonly decisionTree: TernaryNode;
   contextBuilder: ContextBuilder;
+  private dynamicModels: FreeModelConfig[] = [];
 
   constructor(private readonly config: VibeConfig, _gemini?: GeminiService) {
     this.performanceDB = join(this.config.pogDir, 'free-model-performance.json');
@@ -243,16 +260,25 @@ export class FreeModelRouter {
     const vectorDB = new VectorDB(config);
     this.contextBuilder = new ContextBuilder(vectorDB, config.projectRoot, _gemini);
 
+    // Phase 19: Massive Model Integration
+    this.dynamicModels = ModelInventory.getAvailableModels();
+    vectorDB.indexModelRegistry(ModelInventory.getRegistry()).catch(err => logger.error({ err }, 'Failed to index models'));
+
     this.decisionTree = this.buildDecisionTree();
 
-    // Initialize Strategies in Order of Priority
     this.strategies = [
       new OverrideStrategy(),
       new ComplexityStrategy(this, this.decisionTree),
+      new SemanticStrategy(this, vectorDB),
       new FallbackStrategy()
     ];
 
-    logger.info({ pogDir: config.pogDir }, 'Router Strategy Chain established');
+    logger.info({ pogDir: config.pogDir, modelCount: this.getAllModels().length }, 'Router Strategy Chain established');
+  }
+
+  // Helper to merge static and dynamic models
+  private getAllModels(): ReadonlyArray<FreeModelConfig> {
+    return [...this.FREE_MODELS, ...this.dynamicModels];
   }
 
   private initializeDB(): void {
@@ -397,7 +423,7 @@ export class FreeModelRouter {
         output = execSync('ollama list', { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
       } catch { }
 
-      const grid = this.FREE_MODELS.map(m => {
+      const grid = this.getAllModels().map(m => {
         const isPresent = m.type === MT.CloudFree
           ? !!process.env['GOOGLE_API_KEY']
           : output.includes(m.name);
@@ -433,7 +459,7 @@ export class FreeModelRouter {
         this.circuitBreakers.set(model, state);
         return model;
       }
-      const fallback = this.FREE_MODELS.find(m => m.name === model)?.fallback ?? 'qwen2.5-coder:14b-instruct-q5_K_M';
+      const fallback = this.getAllModels().find(m => m.name === model)?.fallback ?? 'qwen2.5-coder:14b-instruct-q5_K_M';
       return available.some(m => m.name === fallback) ? fallback : (available[0]?.name ?? model);
     }
     return model;

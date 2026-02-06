@@ -26,12 +26,33 @@ export class HexagramLimb implements NeuralLimb {
     async execute(intent: Intent): Promise<Result<Execution>> {
         logger.info({ intent: intent.prompt }, 'Hexagram Limb activated');
 
-        // Note: In the real orchestrator, the tools are called directly via ModelExecutor.
-        // This execute method is a fallback for natural language intent routing.
+        const prompt = intent.prompt.toLowerCase();
+
+        // NL Parsing: "Pin [title] to Line [index]: [content]"
+        const pinMatch = prompt.match(/pin (?:card )?"([^"]+)" to line (\d)/i);
+        if (pinMatch) {
+            const title = pinMatch[1] || 'Untitled';
+            const lineIndex = parseInt(pinMatch[2] || '1', 10);
+            const content = prompt.split(':').pop()?.trim() || "No content provided";
+
+            const result = await this.handleToolCall('pin_to_hexagram', { lineIndex, title, content, state: 2 });
+            if (result.ok) {
+                return { ok: true, value: { output: `Context pinned to Line ${lineIndex}.`, data: result.value } };
+            }
+        }
+
+        // NL Parsing: "Consult hexagram", "Check state"
+        if (prompt.includes('consult') || prompt.includes('check hexagram') || prompt.includes('status')) {
+            const result = await this.handleToolCall('consult_hexagram', {});
+            if (result.ok) {
+                return { ok: true, value: { output: result.value, data: { formatted: result.value } } };
+            }
+        }
+
         return {
             ok: true,
             value: {
-                output: 'Hexagram Memory tools are available. Use pin_to_hexagram to store critical context.',
+                output: 'Hexagram Memory tools are available. Supported commands: "Pin [Title] to Line [1-6]: [Content]" or "Consult Hexagram".',
                 data: { status: 'active' }
             }
         };

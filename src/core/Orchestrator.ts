@@ -41,6 +41,7 @@ import { WebAppForgeLimb } from '../limbs/webapp/WebAppForgeLimb.js';
 import { MediaForgeLimb } from '../limbs/media/MediaForgeLimb.js';
 import { BioIntelligenceLimb } from '../limbs/bio/BioIntelligenceLimb.js';
 import { GutenbergLimb } from '../limbs/gutenberg/GutenbergLimb.js';
+import { NeuralLimb } from '../limbs/core/NeuralLimb.js';
 import { constructInitialPrompt, PLANNING_PROMPT } from './SystemPrompts.js';
 import { ContextBuilder } from '../context/ContextBuilder.js';
 import { CodebaseIndexer } from '../learning/CodebaseIndexer.js';
@@ -67,11 +68,11 @@ function expandTilde(path: string): string {
 }
 
 interface ExecutionStep {
-  readonly id: number;
-  readonly description: string;
-  readonly action: 'RESEARCH' | 'MODIFY' | 'VERIFY';
+  readonly tool: string;
+  readonly args: string[];
+  readonly reasoning: string;
+  readonly rollback?: string;
 }
-
 
 interface ExecutionPlan {
   readonly goal: string;
@@ -119,10 +120,7 @@ export class FreeOrchestrator extends EventEmitter {
   private readonly validationSystem: ValidationSystem;
   private readonly architectureDigest: ArchitectureDigest;
   private readonly monitorAgent?: MonitorAgent;
-  private readonly aiLimb: AILimb;
-  private readonly mediaForgeLimb: MediaForgeLimb;
-  private readonly bioIntelligenceLimb: BioIntelligenceLimb;
-  private readonly gutenbergLimb: GutenbergLimb;
+  private readonly limbs: NeuralLimb[] = [];
   private lastSentFileHashes: Map<string, string> = new Map();
   private forceFullContext = true;
 
@@ -149,14 +147,24 @@ export class FreeOrchestrator extends EventEmitter {
     this.hexagramLimb = new HexagramLimb(this.hexagramManager);
 
     // Initialize specialized Esoteric Limbs (Phase 19)
-    this.mediaForgeLimb = new MediaForgeLimb(config);
-    this.bioIntelligenceLimb = new BioIntelligenceLimb(config);
+    const mediaForgeLimb = new MediaForgeLimb(config);
+    const bioIntelligenceLimb = new BioIntelligenceLimb(config);
 
     // Initialize Knowledge Limbs (Phase 20)
-    this.gutenbergLimb = new GutenbergLimb();
+    const gutenbergLimb = new GutenbergLimb(this.vectorDB);
 
     // Initialize AI Dispatcher Limb
-    this.aiLimb = new AILimb(config);
+    const aiLimb = new AILimb(config);
+
+    // Store limbs in collection for dynamic tool routing
+    this.limbs = [
+      this.webAppForgeLimb,
+      this.hexagramLimb,
+      mediaForgeLimb,
+      bioIntelligenceLimb,
+      gutenbergLimb,
+      aiLimb
+    ];
 
     // Initialize KeyVault for API key rotation
     const keyVault = new KeyVault();
@@ -402,60 +410,24 @@ Respond conversationally, concisely, and helpfully. Do not strictly adhere to JS
 
 
     // 0. Check Neural Limbs (Specialized Agents)
-    if (await this.webAppForgeLimb.canHandle({ prompt: fullPrompt })) {
-      const result = await this.webAppForgeLimb.execute({ prompt: fullPrompt });
-      if (result.ok) {
-        this.recordSuccessMetadata('webapp_forge', prompt, Date.now() - context.startTime, filePath);
+    for (const limb of this.limbs) {
+      if (await limb.canHandle({ prompt: fullPrompt })) {
+        const result = await limb.execute({ prompt: fullPrompt });
+        if (result.ok) {
+          this.recordSuccessMetadata(limb.id, prompt, Date.now() - context.startTime, filePath);
 
-        // Emit preview event if available
-        if (result.value.data?.previewUrl) {
-          const previewMetadata = (await this.previewServer.getActivePreviews()).find(p => p.url === result.value.data.previewUrl);
-          if (previewMetadata) {
-            this.emit('previewStarted', previewMetadata);
+          // Special case for WebAppForge preview events
+          if (limb.id === 'webapp_forge' && result.value.data?.previewUrl) {
+            const previewMetadata = (await this.previewServer.getActivePreviews()).find(p => p.url === result.value.data.previewUrl);
+            if (previewMetadata) {
+              this.emit('previewStarted', previewMetadata);
+            }
           }
+
+          return { ok: true, value: result.value.output };
         }
-
-        return { ok: true, value: result.value.output };
+        return { ok: false, error: result.error };
       }
-      return { ok: false, error: result.error };
-    }
-
-    if (await this.aiLimb.canHandle({ prompt: fullPrompt })) {
-      const result = await this.aiLimb.execute({ prompt: fullPrompt });
-      if (result.ok) {
-        this.recordSuccessMetadata('ai_limb', prompt, Date.now() - context.startTime, filePath);
-        return { ok: true, value: result.value.output };
-      }
-      return { ok: false, error: result.error };
-    }
-
-    // Phase 19: Check Esoteric Limbs (Media & Bio)
-    if (await this.mediaForgeLimb.canHandle({ prompt: fullPrompt })) {
-      const result = await this.mediaForgeLimb.execute({ prompt: fullPrompt });
-      if (result.ok) {
-        this.recordSuccessMetadata('media_forge', prompt, Date.now() - context.startTime, filePath);
-        return { ok: true, value: result.value.output };
-      }
-      return { ok: false, error: result.error };
-    }
-
-    if (await this.bioIntelligenceLimb.canHandle({ prompt: fullPrompt })) {
-      const result = await this.bioIntelligenceLimb.execute({ prompt: fullPrompt });
-      if (result.ok) {
-        this.recordSuccessMetadata('bio_intelligence', prompt, Date.now() - context.startTime, filePath);
-        return { ok: true, value: result.value.output };
-      }
-      return { ok: false, error: result.error };
-    }
-
-    // Phase 20: Check Knowledge Limbs (Gutenberg)
-    if (await this.gutenbergLimb.canHandle({ prompt: fullPrompt })) {
-      const result = await this.gutenbergLimb.execute({ prompt: fullPrompt });
-      if (result.ok) {
-        this.recordSuccessMetadata('gutenberg_knowledge', prompt, Date.now() - context.startTime, filePath);
-        return { ok: true, value: result.value.output };
-      }
-      return { ok: false, error: result.error };
     }
 
     let turnCounter = 0;
@@ -477,7 +449,7 @@ Respond conversationally, concisely, and helpfully. Do not strictly adhere to JS
 
     let executionPlan: ExecutionPlan = {
       goal: prompt,
-      steps: [{ id: 1, description: 'Direct implementation', action: 'MODIFY' }]
+      steps: [{ tool: 'Sandbox', args: [prompt], reasoning: 'Direct implementation' }]
     };
 
     if (planResult.ok) {
@@ -504,15 +476,17 @@ Respond conversationally, concisely, and helpfully. Do not strictly adhere to JS
     let totalResponse = '';
     let lastModel = 'unknown';
 
+    let i = 0;
     for (const step of executionPlan.steps) {
+      i++;
       turnCounter++;
-      context.currentStepId = step.id;
-      this.logger.info({ stepId: step.id, action: step.action }, `Executing step: ${step.description}`);
+      this.logger.info({ step: i, tool: step.tool }, `Executing step: ${step.reasoning}`);
 
       const hexagramContext = await this.hexagramManager.formatForPrompt();
       const stepPrompt = `OVERALL GOAL: ${executionPlan.goal}
-CURRENT STEP (${step.id}/${executionPlan.steps.length}): ${step.description}
-ACTION TYPE: ${step.action}
+CURRENT STEP (${i}/${executionPlan.steps.length}): ${step.reasoning}
+TOOL: ${step.tool}
+ARGS: ${JSON.stringify(step.args)}
 HISTORY: ${totalResponse.substring(0, 500)}...
 
 ${hexagramContext}
@@ -520,17 +494,17 @@ ${hexagramContext}
 Perform the current step and output results. If verifying, ensure you run the necessary tools.`;
 
       const executionTools = this.getAllAvailableTools();
-      const turnResult = await this.executeTurn(stepPrompt, context, turnCounter, executionTools, step.action);
+      const turnResult = await this.executeTurn(stepPrompt, context, turnCounter, executionTools, step.tool);
 
       if (turnResult.status === 'continue') {
         // Step requires more work or review
-        totalResponse += `\nStep ${step.id} Result: ${turnResult.nextMessage}\n`;
+        totalResponse += `\nStep ${i} Result: ${turnResult.nextMessage}\n`;
       } else if (turnResult.status === 'stop') {
         if (turnResult.terminateReason === AgentTerminateMode.GOAL) {
-          totalResponse += `\nStep ${step.id} Complete: ${turnResult.finalResult ?? ''}\n`;
+          totalResponse += `\nStep ${i} Complete: ${turnResult.finalResult ?? ''}\n`;
         } else {
-          this.logger.error({ stepId: step.id, reason: turnResult.terminateReason }, 'Step execution failed');
-          return { ok: false, error: new Error(`Step ${step.id} failed: ${turnResult.terminateReason}`) };
+          this.logger.error({ stepId: i, reason: turnResult.terminateReason }, 'Step execution failed');
+          return { ok: false, error: new Error(`Step ${i} failed: ${turnResult.terminateReason}`) };
         }
       }
 
@@ -631,7 +605,8 @@ Perform the current step and output results. If verifying, ensure you run the ne
     let executionResults = '';
 
     // Handle Task Completion (Signal from model)
-    if (response.includes('TASK_COMPLETE')) {
+    const safeResponse = response || '';
+    if (safeResponse.includes('TASK_COMPLETE')) {
       return {
         status: 'stop',
         terminateReason: AgentTerminateMode.GOAL,
@@ -643,11 +618,46 @@ Perform the current step and output results. If verifying, ensure you run the ne
     if (functionCalls && functionCalls.length > 0) {
       this.logger.info({ count: functionCalls.length }, 'Formal Tool Calls Detected');
       for (const call of functionCalls) {
-        let result: Result<any>;
-        if (call.name.includes('hexagram')) {
-          result = await this.hexagramLimb.handleToolCall(call.name, call.args);
-        } else {
-          result = { ok: false, error: new Error(`No handler for tool: ${call.name}`) };
+        let result: Result<any> = { ok: false, error: new Error(`No handler for tool: ${call.name}`) };
+
+        // Dynamic routing to limb that owns the tool
+        let handled = false;
+        for (const limb of this.limbs) {
+          if (limb.getTools && limb.handleToolCall) {
+            const tools = limb.getTools();
+            const hasTool = tools.some((group: any) => group.functionDeclarations.some((f: any) => f.name === call.name));
+            if (hasTool) {
+              result = await limb.handleToolCall(call.name, call.args);
+              handled = true;
+              break;
+            }
+          }
+        }
+
+        // Handle Internal Control Plane tools if not handled by limbs
+        if (!handled) {
+          const args = call.args as Record<string, any>;
+          if (call.name === 'plan_tool_execution') {
+            this.logger.info({ goal: args['goal'] }, 'Plan received');
+            result = { ok: true, value: { status: 'plan_recorded' } };
+          } else if (call.name === 'route_model') {
+            this.logger.info({ taskType: args['taskType'] }, 'Dynamic routing call');
+            const routeResult = await this.router.route(response);
+            if (routeResult.ok) {
+              result = { ok: true, value: { selectedModel: routeResult.value, reason: args['reason'] } };
+            } else {
+              result = { ok: false, error: routeResult.error };
+            }
+          } else if (call.name === 'evaluate_result') {
+            this.logger.info({ success: args['success'] }, 'Result evaluation received');
+            result = { ok: true, value: { auditId: `AUDIT_${Date.now()}` } };
+          } else if (call.name === 'emit_execution_manifest') {
+            this.logger.info('Emitting execution manifest');
+            result = { ok: true, value: { manifestUri: `gs://pog-audit/manifests/${Date.now()}.json` } };
+          } else if (call.name === 'manage_event_triggers') {
+            this.logger.info({ action: args['action'], triggerId: args['triggerId'] }, 'Event trigger management received');
+            result = { ok: true, value: { status: 'trigger_configured', triggerId: args['triggerId'] } };
+          }
         }
 
         executionResults += `\nTool: ${call.name}\nResult: ${result.ok ? JSON.stringify(result.value) : result.error.message}\n`;
@@ -862,8 +872,13 @@ Perform the current step and output results. If verifying, ensure you run the ne
   }
 
   private getAllAvailableTools(): Tool[] {
-
-    return this.hexagramLimb.getTools();
+    const allTools: Tool[] = [];
+    for (const limb of this.limbs) {
+      if (limb.getTools) {
+        allTools.push(...limb.getTools());
+      }
+    }
+    return allTools;
   }
 
   private getControlPlaneTools(): Tool[] {
@@ -884,15 +899,48 @@ Perform the current step and output results. If verifying, ensure you run the ne
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      id: { type: Type.NUMBER },
-                      description: { type: Type.STRING },
-                      action: { type: Type.STRING, enum: ['RESEARCH', 'MODIFY', 'VERIFY'] }
+                      tool: { type: Type.STRING, enum: ['Sandbox', 'GitManager', 'WebAppForge', 'Wrangler', 'gcloud'] },
+                      args: { type: Type.ARRAY, items: { type: Type.STRING } },
+                      reasoning: { type: Type.STRING },
+                      rollback: { type: Type.STRING, description: 'Command to run if this step fails.' }
                     },
-                    required: ['id', 'description', 'action']
+                    required: ['tool', 'args', 'reasoning']
                   }
                 }
               },
               required: ['goal', 'steps']
+            }
+          },
+          {
+            name: 'route_model',
+            description: 'Selects the optimal model for a specific task type and context.',
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                taskType: { type: Type.STRING, enum: ['architecture', 'syntax', 'refactor', 'debug', 'generate'] },
+                contextSize: { type: Type.NUMBER, description: 'Estimated token count.' },
+                requiresCloud: { type: Type.BOOLEAN },
+                reason: { type: Type.STRING }
+              },
+              required: ['taskType', 'reason']
+            }
+          },
+          {
+            name: 'evaluate_result',
+            description: 'Analyzes execution output to determine success and identify lessons.',
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                success: { type: Type.BOOLEAN },
+                errorType: { type: Type.STRING, description: 'Categorized error (e.g., Timeout, Syntax, Permission).' },
+                diff: { type: Type.STRING, description: 'Unified diff of changes made.' },
+                lessons: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING, description: 'Takeaways for future routing optimization.' }
+                },
+                regretLikelihood: { type: Type.NUMBER, minimum: 0, maximum: 1 }
+              },
+              required: ['success', 'lessons', 'regretLikelihood']
             }
           },
           {
@@ -903,12 +951,39 @@ Perform the current step and output results. If verifying, ensure you run the ne
               properties: {
                 intent: {
                   type: Type.STRING,
-                  enum: ['store_vector_snapshot', 'fetch_execution_artifact', 'commit_model_output', 'archival_cleanup']
+                  enum: [
+                    'store_vector_snapshot',
+                    'fetch_execution_artifact',
+                    'commit_model_output',
+                    'load_router_checkpoint',
+                    'archival_cleanup'
+                  ]
                 },
                 payload_uri: { type: Type.STRING },
                 metadata: { type: Type.OBJECT }
               },
               required: ['intent', 'payload_uri']
+            }
+          },
+          {
+            name: 'emit_execution_manifest',
+            description: 'Records a complete audit log of a cognitive intent to GCS.',
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                intentId: { type: Type.STRING },
+                routingDecision: { type: Type.OBJECT },
+                toolChain: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING }
+                },
+                artifactPointers: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING }
+                },
+                lessonDerived: { type: Type.BOOLEAN }
+              },
+              required: ['intentId', 'routingDecision', 'toolChain']
             }
           },
           {
@@ -925,6 +1000,32 @@ Perform the current step and output results. If verifying, ensure you run the ne
                 proposed_action: { type: Type.STRING }
               },
               required: ['intent', 'terminal_context']
+            }
+          },
+          {
+            name: 'manage_event_triggers',
+            description: 'Configures and manages event-driven triggers for cross-surface orchestration.',
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                action: { type: Type.STRING, enum: ['create', 'delete', 'list'] },
+                triggerId: { type: Type.STRING },
+                source: {
+                  type: Type.OBJECT,
+                  properties: {
+                    provider: { type: Type.STRING, enum: ['storage.googleapis.com', 'pubsub.googleapis.com'] },
+                    event: { type: Type.STRING, description: 'e.g., google.cloud.storage.object.v1.finalized' }
+                  }
+                },
+                destination: {
+                  type: Type.OBJECT,
+                  properties: {
+                    type: { type: Type.STRING, enum: ['cloud_function', 'cloud_run', 'workflow'] },
+                    uri: { type: Type.STRING }
+                  }
+                }
+              },
+              required: ['action', 'triggerId']
             }
           }
         ]

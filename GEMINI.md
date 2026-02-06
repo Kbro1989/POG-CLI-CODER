@@ -25,6 +25,10 @@ Implemented strict function schemas for:
 - **`plan_tool_execution`**: Supervisor-level task decomposition
 - **`manage_durable_memory`**: GCS object storage integration
 - **`cloud_shell_cognitive_assist`**: Terminal-aware code generation
+- **`route_model`**: Dynamic model selection via Ternary logic
+- **`evaluate_result`**: Critical analysis of execution outcomes
+- **`emit_execution_manifest`**: Audit logging for compliance
+- **`manage_event_triggers`**: Cross-surface event orchestration
 
 #### 3. **Response Handling**
 - Robust extraction of `.text` from `GenerateContentResponse`

@@ -14,8 +14,10 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 import pino from 'pino';
 import { PreviewServer } from '../../core/PreviewServer.js';
+import { FORGE_TOOLS } from './tools/definitions.js';
 
 const execAsync = promisify(exec);
+
 const logger = pino({
     name: 'WebAppForge',
     base: { hostname: 'POG-VIBE' }
@@ -217,4 +219,27 @@ export class WebAppForgeLimb implements NeuralLimb {
             await execAsync(template.install, { cwd: dir });
         }
     }
+
+    getTools(): any[] {
+        return [{
+            functionDeclarations: FORGE_TOOLS.map(t => ({
+                name: t.name,
+                description: t.description,
+                parameters: t.parameters
+            }))
+        }];
+    }
+
+    async handleToolCall(name: string, args: any): Promise<Result<any>> {
+        const tool = FORGE_TOOLS.find(t => t.name === name);
+        if (!tool) return { ok: false, error: new Error(`Unknown tool: ${name}`) };
+
+        try {
+            const output = await tool.handler(args);
+            return { ok: true, value: output };
+        } catch (e) {
+            return { ok: false, error: e as Error };
+        }
+    }
 }
+

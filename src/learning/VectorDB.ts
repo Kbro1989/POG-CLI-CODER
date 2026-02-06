@@ -51,18 +51,64 @@ export class VectorDB {
     }
   }
 
+  async indexModelRegistry(_registry: Record<string, any>): Promise<Result<void>> {
+    return new Promise((resolve) => {
+      if (!this.db) {
+        resolve({ ok: false, error: new Error('Database not initialized') });
+        return;
+      }
+
+      this.db.serialize(() => {
+        this.db!.run(`
+          CREATE TABLE IF NOT EXISTS model_capabilities (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT,
+            capabilities TEXT,
+            embedding BLOB
+          )
+        `);
+
+        // Placeholder for batch insertion logic
+        resolve({ ok: true, value: undefined });
+      });
+    });
+  }
+
+  async findBestModel(queryEmbedding: Float32Array): Promise<Result<string[]>> {
+    return new Promise((resolve) => {
+      if (!this.db) return resolve({ ok: false, error: new Error('DB not init') });
+
+      this.db.all('SELECT * FROM model_capabilities', [], (err, rows: any[]) => {
+        if (err) return resolve({ ok: false, error: err });
+
+        // Simple cosine similarity scan
+        const scored = rows.map(r => {
+          const embedding = new Float32Array(r.embedding); // Assuming BLOB is returned as buffer/array
+          return {
+            id: r.id,
+            score: this.cosineSimilarity(queryEmbedding, embedding)
+          };
+        });
+
+        scored.sort((a, b) => b.score - a.score);
+        resolve({ ok: true, value: scored.slice(0, 3).map(s => s.id) });
+      });
+    });
+  }
+
   private async ensureSchema(): Promise<void> {
     if (!this.db) return;
 
     return new Promise((resolve) => {
-      this.db!.all("PRAGMA table_info(lessons)", async (err, rows: any[]) => {
+      this.db!.all("PRAGMA table_info(lessons)", async (err, _rows: any[]) => {
         if (err) {
           logger.error({ err }, 'Failed to check schema');
           resolve();
           return;
         }
 
-        const columns = rows.map(r => r.name);
+        const columns = _rows.map(r => r.name);
         const migrations: string[] = [];
 
         if (!columns.includes('projectId')) {

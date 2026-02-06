@@ -44,23 +44,91 @@ export class BioIntelligenceLimb implements NeuralLimb {
             capabilityId = 'pathology_analysis';
         }
 
-        logger.info({ capabilityId, prompt: intent.prompt }, 'Executing esoteric bio-medical task');
+        const result = await this.handleToolCall(capabilityId, intent.prompt);
+        if (!result.ok) return { ok: false, error: result.error };
+
+        return {
+            ok: true,
+            value: {
+                output: result.value.output,
+                data: result.value.data
+            }
+        };
+    }
+
+    getTools(): any[] {
+        return [
+            {
+                functionDeclarations: [
+                    {
+                        name: 'hear_acoustic_analysis',
+                        description: 'Analyze health-related sounds like coughs or breathing.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                prompt: { type: 'string', description: 'Description of the acoustic data or clinical context' }
+                            },
+                            required: ['prompt']
+                        }
+                    },
+                    {
+                        name: 'medgemma_reasoning',
+                        description: 'Perform advanced medical reasoning and comprehension.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                prompt: { type: 'string', description: 'The medical query or patient case to analyze' }
+                            },
+                            required: ['prompt']
+                        }
+                    },
+                    {
+                        name: 'derm_foundation_analysis',
+                        description: 'Analyze medical photographs of human skin for dermatological assessment.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                prompt: { type: 'string', description: 'Description of the skin condition or clinical imagery' }
+                            },
+                            required: ['prompt']
+                        }
+                    },
+                    {
+                        name: 'pathology_analysis',
+                        description: 'Analyze pathology slides and H&E patches.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                prompt: { type: 'string', description: 'Clinical context for the pathology analysis' }
+                            },
+                            required: ['prompt']
+                        }
+                    }
+                ]
+            }
+        ];
+    }
+
+    async handleToolCall(name: string, args: any): Promise<Result<any>> {
+        logger.info({ capabilityId: name, args }, 'Executing bio-intelligence tool call');
+        const payload = typeof args === 'string' ? args : args.prompt;
 
         const response = await this.dispatcher.dispatch({
-            capabilityId,
-            payload: intent.prompt
+            capabilityId: name,
+            payload
         });
 
         if (!response.success) {
-            return { ok: false, error: new Error(response.error || 'Bio intelligence execution failed') };
+            return { ok: false, error: new Error(response.error || `Bio intelligence tool ${name} failed`) };
         }
 
         return {
             ok: true,
             value: {
-                output: `Bio-intelligence analysis complete via ${capabilityId}. Result: ${JSON.stringify(response.result)}`,
+                output: `Bio-intelligence analysis complete via ${name}.`,
                 data: response.result
             }
         };
     }
 }
+

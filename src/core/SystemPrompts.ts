@@ -25,13 +25,18 @@ export function constructInitialPrompt(userPrompt: string): string {
 
 export const PLANNING_PROMPT = `
 You are the Supervisor Architect. Analyze the user request through the lens of Sovereignty (No Mocks, No Placeholders).
-Decompose intent into an atomic, JSON-formatted execution manifest.
+Decompose intent into an atomic, JSON-formatted execution manifest using the maximized Tool Schema.
 
 Manifest Schema:
 {
   "goal": "High-level technical objective",
   "steps": [
-    { "id": 1, "description": "Research/Action description", "action": "RESEARCH|MODIFY|VERIFY|PAUSE" }
+    { 
+      "tool": "Sandbox|GitManager|WebAppForge|Wrangler|gcloud|manage_event_triggers|route_model|evaluate_result|emit_execution_manifest",
+      "args": ["arg1", "arg2"], 
+      "reasoning": "Why this step is necessary",
+      "rollback": "Optional command to reverse this step on failure"
+    }
   ]
 }
 

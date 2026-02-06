@@ -42,23 +42,80 @@ export class MediaForgeLimb implements NeuralLimb {
             capabilityId = 'lyria_v2_music_generation';
         }
 
-        logger.info({ capabilityId, prompt: intent.prompt }, 'Executing esoteric media task');
+        const result = await this.handleToolCall(capabilityId, intent.prompt);
+        if (!result.ok) return { ok: false, error: result.error };
+
+        return {
+            ok: true,
+            value: {
+                output: result.value.output,
+                data: result.value.data
+            }
+        };
+    }
+
+    getTools(): any[] {
+        return [
+            {
+                functionDeclarations: [
+                    {
+                        name: 'imagen_v4_generation',
+                        description: 'Generate or edit high-quality images from text descriptions.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                prompt: { type: 'string', description: 'Detailed description of the image to generate' }
+                            },
+                            required: ['prompt']
+                        }
+                    },
+                    {
+                        name: 'veo_v3_video_generation',
+                        description: 'Generate short videos with audio from text prompts.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                prompt: { type: 'string', description: 'Visual and auditory description for the video' }
+                            },
+                            required: ['prompt']
+                        }
+                    },
+                    {
+                        name: 'lyria_v2_music_generation',
+                        description: 'Generate high-quality instrumental music from text descriptions.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                prompt: { type: 'string', description: 'Style, mood, and instrumentation requirements' }
+                            },
+                            required: ['prompt']
+                        }
+                    }
+                ]
+            }
+        ];
+    }
+
+    async handleToolCall(name: string, args: any): Promise<Result<any>> {
+        logger.info({ capabilityId: name, args }, 'Executing media forge tool call');
+        const payload = typeof args === 'string' ? args : args.prompt;
 
         const response = await this.dispatcher.dispatch({
-            capabilityId,
-            payload: intent.prompt
+            capabilityId: name,
+            payload
         });
 
         if (!response.success) {
-            return { ok: false, error: new Error(response.error || 'Media forge execution failed') };
+            return { ok: false, error: new Error(response.error || `Media forge tool ${name} failed`) };
         }
 
         return {
             ok: true,
             value: {
-                output: `Successfully forged media using ${capabilityId}. Result available in project artifacts.`,
+                output: `Successfully forged media using ${name}.`,
                 data: response.result
             }
         };
     }
 }
+

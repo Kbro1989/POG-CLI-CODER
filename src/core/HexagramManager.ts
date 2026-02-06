@@ -1,5 +1,6 @@
 import { VectorDB } from '../learning/VectorDB.js';
 import { Result } from './models.js';
+import { HEXAGRAM_REGISTRY, DEFAULT_HEXAGRAM, HexagramDefinition } from './HexagramDefinitions.js';
 
 export enum YaoState {
     OldYang = 0, // Moving Yang
@@ -36,12 +37,12 @@ export class HexagramManager {
 
     async initialize(): Promise<void> {
         const result = await this.vectorDB.getHexagramContext(this.projectId);
-        if (result.ok) { // Assuming 'isOk' is equivalent to 'result.ok'
+        if (result.ok) {
             this.lines = result.value.map(row => ({
-                lineIndex: row.lineIndex, // Assuming lineIndex is present in the row
+                lineIndex: row.lineIndex,
                 title: row.title,
                 content: row.content,
-                importance: row.importance || 1, // Default importance
+                importance: row.importance || 1,
                 state: row.state as YaoState
             }));
         }
@@ -49,26 +50,24 @@ export class HexagramManager {
         // Ensure 6 lines exist
         while (this.lines.length < 6) {
             this.lines.push({
-                lineIndex: this.lines.length + 1, // Assign a line index
+                lineIndex: this.lines.length + 1,
                 title: 'Empty Slot',
                 content: 'No context recorded for this pillar.',
                 importance: 0,
-                state: YaoState.YoungYin // Changed from YaoState.Yin to YoungYin as Yin is not a direct enum member
+                state: YaoState.YoungYang // Default Young Yang
             });
         }
     }
 
     async setLine(index: number, card: ContextCard): Promise<Result<void>> {
-        if (index < 1 || index > 6) { // Adjusted to 1-based index
+        if (index < 1 || index > 6) {
             return { ok: false, error: new Error('Invalid line index (1-6)') };
         }
-        this.lines[index - 1] = card; // Adjusted to 0-based array index
+        this.lines[index - 1] = card;
         return this.vectorDB.updateHexagramLine(index, this.projectId, card.title, card.content, card.state);
     }
 
     async getHexagramContext(): Promise<Result<ContextCard[]>> {
-        // This method now returns the internal 'lines' array, which is populated by initialize()
-        // and updated by setLine(). It no longer directly calls vectorDB.getHexagram().
         return { ok: true, value: this.lines };
     }
 
@@ -76,9 +75,25 @@ export class HexagramManager {
         if (index < 1 || index > 6) {
             return { ok: false, error: new Error('Invalid line index (1-6)') };
         }
-        // This method now uses setLine to update the internal state and persist
         const card: ContextCard = { lineIndex: index, title, content, state, importance: 1 };
         return this.setLine(index, card);
+    }
+
+    /**
+     * Calculates the current I Ching Hexagram based on the 6 Yao states.
+     * Returns a strategic definition capable of guiding agent behavior.
+     */
+    getInterpretation(): HexagramDefinition {
+        const binaryId = this.calculateHexagramId(this.lines, false);
+        const fallback: HexagramDefinition = {
+            ...DEFAULT_HEXAGRAM,
+            binary: binaryId,
+            id: 0,
+            name: 'Unknown Archetype',
+            description: 'No interpretation found for this state.',
+            strategy: 'MAINTAIN'
+        };
+        return HEXAGRAM_REGISTRY[binaryId] || fallback;
     }
 
     async formatForPrompt(): Promise<string> {
@@ -86,34 +101,37 @@ export class HexagramManager {
         if (!result.ok) return 'Hexagram context unavailable.';
 
         const cards = result.value;
-        if (cards.length === 0) return 'Hexagram Card Holders are currently empty.';
+        const metadata = this.getInterpretation();
 
         let output = '=== SOVEREIGN HEXAGRAM CONTEXT ===\n';
+        output += `ARCHETYPE: ${metadata.name} (${metadata.binary})\n`;
+        output += `MEANING: ${metadata.description}\n`;
+        output += `> STRATEGIC DIRECTIVE: ${metadata.strategy}\n\n`;
+
         output += 'The following high-priority context cards are pinned to the active hexagram:\n\n';
 
         for (let i = 1; i <= 6; i++) {
-            const card = cards.find(c => (c as any).line_index === i);
+            const card = cards.find(c => (c as any).lineIndex === i) || cards[i - 1];
             const facet = this.FACET_MAP[i];
 
             if (card) {
                 const stateStr = this.getStateString((card as any).state);
                 output += `Line ${i} [${facet}]:\n`;
-                output += `TITLE: ${(card as any).title}\n`;
+                output += `TITLE: ${card.title}\n`;
                 output += `STATE: ${stateStr}\n`;
-                output += `CONTENT: ${(card as any).content}\n\n`;
+                output += `CONTENT: ${card.content}\n\n`;
             } else {
                 output += `Line ${i} [${facet}]: (Empty)\n\n`;
             }
         }
 
-        const presentId = this.calculateHexagramId(cards, false);
         const hasMoving = cards.some(c => (c as any).state === YaoState.OldYang || (c as any).state === YaoState.OldYin);
 
-        output += `Present Hexagram Structure: ${presentId}\n`;
         if (hasMoving) {
             const futureId = this.calculateHexagramId(cards, true);
-            output += `Future Hexagram (Moving Lines): ${futureId}\n`;
-            output += 'WARNING: Moving lines detected. Context is in transition.\n';
+            const futureMeta = HEXAGRAM_REGISTRY[futureId] || { name: 'Unknown', strategy: 'Uncertainty' };
+            output += `\n>> FUTURE TRANSITION: ${futureMeta.name}\n`;
+            output += `>> FUTURE STRATEGY: ${futureMeta.strategy}\n`;
         }
 
         return output;
@@ -136,7 +154,7 @@ export class HexagramManager {
 
         let binary = '';
         for (let i = 1; i <= 6; i++) {
-            const card = cards.find(c => c.line_index === i);
+            const card = cards.find(c => c.lineIndex === i) || cards[i - 1];
             const state = card ? card.state : 2; // Default to YoungYang if empty
 
             let isYang = (state === 0 || state === 2);

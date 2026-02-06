@@ -28,7 +28,18 @@ export interface NeuralLimb {
     canHandle(intent: Intent): Promise<boolean>;
 
     /**
-     * Execute the limb's primary function
+     * Execute the limb's primary function (High-level orchestration)
      */
     execute(intent: Intent): Promise<Result<Execution>>;
+
+    /**
+     * Optional: Return formal tool declarations for the Supervisor Loop
+     */
+    getTools?(): any[];
+
+    /**
+     * Optional: Handle a formal tool call from the model
+     */
+    handleToolCall?(name: string, args: any): Promise<Result<any>>;
 }
+
