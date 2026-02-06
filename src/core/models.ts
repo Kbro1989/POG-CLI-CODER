@@ -17,9 +17,22 @@ export const enum TaskType {
   Conversational = 'conversational'
 }
 
+export const enum ModelAbility {
+  Chat = 'CHAT',
+  Code = 'CODE',
+  Vision = 'VISION',
+  Transcription = 'TRANSCRIPTION',
+  TTS = 'TTS',
+  ImageGen = 'IMAGE_GEN',
+  VideoGen = 'VIDEO_GEN',
+  Embedding = 'EMBEDDING',
+  Search = 'SEARCH'
+}
+
 export const enum ModelType {
   Local = 'local',
-  CloudFree = 'cloud-free'
+  CloudFree = 'cloud-free',
+  Cloudflare = 'cloudflare'
 }
 
 export const enum CircuitState {
@@ -75,7 +88,7 @@ export interface FreeModelConfig {
   readonly name: string;
   readonly command: string;
   readonly type: ModelType;
-  readonly capabilities: ReadonlyArray<string>;
+  readonly capabilities: ReadonlyArray<ModelAbility | string>;
   readonly fallback?: string;
   readonly maxTokens?: number;
   readonly temperature?: number;
@@ -217,8 +230,11 @@ export interface VibeConfig {
   readonly logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error';
   readonly projectId: string;
   readonly errorTrackerModelPath?: string | undefined;
+  readonly workspaces?: string[];
   readonly enabledServices: string[];
   readonly cloudflareGatewayUrl?: string | undefined;
+  readonly cloudflareAccountId?: string | undefined;
+  readonly cloudflareApiToken?: string | undefined;
   readonly monitorModel?: string | undefined;
   readonly snapshotModel?: string | undefined;
   readonly criticModel?: string | undefined;
@@ -269,6 +285,20 @@ export interface ArchitectureManifest {
   }>;
   readonly dependencyRules: Record<string, string[]>;
   readonly primaryGoal: string;
+}
+
+export interface Intent {
+  readonly prompt: string;
+  readonly files?: ReadonlyArray<string>;
+  readonly context?: any;
+  readonly tools?: ReadonlyArray<any>;
+}
+
+export interface Execution {
+  readonly output: string;
+  readonly data?: any;
+  readonly filesModified?: ReadonlyArray<string>;
+  readonly commandsRun?: ReadonlyArray<string>;
 }
 
 export interface ModelResponse {

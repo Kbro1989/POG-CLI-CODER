@@ -18,9 +18,10 @@ const ConfigSchema = z.object({
   circuitBreakerCooldown: z.number().int().positive().default(30000), // 30 seconds
   embeddingDimensions: z.number().int().positive().default(768),
   logLevel: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
-  projectId: z.string().min(1),
+  projectId: z.string().default('pog-vibe-session'),
+  workspaces: z.array(z.string()).default([]),
   errorTrackerModelPath: z.string().optional(),
-  enabledServices: z.array(z.string()).default(['gemini', 'ollama', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge', 'gutenberg']),
+  enabledServices: z.array(z.string()).default(['gemini', 'ollama', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge', 'gutenberg', 'dashboard']),
   cloudflareGatewayUrl: z.string().url().optional(),
   monitorModel: z.string().optional(),
   snapshotModel: z.string().optional(),
@@ -134,17 +135,4 @@ export class ConfigManager {
   }
 }
 
-/**
- * Environment variable documentation
- */
-export const ENV_VARS = {
-  POG_DIR: 'Base directory for POG data (default: ~/.pog-coder-vibe)',
-  VIBE_WS_PORT: 'WebSocket port for VS Code extension (default: 8765)',
-  VIBE_MAX_SNAPSHOT_AGE: 'Maximum snapshot age in ms (default: 86400000)',
-  VIBE_CB_THRESHOLD: 'Circuit breaker failure threshold (default: 3)',
-  VIBE_CB_COOLDOWN: 'Circuit breaker cooldown in ms (default: 30000)',
-  VIBE_EMBEDDING_DIM: 'Vector embedding dimensions (default: 768)',
-  VIBE_LOG_LEVEL: 'Logging level: trace|debug|info|warn|error (default: info)',
-  VIBE_AGENT_NAME: 'Display name for the AI agent (default: POG-VIBE-AGENT)',
-  SESSION_ID: 'Current session identifier (auto-generated if not set)'
-} as const;
+

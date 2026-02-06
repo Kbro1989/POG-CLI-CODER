@@ -8,11 +8,11 @@ import { FreeModelConfig, ModelType } from './models.js';
 export class ModelInventory {
     static getAvailableModels(): FreeModelConfig[] {
         return Object.values(StaticModelRegistry).map(cap => {
-            const serviceType = (cap as any).serviceType as string;
-            const modelId = (cap as any).modelId as string || 'unknown-model';
+            const serviceType = cap.serviceType;
+            const modelId = cap.modelId || 'unknown-model';
 
             const isLocal = serviceType === 'OLLAMA' || modelId.includes('qwen') || modelId.includes('llama');
-            const taskType = ((cap as any).taskType as string || 'text').toLowerCase();
+            const taskType = cap.taskType.toLowerCase();
 
             return {
                 name: modelId,

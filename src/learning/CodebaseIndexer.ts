@@ -28,6 +28,15 @@ export class CodebaseIndexer {
         this.ignoreFilter = this.loadGitignore(projectRoot);
     }
 
+    /**
+     * Update the project root for multi-workspace support
+     */
+    setProjectRoot(newRoot: string): void {
+        this.projectRoot = newRoot;
+        this.ignoreFilter = this.loadGitignore(newRoot);
+        logger.info({ newRoot }, 'CodebaseIndexer root updated');
+    }
+
     private loadGitignore(root: string): ReturnType<typeof ignore> {
         const ig = ignore();
 

@@ -2,7 +2,7 @@ import { StaticModelRegistry, CatalogMetadata } from './StaticModelRegistry.js';
 
 export { CatalogMetadata };
 
-export type AIServiceType = 'GEMINI' | 'VERTEX_AI' | 'CLOUD_VISION' | 'DOCUMENT_AI' | 'SPEECH' | 'GEOSPATIAL' | 'HEALTH_AI' | 'MEDIA_FORGE' | 'GUTENBERG' | 'VIDEO_INTELLIGENCE' | 'TRANSLATION' | 'NATURAL_LANGUAGE';
+export type AIServiceType = 'GEMINI' | 'VERTEX_AI' | 'CLOUD_VISION' | 'DOCUMENT_AI' | 'SPEECH' | 'GEOSPATIAL' | 'HEALTH_AI' | 'MEDIA_FORGE' | 'GUTENBERG' | 'VIDEO_INTELLIGENCE' | 'TRANSLATION' | 'NATURAL_LANGUAGE' | 'OLLAMA';
 
 export type AITaskType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'MULTIMODAL' | 'EMBEDDING' | 'HEALTH' | 'GEO';
 

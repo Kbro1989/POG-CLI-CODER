@@ -23,6 +23,7 @@ async function testCloudflareFallback() {
         // We use a model name that definitely doesn't exist in Ollama
         const result = await executor.callModel('pog-non-existent-model', 'Hello Cloudflare, are you there?');
 
+        console.log('🏁 Execution Chain Finished.');
         if (result.ok) {
             console.log('✅ TEST SUCCESSFUL!');
             console.log('Model Used:', result.value.model);
@@ -30,6 +31,7 @@ async function testCloudflareFallback() {
             console.log('Latency:', result.value.latency, 'ms');
         } else {
             console.error('❌ TEST FAILED:', result.error.message);
+            console.error('Stack:', result.error.stack);
         }
     } catch (err) {
         console.error('💥 CRITICAL ERROR:', err);

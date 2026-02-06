@@ -33,6 +33,16 @@ export class ASTWatcher extends EventEmitter {
     super();
   }
 
+  /**
+   * Update the project root and restart the watcher
+   */
+  async setProjectRoot(newRoot: string): Promise<void> {
+    logger.info({ newRoot }, 'Updating AST Watcher root');
+    await this.stop();
+    (this.config as any).projectRoot = newRoot;
+    this.initialize();
+  }
+
   override on<K extends keyof WatcherEvents>(
     event: K,
     listener: WatcherEvents[K]

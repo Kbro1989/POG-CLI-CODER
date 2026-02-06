@@ -255,7 +255,8 @@ class VibeCLI {
     {
       pattern: /^exit$/i,
       description: 'Exit the REPL',
-      handler: (): void => {
+      handler: (args: string[]): void => {
+        void args;
         this.running = false;
         this.rl.close();
       }
@@ -263,7 +264,8 @@ class VibeCLI {
     {
       pattern: /^help$/i,
       description: 'Show available commands',
-      handler: (): void => {
+      handler: (args: string[]): void => {
+        void args;
         // eslint-disable-next-line no-console
         console.log('\n📚 Available Commands:\n');
         for (const cmd of this.commands) {
@@ -294,14 +296,16 @@ class VibeCLI {
     {
       pattern: /^(health|audit)$/i,
       description: 'health           - Run substrate health audit',
-      handler: async (): Promise<void> => {
+      handler: async (args: string[]): Promise<void> => {
+        void args;
         await this.performAudit();
       }
     },
     {
       pattern: /^debug$/i,
       description: 'debug            - Toggle JSON log visibility',
-      handler: (): void => {
+      handler: (args: string[]): void => {
+        void args;
         showLogs = !showLogs;
         const status = showLogs ? chalk.green('VISIBLE') : chalk.gray('HIDDEN');
         // eslint-disable-next-line no-console
@@ -311,7 +315,8 @@ class VibeCLI {
     {
       pattern: /^history$/i,
       description: 'View intent history',
-      handler: (): void => {
+      handler: (args: string[]): void => {
+        void args;
         const history = this.orchestrator.getIntentHistory();
         if (history.length === 0) {
           // eslint-disable-next-line no-console
@@ -337,7 +342,8 @@ class VibeCLI {
     {
       pattern: /^state$/i,
       description: 'Show current state',
-      handler: (): void => {
+      handler: (args: string[]): void => {
+        void args;
         const state = this.orchestrator.getCurrentState();
         // eslint-disable-next-line no-console
         console.log('\n🎯 Current State:\n');
@@ -350,7 +356,8 @@ class VibeCLI {
     {
       pattern: /^config$/i,
       description: 'Show configuration',
-      handler: (): void => {
+      handler: (args: string[]): void => {
+        void args;
         const config = this.configManager.getConfig();
         // eslint-disable-next-line no-console
         console.log('\n⚙️  Configuration:\n');
@@ -363,7 +370,8 @@ class VibeCLI {
     {
       pattern: /^init$/i,
       description: 'Initialize local sovereign environment (.pog)',
-      handler: async (): Promise<void> => {
+      handler: async (args: string[]): Promise<void> => {
+        void args;
         const localPog = join(process.cwd(), '.pog');
         if (fs.existsSync(localPog)) {
           // eslint-disable-next-line no-console
@@ -396,7 +404,8 @@ class VibeCLI {
     {
       pattern: /^models$/i,
       description: 'Manage AI models with ternary selection',
-      handler: async (): Promise<void> => {
+      handler: async (args: string[]): Promise<void> => {
+        void args;
         const items = [
           { value: 'gemini-3-flash-preview', label: 'Gemini 3 Flash', description: '+1 (Complex) - Agentic workhorse' },
           { value: 'qwen2.5-coder:14b', label: 'Qwen 14B', description: '0 (Balanced) - Local sweet spot' },
@@ -411,6 +420,34 @@ class VibeCLI {
       }
     },
     {
+      pattern: /^voice$/i,
+      description: 'Trigger microphone transcription (Voice Chat)',
+      handler: async (args: string[]): Promise<void> => {
+        void args;
+        // eslint-disable-next-line no-console
+        console.log(chalk.cyan('\n🎙️  Listening (5 seconds)... Speak now!\n'));
+        try {
+          const result = await this.orchestrator.executeIntent('voice transcription');
+          if (result.ok) {
+            const transcription = result.value.data.transcription;
+            // eslint-disable-next-line no-console
+            console.log(chalk.green(`\n🗣️  You said: "${transcription}"\n`));
+
+            // Execute the transcribed text as a new intent
+            if (transcription) {
+              await this.handleInput(transcription);
+            }
+          } else {
+            // eslint-disable-next-line no-console
+            console.error(chalk.red(`\n❌ Voice Error: ${result.error.message}\n`));
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error(chalk.red(`\n❌ Voice Interface Error: ${(error as Error).message}\n`));
+        }
+      }
+    },
+    {
       pattern: /^create\s+(.+)$/i,
       description: 'Create full-stack app (WebApp Forge)',
       handler: async (args: string[]): Promise<void> => {
@@ -419,7 +456,6 @@ class VibeCLI {
         console.log(`\n🔨 WebApp Forge: "${prompt}"\n`);
 
         try {
-          // Direct entry to Orchestrator inten execution, which now routes to Limb
           await this.executeIntent(`create ${prompt}`);
         } catch (error) {
           // eslint-disable-next-line no-console
@@ -487,7 +523,7 @@ class VibeCLI {
         return;
       }
 
-      drawMessage('POG', result.value);
+      drawMessage('POG', result.value.output);
     } catch (error) {
       logger.error({ error }, 'Unexpected error');
       drawMessage('SYSTEM', `Unexpected error: ${(error as Error).message}`);

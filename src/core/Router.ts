@@ -25,7 +25,7 @@ import type {
   CircuitState,
   VibeConfig
 } from './models.js';
-import { CircuitState as CS, TaskType as TT, ModelType as MT } from './models.js';
+import { CircuitState as CS, TaskType as TT, ModelType as MT, ModelAbility as MA } from './models.js';
 import { ContextBuilder } from '../context/ContextBuilder.js';
 import { VectorDB } from '../learning/VectorDB.js';
 import { GeminiService } from './GeminiService.js';
@@ -143,7 +143,7 @@ export class FreeModelRouter {
       name: 'gemini-3-flash-preview',
       command: 'gemini:gemini-3-flash-preview',
       type: MT.CloudFree,
-      capabilities: ['agentic', 'coding', 'multimodal', 'generate', 'refactor', 'test'],
+      capabilities: [MA.Chat, MA.Code, MA.Vision, 'agentic'],
       fallback: 'gemini-2.5-flash-preview',
       maxTokens: 32768,
       priority: 100
@@ -152,7 +152,7 @@ export class FreeModelRouter {
       name: 'gemini-3-pro-preview',
       command: 'gemini:gemini-3-pro-preview',
       type: MT.CloudFree,
-      capabilities: ['architecture', 'extreme-reasoning', 'planning', 'agentic', 'coding'],
+      capabilities: [MA.Chat, MA.Code, MA.Vision, MA.Search, 'planning'],
       fallback: 'gemini-2.5-pro',
       maxTokens: 32768,
       priority: 99
@@ -161,7 +161,7 @@ export class FreeModelRouter {
       name: 'gemini-2.5-flash-preview',
       command: 'gemini:gemini-2.5-flash-preview',
       type: MT.CloudFree,
-      capabilities: ['syntax', 'refactor', 'generate', 'low-latency'],
+      capabilities: [MA.Chat, MA.Code, MA.Vision],
       fallback: 'gemini-2.5-flash',
       maxTokens: 32768,
       priority: 98
@@ -170,7 +170,7 @@ export class FreeModelRouter {
       name: 'gemini-2.5-pro',
       command: 'gemini:gemini-2.5-pro',
       type: MT.CloudFree,
-      capabilities: ['architecture', 'complex-prompts', 'code'],
+      capabilities: [MA.Chat, MA.Code, MA.Vision, MA.Embedding],
       fallback: 'gemini-2.0-flash',
       maxTokens: 32768,
       priority: 97
@@ -179,7 +179,7 @@ export class FreeModelRouter {
       name: 'gemini-flash',
       command: 'gemini:gemini-2.0-flash',
       type: MT.CloudFree,
-      capabilities: ['syntax', 'refactor', 'generate', 'test', 'docs'],
+      capabilities: [MA.Chat, MA.Code, MA.Vision],
       fallback: 'gemini-1.5-flash',
       maxTokens: 32768,
       priority: 90
@@ -188,7 +188,7 @@ export class FreeModelRouter {
       name: 'gemini-thinking',
       command: 'gemini:gemini-2.0-flash',
       type: MT.CloudFree,
-      capabilities: ['architecture', 'extreme-reasoning', 'planning', 'orchestration'],
+      capabilities: [MA.Chat, MA.Code, MA.Vision, 'reasoning'],
       fallback: 'gemini-1.5-pro',
       maxTokens: 32768,
       priority: 95
@@ -197,7 +197,7 @@ export class FreeModelRouter {
       name: 'gemini-1.5-flash',
       command: 'gemini:gemini-1.5-flash',
       type: MT.CloudFree,
-      capabilities: ['quick-edit', 'web-dev', 'fallback'],
+      capabilities: [MA.Chat, MA.Code, MA.Vision],
       fallback: 'qwen2.5-coder:7b-instruct-q4_K_M',
       maxTokens: 1000000,
       priority: 50
@@ -206,7 +206,7 @@ export class FreeModelRouter {
       name: 'gemini-1.5-pro',
       command: 'gemini:gemini-1.5-pro',
       type: MT.CloudFree,
-      capabilities: ['architecture', 'planning', 'fallback'],
+      capabilities: [MA.Chat, MA.Code, MA.Vision],
       fallback: 'qwen2.5-coder:14b-instruct-q5_K_M',
       maxTokens: 2000000,
       priority: 45
@@ -215,7 +215,7 @@ export class FreeModelRouter {
       name: 'qwen2.5-coder:7b-instruct-q4_K_M',
       command: 'ollama run qwen2.5-coder:7b-instruct-q4_K_M',
       type: MT.Local,
-      capabilities: ['code', 'syntax', 'quick-fix', 'offline'],
+      capabilities: [MA.Chat, MA.Code, 'offline'],
       fallback: 'gemini-flash',
       maxTokens: 4096,
       priority: 75
@@ -224,7 +224,7 @@ export class FreeModelRouter {
       name: 'yi-coder:9b-chat-q5_K_M',
       command: 'ollama run yi-coder:9b-chat-q5_K_M',
       type: MT.Local,
-      capabilities: ['code', 'web-dev', 'refactor', 'chat'],
+      capabilities: [MA.Chat, MA.Code, 'web-dev'],
       fallback: 'gemini-flash',
       maxTokens: 8192,
       priority: 70
@@ -233,26 +233,44 @@ export class FreeModelRouter {
       name: 'qwen2.5-coder:14b-instruct-q5_K_M',
       command: 'ollama run qwen2.5-coder:14b-instruct-q5_K_M',
       type: MT.Local,
-      capabilities: ['code', 'architecture', 'complex-reasoning', 'orchestration'],
+      capabilities: [MA.Chat, MA.Code, 'reasoning'],
       fallback: 'gemini-thinking',
       maxTokens: 16384,
       priority: 60
     },
     {
+      name: 'cloudflare-llama-3.1-8b',
+      command: 'cloudflare:@cf/meta/llama-3.1-8b-instruct',
+      type: MT.Cloudflare,
+      capabilities: [MA.Chat, 'low-latency'],
+      fallback: 'gemini-flash',
+      maxTokens: 4096,
+      priority: 85
+    },
+    {
+      name: 'cloudflare-whisper',
+      command: 'cloudflare:@cf/openai/whisper',
+      type: MT.Cloudflare,
+      capabilities: [MA.Transcription],
+      priority: 100
+    },
+    {
       name: 'diagnostic-critic',
       command: `ollama run qwen2.5-coder:14b-instruct-q5_K_M`,
       type: MT.Local,
-      capabilities: ['diagnostic', 'error-tracking', 'path-correction'],
+      capabilities: [MA.Chat, MA.Code, 'diagnostic'],
       fallback: 'gemini-flash',
       priority: 100
     }
-  ] as const;
+  ];
 
   private readonly decisionTree: TernaryNode;
   contextBuilder: ContextBuilder;
   private dynamicModels: FreeModelConfig[] = [];
+  private readonly gemini: GeminiService | undefined;
 
   constructor(private readonly config: VibeConfig, _gemini?: GeminiService) {
+    this.gemini = _gemini;
     this.performanceDB = join(this.config.pogDir, 'free-model-performance.json');
     this.initializeDB();
     this.loadPerformanceHistory();
@@ -324,7 +342,7 @@ export class FreeModelRouter {
     };
   }
 
-  route(prompt: string, filePath?: string): Result<string> {
+  async route(prompt: string, filePath?: string): Promise<Result<string>> {
     try {
       const weightedTasks = TaskClassifier.analyzeProbabilities(prompt);
       const availableModels = this.getModelHealthGrid();
@@ -342,9 +360,15 @@ export class FreeModelRouter {
         availableModels
       };
 
+      // Ternary Logic: Fallback to AI if static logic is ambiguous
+      const staticComplexity = TaskClassifier.assessComplexity(prompt, weightedTasks);
+      const complexity = (staticComplexity === 0 && this.gemini)
+        ? await TaskClassifier.assessComplexityAI(prompt, this.gemini)
+        : staticComplexity;
+
       const context: RoutingContext = {
         ...rawContext,
-        complexity: TaskClassifier.assessComplexity(prompt, weightedTasks),
+        complexity,
         availableModels
       };
 
@@ -358,12 +382,13 @@ export class FreeModelRouter {
       const modelName = decision?.modelName || 'gemini-flash';
 
       // Binary Collapse: Apply Circuit Breaker
-      const finalModel = this.applyCircuitBreaker(modelName, availableModels);
+      const finalModel = this.applyCircuitBreaker(modelName, availableModels, context.complexity);
 
       logger.info({
         decision: modelName,
         strategy: decision?.reason || 'default',
-        complexity: context.complexity
+        complexity: context.complexity,
+        isAIClassified: staticComplexity === 0 && complexity !== 0
       }, 'Decision Engine Chain Resolution');
 
       return { ok: true, value: finalModel };
@@ -451,7 +476,7 @@ export class FreeModelRouter {
     }
   }
 
-  private applyCircuitBreaker(model: string, available: ReadonlyArray<FreeModelConfig>): string {
+  private applyCircuitBreaker(model: string, available: ReadonlyArray<FreeModelConfig>, complexity: Ternary): string {
     const state = this.circuitBreakers.get(model);
     if (state?.state === CS.Open) {
       if (Date.now() - state.lastFailure > state.cooldownMs) {
@@ -459,8 +484,39 @@ export class FreeModelRouter {
         this.circuitBreakers.set(model, state);
         return model;
       }
-      const fallback = this.getAllModels().find(m => m.name === model)?.fallback ?? 'qwen2.5-coder:14b-instruct-q5_K_M';
-      return available.some(m => m.name === fallback) ? fallback : (available[0]?.name ?? model);
+
+      // Intelligent Tiered Fallback
+      // Filter for healthy candidates
+      const candidates = available.filter(m => m.health?.isAvailable && (m.health?.circuitLevel ?? 1) > -1);
+
+      // 1. Try to stay in the same Complexity Tier
+      let preferred: FreeModelConfig[] = [];
+      if (complexity === 1) {
+        preferred = candidates.filter(m => m.type !== MT.Local); // Prefer Cloud
+      } else if (complexity === -1) {
+        preferred = candidates.filter(m => m.type === MT.Local); // Prefer Local
+      }
+
+      // If we found preferred tier alternates, use the highest priority one
+      if (preferred.length > 0) {
+        preferred.sort((a, b) => b.priority - a.priority);
+        const best = preferred[0];
+        if (best) return best.name;
+      }
+
+      // 2. Cross-Tier Fallback (Resilience) - If no same-tier models available, take ANY healthy model
+      if (candidates.length > 0) {
+        // candidates is derived from available, which is ReadonlyArray.
+        // We need to copy it to sort it if it was readonly, but filter returns a new array.
+        // Array.filter returns T[], so it is mutable.
+        candidates.sort((a, b) => b.priority - a.priority);
+        const bestCandidate = candidates[0];
+        if (bestCandidate) return bestCandidate.name;
+      }
+
+      // 3. Last Resort - Static Fallback
+      const staticFallback = this.getAllModels().find(m => m.name === model)?.fallback ?? 'qwen2.5-coder:14b-instruct-q5_K_M';
+      return available.some(m => m.name === staticFallback) ? staticFallback : (available[0]?.name ?? model);
     }
     return model;
   }
@@ -495,6 +551,23 @@ export class FreeModelRouter {
   recordSuccess(model: string): void {
     const state = this.circuitBreakers.get(model);
     if (state) { state.failures = 0; state.state = CS.Closed; }
+  }
+
+  public routeByAbility(ability: MA): string {
+    const available = this.getModelHealthGrid();
+    const candidates = available
+      .filter(m => m.health?.isAvailable && m.health?.circuitLevel > -1)
+      .filter(m => m.capabilities.includes(ability));
+
+    if (candidates.length === 0) {
+      // Emergency Fallback
+      if (ability === MA.Transcription) return 'cloudflare:@cf/openai/whisper';
+      return 'gemini:gemini-2.0-flash';
+    }
+
+    // Sort by priority
+    const sorted = [...candidates].sort((a, b) => b.priority - a.priority);
+    return sorted[0]?.command || 'cloudflare:@cf/openai/whisper';
   }
 
   getCircuitState(model: string): CircuitState { return this.circuitBreakers.get(model)?.state ?? CS.Closed; }

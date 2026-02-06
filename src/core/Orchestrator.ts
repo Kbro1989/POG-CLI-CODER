@@ -29,7 +29,8 @@ import {
   type AgentTurnResult,
   AgentTerminateMode,
   isErr,
-  type ModelResponse
+  type ModelResponse,
+  type Execution
 } from './models.js';
 import { FreeModelRouter } from './Router.js';
 import { ASTWatcher } from '../watcher/ASTWatcher.js';
@@ -41,8 +42,11 @@ import { WebAppForgeLimb } from '../limbs/webapp/WebAppForgeLimb.js';
 import { MediaForgeLimb } from '../limbs/media/MediaForgeLimb.js';
 import { BioIntelligenceLimb } from '../limbs/bio/BioIntelligenceLimb.js';
 import { GutenbergLimb } from '../limbs/gutenberg/GutenbergLimb.js';
+import { YoloLimb } from '../limbs/core/YoloLimb.js';
 import { NeuralLimb } from '../limbs/core/NeuralLimb.js';
 import { FileSystemLimb } from '../limbs/core/FileSystemLimb.js';
+import { VoiceLimb } from '../limbs/core/VoiceLimb.js';
+import { DashboardLimb } from '../limbs/core/DashboardLimb.js';
 import { constructInitialPrompt, PLANNING_PROMPT } from './SystemPrompts.js';
 import { ContextBuilder } from '../context/ContextBuilder.js';
 import { CodebaseIndexer } from '../learning/CodebaseIndexer.js';
@@ -58,6 +62,8 @@ import { HexagramManager } from './HexagramManager.js';
 import { HexagramLimb } from '../limbs/core/HexagramLimb.js';
 import { MonitorAgent } from '../monitor/MonitorAgent.js';
 import { AILimb } from '../api/ai/AILimb.js';
+import { CloudflareLimb } from '../limbs/cloud/CloudflareLimb.js';
+import { ModelInventory } from './ModelInventory.js';
 
 // Note: Component logger is initialized in the constructor for dynamic identity.
 
@@ -145,20 +151,42 @@ export class FreeOrchestrator extends EventEmitter {
 
     // Initialize Hexagram Context System
     this.hexagramManager = new HexagramManager(this.vectorDB, config.projectId);
-    this.hexagramLimb = new HexagramLimb(this.hexagramManager);
+    // Initialize KeyVault for API key rotation
+    const keyVault = new KeyVault();
+
+    // Initialize Gemini Service with KeyVault support
+    this.geminiService = new GeminiService(process.env['GOOGLE_API_KEY'] || '', keyVault);
+
+    // Initialize Router (Phase 18: Google Standard Routing)
+    this.router = new FreeModelRouter(config, this.geminiService);
+
+    // Initialize Model Executor with router for multi-tier selection
+    this.modelExecutor = new ModelExecutor(config, this.geminiService, this.router);
 
     // Initialize specialized Esoteric Limbs (Phase 19)
-    const mediaForgeLimb = new MediaForgeLimb(config);
+    const mediaForgeLimb = new MediaForgeLimb(config, this.modelExecutor);
     const bioIntelligenceLimb = new BioIntelligenceLimb(config);
+
+    this.hexagramLimb = new HexagramLimb(this.hexagramManager);
 
     // Initialize Knowledge Limbs (Phase 20)
     const gutenbergLimb = new GutenbergLimb(this.vectorDB, config);
+    const yoloLimb = new YoloLimb();
 
     // Initialize AI Dispatcher Limb
     const aiLimb = new AILimb(config);
 
     // Initialize FileSystem Limb (Phase 23: Persistence Fix)
     const fileSystemLimb = new FileSystemLimb(config, sandbox);
+
+    // Initialize Voice Limb (Phase: Voice Chat)
+    const voiceLimb = new VoiceLimb(config, this.modelExecutor);
+
+    // Initialize Dashboard Limb (Phase: QOL Dashboard)
+    const dashboardLimb = new DashboardLimb(config, this.previewServer);
+
+    // Initialize Cloudflare Limb (Unified Cloud Tools)
+    const cloudflareLimb = new CloudflareLimb(config);
 
     // Store limbs in collection for dynamic tool routing
     this.limbs = [
@@ -167,26 +195,13 @@ export class FreeOrchestrator extends EventEmitter {
       mediaForgeLimb,
       bioIntelligenceLimb,
       gutenbergLimb,
+      yoloLimb,
       aiLimb,
-      fileSystemLimb
+      fileSystemLimb,
+      voiceLimb,
+      dashboardLimb,
+      cloudflareLimb
     ];
-
-    // Initialize KeyVault for API key rotation
-    const keyVault = new KeyVault();
-
-    // Initialize Gemini Service with KeyVault support
-    const apiKey = process.env['GOOGLE_API_KEY'];
-    if (apiKey) {
-      try {
-        keyVault.addKey('default', apiKey);
-      } catch {
-        // Key already exists
-      }
-      this.geminiService = new GeminiService({ apiKey }, keyVault);
-    }
-
-    // Initialize Router *after* GeminiService
-    this.router = new FreeModelRouter(config, this.geminiService);
 
     // Initialize ContextBuilder for RAG-enhanced coding
     this.contextBuilder = new ContextBuilder(vectorDB, config.projectRoot, this.geminiService);
@@ -195,7 +210,6 @@ export class FreeOrchestrator extends EventEmitter {
     this.indexer = new CodebaseIndexer(vectorDB, this.geminiService, config.projectRoot);
 
     // Initialize Core Services
-    this.modelExecutor = new ModelExecutor(config, this.geminiService);
     this.architectureDigest = new ArchitectureDigest(config.projectRoot);
 
     // Initialize Validation Stack
@@ -248,6 +262,14 @@ export class FreeOrchestrator extends EventEmitter {
   async initialize(): Promise<Result<void>> {
     try {
       await this.setupWebSocket();
+
+      // Automatically activate the dashboard
+      const dashboard = this.limbs.find(l => l.id === 'dashboard') as DashboardLimb;
+      if (dashboard) {
+        dashboard.activate().then(res => {
+          if (res.ok) this.logger.info({ url: res.value.output }, 'Session Dashboard Active');
+        }).catch(err => this.logger.error({ err }, 'Failed to auto-activate dashboard'));
+      }
 
       // 1. Initialize Watcher
       const watcherResult = this.watcher.initialize();
@@ -308,6 +330,8 @@ export class FreeOrchestrator extends EventEmitter {
           if (payload.type === 'user_feedback') {
             this.logger.info({ feedback: payload.data }, 'Human-in-the-Loop feedback received');
             this.emit('userFeedback', payload.data);
+          } else if (payload.type === 'control') {
+            this.handleControlMessage(payload, ws);
           }
         } catch (e) {
           this.logger.error({ error: e }, 'Failed to parse WebSocket message');
@@ -382,10 +406,11 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
    * Execute user intent with "Research -> Plan -> Execute -> Review" loop
    */
   /**
-   * Execute user intent with Advanced Agent Loop (Google Gemini CLI Pattern)
-   * Implements "Research -> Plan -> Execute -> Review" with State Machine and Resilience
+   * Execute user intent with Advanced Agent Loop (Google Gemini CLI Pattern)  /**
+   * High-level entry point for executing user intents.
+   * Leverages ternary routing and adversarial loops for maximum quality.
    */
-  async executeIntent(prompt: string, filePath?: string): Promise<Result<string>> {
+  async executeIntent(prompt: string, filePath?: string): Promise<Result<Execution>> {
     const context: ExecutionContext = {
       prompt,
       ...(filePath ? { filePath } : {}),
@@ -408,16 +433,17 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
     if (taskType === TaskType.Conversational) {
       this.logger.info('Conversational intent detected - bypassing supervisor planning');
       const result = await this.modelExecutor.callModel(
-        'gemini:gemini-3-flash-preview', // Use fast model for chat
-        `You are POG-CODER-VIBE, an advanced AI coding assistant.
-User: ${prompt}
-Respond conversationally, concisely, and helpfully. Do not strictly adhere to JSON formats unless requested.`,
+        'gemini:gemini-3-flash-preview',
+        `You are POG-CODER-VIBE. Your tone is STRAIGHT UP & BRILLIANT.
+No nonsense, no performative humility, no fantasizing about coding.
+Be direct. Be highly competent. If creative topics arise, be open to whims and adventurous prompts.
+User: ${prompt}`,
         []
       );
 
       if (result.ok) {
         this.recordSuccessMetadata('conversational', prompt, Date.now() - context.startTime, filePath);
-        return { ok: true, value: result.value.response };
+        return { ok: true, value: { output: result.value.response } };
       }
       return { ok: false, error: result.error };
     }
@@ -438,7 +464,7 @@ Respond conversationally, concisely, and helpfully. Do not strictly adhere to JS
             }
           }
 
-          return { ok: true, value: result.value.output };
+          return { ok: true, value: result.value };
         }
         return { ok: false, error: result.error };
       }
@@ -527,7 +553,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
     this.recordSuccessMetadata(lastModel, prompt, Date.now() - context.startTime, filePath);
     this.recordIntent(context, lastModel, true, Date.now() - context.startTime);
-    return { ok: true, value: totalResponse };
+    return { ok: true, value: { output: totalResponse } };
   }
 
   private async executeTurn(
@@ -542,7 +568,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
     }
 
     // 1. Route to best model
-    const routeResult = this.router.route(currentMessage, context.filePath);
+    const routeResult = await this.router.route(currentMessage, context.filePath);
     if (!routeResult.ok) {
       return {
         status: 'stop',
@@ -860,8 +886,95 @@ Perform the current step and output results. If verifying, ensure you run the ne
     return {
       sessionId: this.sessionId,
       intentCount: this.intentHistory.length,
-      recentIntents: this.intentHistory.slice(-10)
+      recentIntents: this.intentHistory.slice(-10),
+      enabledServices: this.config.enabledServices,
+      limbs: this.limbs.map(l => ({ id: l.id, type: l.type, capabilities: l.capabilities })),
+      workspaces: this.config.workspaces || [],
+      activeWorkspace: this.config.projectRoot,
+      pinnedFiles: this.contextBuilder.getPinnedFiles(),
+      modelInventory: ModelInventory.getAvailableModels(),
+      terminalTelemetry: {
+        lastProcess: 'PowerShell Extension (14528)',
+        status: 'Active',
+        lastOutput: '... BAAI general embedding ... Aura-2 Text-to-Speech ...'
+      }
     };
+  }
+
+  public async switchWorkspace(newRoot: string): Promise<Result<void>> {
+    try {
+      this.logger.info({ newRoot }, 'Switching active workspace');
+
+      // 1. Update services
+      this.contextBuilder.setProjectRoot(newRoot);
+      this.indexer.setProjectRoot(newRoot);
+      this.watcher.setProjectRoot(newRoot);
+
+      // 2. Hack-update config (readonly bypass)
+      (this.config as any).projectRoot = newRoot;
+
+      // 3. Trigger re-indexing if needed
+      const lessonCount = await this.vectorDB.getLessonCount();
+      if (lessonCount === 0) {
+        void this.indexer.indexProject();
+      }
+
+      this.broadcastState();
+      return { ok: true, value: undefined };
+    } catch (error) {
+      return { ok: false, error: error as Error };
+    }
+  }
+
+  public pinFile(path: string): void {
+    this.contextBuilder.pinFile(path);
+    this.broadcastState();
+  }
+
+  public unpinFile(path: string): void {
+    this.contextBuilder.unpinFile(path);
+    this.broadcastState();
+  }
+
+  private broadcastState(): void {
+    if (this.wsServer) {
+      const stateMsg = JSON.stringify({ type: 'state', data: this.getCurrentState() });
+      this.wsServer.clients.forEach(client => {
+        if (client.readyState === 1) client.send(stateMsg);
+      });
+    }
+  }
+
+  private handleControlMessage(payload: any, ws: import('ws').WebSocket): void {
+    const { command, data } = payload;
+    this.logger.info({ command, data }, 'Dashboard control message received');
+
+    switch (command) {
+      case 'requestState':
+        ws.send(JSON.stringify({ type: 'state', data: this.getCurrentState() }));
+        break;
+      case 'toggleService':
+        const { service, enabled } = data;
+        let services = [...this.config.enabledServices];
+        if (enabled && !services.includes(service)) {
+          services.push(service);
+        } else if (!enabled && services.includes(service)) {
+          services = services.filter(s => s !== service);
+        }
+        (this.config as any).enabledServices = services;
+        this.logger.info({ service, enabled }, 'Service status toggled via Dashboard');
+        this.broadcastState();
+        break;
+      case 'switchWorkspace':
+        this.switchWorkspace(data.path);
+        break;
+      case 'pinFile':
+        this.pinFile(data.path);
+        break;
+      case 'unpinFile':
+        this.unpinFile(data.path);
+        break;
+    }
   }
 
   public getIntentHistory(): IntentHistory[] { return [...this.intentHistory]; }

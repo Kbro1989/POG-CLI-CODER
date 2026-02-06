@@ -14,9 +14,11 @@ export class MediaForgeLimb implements NeuralLimb {
     capabilities = ['imagen_v4_generation', 'veo_v3_video_generation', 'lyria_v2_music_generation'];
 
     private dispatcher: AIDispatcher;
+    private modelExecutor: any; // Injected for Cloudflare support
 
-    constructor(config: VibeConfig) {
+    constructor(config: VibeConfig, modelExecutor?: any) {
         this.dispatcher = new AIDispatcher(config);
+        this.modelExecutor = modelExecutor;
         logger.debug('MediaForgeLimb initialized');
     }
 
@@ -25,8 +27,8 @@ export class MediaForgeLimb implements NeuralLimb {
         const keywords = ['generate', 'create', 'forge', 'image', 'video', 'music', 'sound', 'audio', 'visual'];
         const matchesKeyword = keywords.some(k => prompt.includes(k));
 
-        // High certainty if specific esoteric substrates are mentioned
-        const specificSubstrates = ['imagen', 'veo', 'lyria'];
+        // High certainty if specific esoteric substrates or Cloudflare intent are mentioned
+        const specificSubstrates = ['imagen', 'veo', 'lyria', 'cloudflare', 'workers ai'];
         const matchesSubstrate = specificSubstrates.some(s => prompt.includes(s));
 
         return matchesKeyword || matchesSubstrate;
@@ -42,6 +44,12 @@ export class MediaForgeLimb implements NeuralLimb {
             capabilityId = 'lyria_v2_music_generation';
         }
 
+        // Check for Cloudflare preference
+        if (prompt.includes('cloudflare') || prompt.includes('cf')) {
+            const cfResult = await this.handleCloudflareMedia(prompt);
+            if (cfResult.ok) return cfResult;
+        }
+
         const result = await this.handleToolCall(capabilityId, intent.prompt);
         if (!result.ok) return { ok: false, error: result.error };
 
@@ -50,6 +58,24 @@ export class MediaForgeLimb implements NeuralLimb {
             value: {
                 output: result.value.output,
                 data: result.value.data
+            }
+        };
+    }
+
+    private async handleCloudflareMedia(prompt: string): Promise<Result<Execution>> {
+        if (!this.modelExecutor) return { ok: false, error: new Error('ModelExecutor not available') };
+
+        logger.info({ prompt }, 'Attempting Cloudflare media generation');
+        const model = "@cf/stabilityai/stable-diffusion-xl-base-1.0";
+        const result = await this.modelExecutor.callCloudflareAI(model, { prompt });
+
+        if (!result.ok) return result;
+
+        return {
+            ok: true,
+            value: {
+                output: `Successfully generated media using Cloudflare model: ${model}`,
+                data: result.value
             }
         };
     }
@@ -65,6 +91,17 @@ export class MediaForgeLimb implements NeuralLimb {
                             type: 'object',
                             properties: {
                                 prompt: { type: 'string', description: 'Detailed description of the image to generate' }
+                            },
+                            required: ['prompt']
+                        }
+                    },
+                    {
+                        name: 'cloudflare_image_gen',
+                        description: 'Generate images using Cloudflare Workers AI.',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                prompt: { type: 'string', description: 'Visual description for the image' }
                             },
                             required: ['prompt']
                         }
@@ -97,6 +134,13 @@ export class MediaForgeLimb implements NeuralLimb {
     }
 
     async handleToolCall(name: string, args: any): Promise<Result<any>> {
+        if (name === 'cloudflare_image_gen') {
+            const prompt = typeof args === 'string' ? args : args.prompt;
+            const res = await this.handleCloudflareMedia(prompt);
+            if (res.ok) return { ok: true, value: { output: res.value.output, data: res.value.data } };
+            return res;
+        }
+
         logger.info({ capabilityId: name, args }, 'Executing media forge tool call');
         const payload = typeof args === 'string' ? args : args.prompt;
 

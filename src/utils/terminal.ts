@@ -130,8 +130,6 @@ export function drawBox(title: string, content: string[], width = 80): void {
     process.stdout.write(chalk.cyan(`├${border}┤\n`));
 
     content.forEach(line => {
-        // We don't wrap yet to keep it simple, or we wrap carefully.
-        // For now, let's just fix the padding.
         const visibleLine = stripAnsi(line);
         const padding = ' '.repeat(Math.max(0, innerWidth - visibleLine.length));
         process.stdout.write(chalk.cyan(`│ `) + line + padding + chalk.cyan(` │\n`));
@@ -148,9 +146,10 @@ export function drawMessage(role: 'USER' | 'POG' | 'SYSTEM', text: string, width
     const label = role === 'USER' ? '👤 YOU' : role === 'POG' ? '🤖 POG' : '⚙️  SYS';
 
     process.stdout.write(`\n${color.bold(label)}:\n`);
-    // Basic wrap for messages (uncolored text usually)
     const wrapped = text.match(new RegExp(`.{1,${width}}`, 'g')) || [text];
     wrapped.forEach(line => {
         process.stdout.write(`${line}\n`);
     });
 }
+
+

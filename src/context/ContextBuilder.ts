@@ -23,12 +23,48 @@ export interface FileContext {
 import { GeminiService } from '../core/GeminiService.js';
 
 export class ContextBuilder {
+    private pinnedFiles: Set<string> = new Set();
+
     constructor(
         private vectorDB: VectorDB,
         private projectRoot: string,
         private gemini?: GeminiService
     ) {
         logger.debug({ vectorDB: !!this.vectorDB, gemini: !!this.gemini }, 'ContextBuilder initialized');
+    }
+
+    /**
+     * Pin a file to the active context (forced inclusion)
+     */
+    pinFile(filePath: string): void {
+        const absPath = resolve(this.projectRoot, filePath);
+        this.pinnedFiles.add(absPath);
+        logger.info({ path: absPath }, 'File pinned to active context');
+    }
+
+    /**
+     * Unpin a file
+     */
+    unpinFile(filePath: string): void {
+        const absPath = resolve(this.projectRoot, filePath);
+        this.pinnedFiles.delete(absPath);
+        logger.info({ path: absPath }, 'File unpinned');
+    }
+
+    /**
+     * Get all pinned files
+     */
+    getPinnedFiles(): string[] {
+        return Array.from(this.pinnedFiles).map(p => relative(this.projectRoot, p));
+    }
+
+    /**
+     * Set the project root (for workspace switching)
+     */
+    setProjectRoot(newRoot: string): void {
+        this.projectRoot = newRoot;
+        this.pinnedFiles.clear(); // Clear pins when switching project to prevent cross-leakage
+        logger.info({ newRoot }, 'ContextBuilder root updated');
     }
 
     /**

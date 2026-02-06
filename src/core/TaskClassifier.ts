@@ -1,4 +1,5 @@
-import { TaskType as TT } from './models.js';
+import { TaskType as TT, Ternary } from './models.js';
+import { GeminiService } from './GeminiService.js';
 
 export class TaskClassifier {
     private static readonly PATTERNS = {
@@ -35,7 +36,7 @@ export class TaskClassifier {
         return weights;
     }
 
-    static assessComplexity(prompt: string, weightedTasks: Record<TT, number>): -1 | 0 | 1 {
+    static assessComplexity(prompt: string, weightedTasks: Record<TT, number>): Ternary {
         if (/\b(function|class|const|let|var|if|return|while|for|switch|try|catch|async|await|interface|type)\b/.test(prompt)) {
             return -1; // Code-heavy = Low abstract complexity (Direct task)
         }
@@ -50,5 +51,39 @@ export class TaskClassifier {
         if (weightedTasks[TT.Esoteric] > 0.5) score += 1;
 
         return score >= 3 ? 1 : score >= 1 ? 0 : -1;
+    }
+
+    /**
+     * AI-Powered Ternary Classification
+     * 1: Yes (Complex/Cloud)
+     * 0: Maybe (Ambiguous)
+     * -1: No (Simple/Local)
+     */
+    static async assessComplexityAI(prompt: string, gemini: GeminiService): Promise<Ternary> {
+        const classifierPrompt = `
+Classify the following user prompt into a TERNARY COMPLEXITY VALUE:
+1: HIGH COMPLEXITY / RESEARCH / MULTI-STEP / CLOUD-PREFERRED (Yes)
+0: MEDIUM / AMBIGUOUS / NEEDS CONTEXT / FALLBACK (Maybe)
+-1: LOW COMPLEXITY / DIRECT / CODE-ONLY / LOCAL-PREFERRED (No)
+
+User Prompt: "${prompt}"
+
+Respond ONLY with a JSON object: {"ternary": -1 | 0 | 1, "reason": "concise explanation"}
+`;
+
+        try {
+            const result = await gemini.generateContent(classifierPrompt, 'gemini-3-flash-preview');
+            if (!result.ok) return 0;
+
+            const jsonStr = result.value.response.match(/\{[\s\S]*\}/)?.[0];
+            if (!jsonStr) return 0;
+
+            const decision = JSON.parse(jsonStr);
+            return (decision.ternary === 1 || decision.ternary === -1 || decision.ternary === 0)
+                ? decision.ternary
+                : 0;
+        } catch {
+            return 0;
+        }
     }
 }

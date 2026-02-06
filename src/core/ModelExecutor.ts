@@ -5,9 +5,11 @@ import { Tool } from '@google/genai';
 import {
     Result,
     ModelResponse,
-    VibeConfig
+    VibeConfig,
+    ModelAbility as MA
 } from './models.js';
 import { GeminiService } from './GeminiService.js';
+import type { FreeModelRouter } from './Router.js';
 
 const execAsync = promisify(exec);
 
@@ -16,7 +18,8 @@ export class ModelExecutor {
 
     constructor(
         private readonly config: VibeConfig,
-        private readonly geminiService: GeminiService | undefined
+        private readonly geminiService: GeminiService | undefined,
+        private router?: FreeModelRouter
     ) {
         this.logger = pino({
             name: 'ModelExecutor',
@@ -24,46 +27,123 @@ export class ModelExecutor {
         });
     }
 
+    setRouter(router: FreeModelRouter) {
+        this.router = router;
+    }
+
     async callModel(model: string, prompt: string, tools?: Tool[]): Promise<Result<ModelResponse>> {
         const startTime = Date.now();
 
-        // Cloud-only models (starting with gemini:)
+        // 1. Explicit Cloud Redirects (Prefix-based)
         if (model.startsWith('gemini:')) {
             const geminiModel = model.replace('gemini:', '');
             return this.callGeminiFallback(prompt, geminiModel, tools);
         }
 
+        if (model.startsWith('cloudflare:')) {
+            const cfModel = model.replace('cloudflare:', '');
+            return this.callCloudflareGateway(prompt, cfModel, startTime);
+        }
+
         const STORAGE_THRESHOLD_GB = 5;
         const CONTEXT_THRESHOLD_TOKENS = 32000;
 
-        // 1. Storage Health Check
+        // 2. Resource Health Checks (Local Stability)
         const storageCheck = await this.checkStorageHealth(STORAGE_THRESHOLD_GB);
         if (!storageCheck.ok) {
             this.logger.warn({ error: storageCheck.error, action: 'forcing_cloud_fallback' }, 'Local storage critical');
             return this.callGeminiFallback(prompt, undefined, tools);
         }
 
-        // 2. Context Overflow Detection (Approx 4 chars per token)
+        // 3. Context Overflow Detection
         const estimatedTokens = prompt.length / 4;
         if (estimatedTokens > CONTEXT_THRESHOLD_TOKENS) {
             this.logger.info({ tokens: estimatedTokens, action: 'forcing_cloud_fallback' }, 'Prompt exceeds local context');
             return this.callGeminiFallback(prompt, 'gemini-2.0-flash', tools);
         }
 
-        // 3. Try Local Ollama First
+        // 4. Execution Chain: Local -> Cloudflare -> Gemini
         try {
             const response = await this.callOllama(model, prompt);
             return { ok: true, value: { model, response, latency: Date.now() - startTime } };
         } catch (ollamaError) {
-            this.logger.warn({ model, error: ollamaError }, 'Ollama execution failed, attempting fallback to Gemini');
-            const geminiResult = await this.callGeminiFallback(prompt, undefined, tools);
+            this.logger.warn({ model, error: ollamaError }, 'Ollama execution failed, attempting Cloudflare AI Gateway');
 
-            if (geminiResult.ok) return geminiResult;
+            // Try Cloudflare as Primary Backup
+            const cfResult = await this.callCloudflareGateway(prompt, model, startTime);
+            if (cfResult.ok) return cfResult;
 
-            // 4. Try Cloudflare AI Gateway Fallback
-            this.logger.warn({ model, error: geminiResult.error }, 'Gemini fallback failed, attempting Cloudflare AI Gateway');
-            return this.callCloudflareGateway(prompt, model, startTime);
+            // Final fallback to Gemini
+            this.logger.warn({ model, error: cfResult.error }, 'Cloudflare fallback failed, attempting Gemini');
+            return this.callGeminiFallback(prompt, undefined, tools);
         }
+    }
+
+    /**
+     * Generic Cloudflare AI call (Used for Media/Image Gen)
+     */
+    async callCloudflareAI(model: string, input: any, isBinaryInput = false): Promise<Result<any>> {
+        const gatewayUrl = this.config.cloudflareGatewayUrl;
+        if (!gatewayUrl) {
+            return { ok: false, error: new Error('Cloudflare AI Gateway URL not configured') };
+        }
+
+        const startTime = Date.now();
+        try {
+            const finalUrl = gatewayUrl.endsWith('/') ? `${gatewayUrl}${model}` : `${gatewayUrl}/${model}`;
+
+            const headers: Record<string, string> = {
+                'Authorization': `Bearer ${process.env['CLOUDFLARE_API_KEY'] || ''}`
+            };
+
+            if (!isBinaryInput) {
+                headers['Content-Type'] = 'application/json';
+            } else {
+                headers['Content-Type'] = 'application/octet-stream';
+            }
+
+            const response = await fetch(finalUrl, {
+                method: 'POST',
+                headers,
+                body: isBinaryInput ? input : JSON.stringify(input)
+            });
+
+            const latency = Date.now() - startTime;
+            this.logger.debug({ model, latency }, 'Cloudflare AI call completed');
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                return { ok: false, error: new Error(`Cloudflare AI failed (${response.status}): ${errorBody}`) };
+            }
+
+            // Image generation usually returns binary or base64
+            const contentType = response.headers.get('content-type');
+            if (contentType?.includes('application/json')) {
+                const data = await response.json();
+                return { ok: true, value: data };
+            } else {
+                // Return as buffer/blob for media
+                const buffer = await response.arrayBuffer();
+                return { ok: true, value: Buffer.from(buffer) };
+            }
+        } catch (error: any) {
+            return { ok: false, error };
+        }
+    }
+
+    async transcribeAudio(audioBuffer: Buffer): Promise<Result<string>> {
+        const model = this.router ? this.router.routeByAbility(MA.Transcription) : "@cf/openai/whisper";
+        this.logger.info({ model }, 'Calling Cloudflare Whisper for transcription');
+
+        const result = await this.callCloudflareAI(model, audioBuffer, true);
+        if (!result.ok) return result;
+
+        const data = result.value;
+        if (data.result && data.result.text) {
+            return { ok: true, value: data.result.text };
+        }
+
+        return { ok: true, value: data.text || JSON.stringify(data) };
     }
 
     private async callCloudflareGateway(
@@ -83,9 +163,13 @@ export class ModelExecutor {
                 cfModel = "@cf/meta/llama-3.1-8b-instruct"; // Best coding fallback on CF
             }
 
-            const response = await fetch(gatewayUrl, {
+            const finalUrl = gatewayUrl.endsWith('/') ? `${gatewayUrl}${cfModel}` : `${gatewayUrl}/${cfModel}`;
+            const response = await fetch(finalUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env['CLOUDFLARE_API_KEY'] || ''}`
+                },
                 body: JSON.stringify({
                     model: cfModel,
                     messages: [{ role: 'user', content: prompt }]
@@ -134,8 +218,6 @@ export class ModelExecutor {
     }
 
     private async callOllama(model: string, prompt: string): Promise<string> {
-        // OPTIMAL: Using CLI for Ollama to force OLLAMA_MODELS path and bypass server timeouts/stale endpoints
-        // As requested: "D:\ollama-models" call upon each model, no time limit.
         return new Promise((resolve, reject) => {
             const ollamaPath = this.config.errorTrackerModelPath || 'D:\\ollama-models';
             this.logger.info({ model, path: ollamaPath }, 'Invoking Ollama CLI with custom model path');
@@ -147,6 +229,11 @@ export class ModelExecutor {
                 },
                 shell: true
             });
+
+            const timeout = setTimeout(() => {
+                child.kill();
+                reject(new Error(`Ollama execution timed out after 30s for model: ${model}`));
+            }, 30000);
 
             let stdout = '';
             let stderr = '';
@@ -160,6 +247,7 @@ export class ModelExecutor {
             });
 
             child.on('close', (code) => {
+                clearTimeout(timeout);
                 if (code === 0) {
                     resolve(stdout.trim());
                 } else {
@@ -168,6 +256,7 @@ export class ModelExecutor {
             });
 
             child.on('error', (err) => {
+                clearTimeout(timeout);
                 reject(err);
             });
         });

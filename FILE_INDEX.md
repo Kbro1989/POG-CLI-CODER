@@ -53,6 +53,7 @@ This index catalogs all source files, documentation, and artifacts in the produc
 - ✅ **`webapp/tools/definitions.ts`** - Tool schemas for WebApp Forge
 - ✅ **`api/ai/AILimb.ts`** - Path-based AI capability dispatcher
 - ✅ **`api/ai/Dispatcher.ts`** - Vertex AI & Cloud REST bridge
+- ✅ **`cloud/CloudflareLimb.ts`** - Unified Cloudflare AI capabilities (Image, Chat, Embeddings)
 
 ---
 

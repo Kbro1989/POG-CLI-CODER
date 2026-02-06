@@ -1,25 +1,12 @@
 /**
  * NeuralLimb Interface - The contract for all specialized limbs
  */
-import { Result } from '../../core/models.js';
-
-export interface Intent {
-    prompt: string;
-    files?: string[];
-    context?: any;
-    tools?: any[];
-}
-
-export interface Execution {
-    output: string;
-    data?: any;
-    filesModified?: string[];
-    commandsRun?: string[];
-}
+import { Result, Intent, Execution } from '../../core/models.js';
+export type { Result, Intent, Execution };
 
 export interface NeuralLimb {
     id: string;
-    type: 'creative' | 'analytical' | 'maintenance' | 'memory';
+    type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud';
     capabilities: string[];
 
     /**
