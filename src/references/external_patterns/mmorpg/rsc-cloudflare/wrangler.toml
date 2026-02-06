@@ -1,0 +1,69 @@
+name = 'rscaievolution-png'
+account_id = "6872653edcee9c791787c1b783173793"
+main = "worker.js"
+compatibility_date = "2024-11-28"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+# 1. CORE STORAGE
+[[kv_namespaces]]
+binding = "RSC_PLAYERS_v2"
+id = "f2881801ac59415a86236d0841f27103"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rsc-d1"
+database_id = "d021ab5b-ab13-47b8-9287-1aabebfe51df"
+
+[[r2_buckets]]
+binding = "RSC_ASSETS"
+bucket_name = "rscserver"
+
+# 2. DURABLE OBJECTS
+# Main Game Server (World State)
+[[durable_objects.bindings]]
+name = "DO_AMERICAS"
+class_name = "RSCServerDO"
+
+# Individual Player Sessions
+[[durable_objects.bindings]]
+name = "PlayerDO"
+class_name = "PlayerDO"
+
+# 3. MIGRATIONS
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RSCServerDO", "PlayerDO"]
+
+# 4. QUEUES (Async Persistence - requires Workers Paid plan)
+# [[queues.producers]]
+# binding = "PLAYER_QUEUE"
+# queue = "player-save-queue"
+
+# [[queues.consumers]]
+# queue = "player-save-queue"
+# processed by this same worker
+
+
+# 5. ENVIRONMENT CONFIG
+[vars]
+MEMBERS = "true"
+SAFETY_REQ_CAP = "90000"
+FEATURE_BACKUPS = "true"
+
+[observability]
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+
+
+# 6. BUILD RULES
+[[rules]]
+type = "Data"
+globs = ["**/*.jag", "**/*.mem"]
+fallthrough = false

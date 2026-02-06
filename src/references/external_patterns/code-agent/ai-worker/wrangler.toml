@@ -1,0 +1,32 @@
+name = "ai-worker"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+# You will set your GOOGLE_APPLICATION_CREDENTIALS_JSON as a secret
+# wrangler secret put GOOGLE_APPLICATION_CREDENTIALS_JSON
+
+[dev]
+# Use this to enable WebSocket debugging locally
+# This makes the WebSocket server listen on your local machine, e.g., ws://localhost:8787/live-audio
+# You will also need to enable the 'websocket' compatibility flag for local development
+# toml-hook: uncomment the following line for local websocket debugging
+# port = 8787
+# ip = "0.0.0.0"
+
+[experimental_services]
+# This is required for WebSocket support in Cloudflare Workers
+# You will also need to enable the 'websocket' compatibility flag
+
+# You need to ensure the following compatibility flags are enabled for your worker:
+#   - `websocket` (for WebSocket support)
+#   - `nodejs_compat` (for Node.js-compatible APIs used by Google Cloud client libraries)
+
+# Durable Object for Rate Limiting
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+
+# Cloudflare Workers AI binding
+[[ai.bindings]]
+name = "AI"
