@@ -52,6 +52,11 @@ Proactive "helper" agent system enabled by default:
 - **Auto-Healing**: Automatic fix turn trigger for critical/high severity errors
 - **Project Snapshot**: Adapted context-aware "Project Snapshot" for local models
 
+### 8. **Cloudflare Limb** ⚡
+Unified Cloudflare integration for high-performance AI tools:
+- **Cloudflare Workers AI**: Native support for `@cf/stabilityai/stable-diffusion-xl-base-1.0` (Image), `@cf/meta/llama-3.1-8b-instruct-fp8` (Chat), and `@cf/baai/bge-large-en-v1.5` (Embeddings).
+- **Portability**: Fully relative pathing for easy project cloning.
+
 ---
 
 ## 🤖 Model Strategy
@@ -63,16 +68,19 @@ POG-CODER-VIBE uses a **local-first, cloud-optional** strategy:
 | `gemini-2.0-flash-thinking-exp` | ☁️ Cloud | Supervisor planning (Logical Tier) | ✅ Active |
 | `gemini-2.0-flash` | ☁️ Cloud | Primary Orchestrator (Omniscience) | ✅ Stable |
 | `gemini-1.5-pro` | ☁️ Cloud | High-Context Fallback | ✅ Tiered |
+| `cloudflare/llama-3.1-8b` | ☁️ Cloud | Fast Chat & Tooling | ✅ Active |
+| `cloudflare/sdxl` | ☁️ Cloud | Image Generation | ✅ Active |
 | `qwen2.5-coder:7b` | 🖥️ Local | General coding, offline | ✅ Supported |
 | `yi-coder:9b` | 🖥️ Local | Web dev, refactoring | ✅ Supported |
 | `qwen2.5-coder:14b` | 🖥️ Local | Architecture, complex tasks | ✅ Supported |
 
 **Routing Priority**:
 1. Check for Gemini prefix (`gemini:`) → Use Gemini SDK
-2. Check storage health (\<5GB) → Force Gemini fallback
-3. Check context size (\>32K tokens) → Force Gemini fallback
-4. Route via ternary tree to local Ollama models
-5. On Ollama failure → Emergency Gemini fallback
+2. Check for Cloudflare intent (Image/Chat) → Use Cloudflare Limb
+3. Check storage health (<5GB) → Force Gemini fallback
+4. Check context size (>32K tokens) → Force Gemini fallback
+5. Route via ternary tree to local Ollama models
+6. On Ollama failure → Emergency Gemini fallback
 
 ---
 
@@ -83,13 +91,15 @@ POG-CODER-VIBE uses a **local-first, cloud-optional** strategy:
 npm install
 ```
 
-### 2. Configure Gemini API (Optional but Recommended)
+### 2. Configure Environment (Optional)
 ```bash
-# Create .env file
-echo "GOOGLE_API_KEY=VIBE_KEY_$(date +%s)" > .env
+# Create .env file for cloud capabilities
+echo "GOOGLE_API_KEY=your_key" > .env
+echo "CLOUDFLARE_ACCOUNT_ID=your_id" >> .env
+echo "CLOUDFLARE_API_TOKEN=your_token" >> .env
 ```
 
-### 3. Install Ollama \u0026 Pull Models (For Local Execution)
+### 3. Install Ollama & Pull Models (For Local Execution)
 ```bash
 # Install Ollama (if not already installed)
 curl -fsSL https://ollama.ai/install.sh | sh  # macOS/Linux
@@ -98,13 +108,6 @@ curl -fsSL https://ollama.ai/install.sh | sh  # macOS/Linux
 # Pull recommended models
 ollama pull qwen2.5-coder:7b
 ollama pull yi-coder:9b
-
-### 4. Install Google Cloud SDK (For Specialized APIs)
-```bash
-# Required for 283-model specialized engine
-gcloud auth login
-gcloud auth application-default login
-```
 ```
 
 ### 4. Run the CLI
@@ -124,20 +127,21 @@ node dist/cli.js
 ### Environment Variables
 ```bash
 GOOGLE_API_KEY=SK_GEMINI_PRODUCTION   # Gemini API (optional)
-VIBE_LOG_LEVEL=info          # trace|debug|info|warn|error
-VIBE_WS_PORT=8765            # VS Code extension port
-VIBE_CB_THRESHOLD=3          # Circuit breaker threshold
-POG_DIR=~/.pog_coder_vibe    # Custom data storage
+CLOUDFLARE_ACCOUNT_ID=...             # Cloudflare Account ID (optional)
+CLOUDFLARE_API_TOKEN=...              # Cloudflare API Token (optional)
+VIBE_LOG_LEVEL=info                   # trace|debug|info|warn|error
+VIBE_WS_PORT=8765                     # VS Code extension port
+POG_DIR=~/.pog_coder_vibe             # Custom data storage
 ```
 
 ### Configuration File
 Create `~/.pog_coder_vibe/config.json`:
 ```json
 {
-  \"wsPort\": 8765,
-  \"circuitBreakerThreshold\": 3,
-  \"circuitBreakerCooldown\": 30000,
-  \"logLevel\": \"info\"
+  "wsPort": 8765,
+  "circuitBreakerThreshold": 3,
+  "circuitBreakerCooldown": 30000,
+  "logLevel": "info"
 }
 ```
 

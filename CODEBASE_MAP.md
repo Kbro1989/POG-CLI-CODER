@@ -65,6 +65,7 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 | **[HexagramLimb.ts](./src/limbs/core/HexagramLimb.ts)** | Intent-aware context hexagram management | ✅ Context-Tight |
 | **[AILimb.ts](./src/api/ai/AILimb.ts)** | Registry-pathed specialized AI dispatcher | ✅ 283 Models |
 | **[Dispatcher.ts](./src/api/ai/Dispatcher.ts)** | gcloud Auth bridge for Vertex AI & Google Cloud REST | ✅ Live REST fetch |
+| **[CloudflareLimb.ts](./src/limbs/cloud/CloudflareLimb.ts)** | Unified Cloudflare AI capabilities (Image, Chat, Embd) | ✅ Production Ready |
 
 ---
 
@@ -157,6 +158,7 @@ Orchestrator (Research → Plan → Execute → Review)
     │       ├─→ MediaForge (Imagery/Video/Audio)
     │       ├─→ BioIntelligence (Clinical/Bio)
     │       ├─→ Gutenberg (Literature/Styles)
+    │       ├─→ Cloudflare (Image/Chat/Embed)
     │       └─→ Hexagram (Dynamic Context)
     ├─→ ContextBuilder (Query VectorDB)
     ├─→ Sandbox (Execute with Snapshot)

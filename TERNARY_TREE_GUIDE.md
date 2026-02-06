@@ -33,8 +33,10 @@ This is technically a **Ternary Decision Directed Acyclic Graph (DAG)** with sho
 graph TD
     A[User Prompt] --> B{Intent Pathing?};
     B -- "Professional Match" --> C[Specialized Elite Path];
+    B -- "Cloudflare AI" --> F[Cloudflare Limb];
     B -- "General Task" --> D[Ternary Routing Tree];
     C --> E[Execution Layer];
+    F --> E;
     D --> E;
 ```
 

@@ -137,6 +137,10 @@ code --install-extension vscode-extension/*.vsix
 # Set custom POG directory
 export POG_DIR=~/custom-pog-dir
 
+# Cloudflare AI (Optional)
+export CLOUDFLARE_ACCOUNT_ID=...
+export CLOUDFLARE_API_TOKEN=...
+
 # Change WebSocket port
 export VIBE_WS_PORT=9000
 
