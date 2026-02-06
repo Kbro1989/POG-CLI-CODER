@@ -26,8 +26,8 @@ Usage:
   cli-keys switch <name>           Switch to a specific key
 
 Examples:
-  cli-keys add primary AIzaSyDOoSSyVk6Gk8tTbBAuCuCa0udOq-WN5g4
-  cli-keys add backup AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567
+  cli-keys add primary YOUR_PRIMARY_GOOGLE_API_KEY
+  cli-keys add backup YOUR_BACKUP_GOOGLE_API_KEY
   cli-keys list
   cli-keys switch backup
 `);
