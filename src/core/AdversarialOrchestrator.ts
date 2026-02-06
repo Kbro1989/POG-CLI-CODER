@@ -105,12 +105,12 @@ Output ONLY a JSON object:
 }
 `;
 
-        // Use Gemini Thinking for deep reflection if available, or Pro as fallback
+        // Use Gemini 3 Pro for deep reflection - the "Top Brain" of the system
         const criticPromptAugmented = this.architectureDigest.inject(criticPrompt);
-        const result = await this.executor.callModel('gemini:gemini-2.0-flash', criticPromptAugmented);
+        const result = await this.executor.callModel('gemini:gemini-3-pro-preview', criticPromptAugmented);
         if (isErr(result)) {
-            this.logger.warn({ error: result.error }, 'Critic call failed, falling back to Pro baseline');
-            const backupResult = await this.executor.callModel('gemini:gemini-1.5-pro', criticPromptAugmented);
+            this.logger.warn({ error: result.error }, 'Top Brain critic failed, falling back to Flash baseline');
+            const backupResult = await this.executor.callModel('gemini:gemini-3-flash-preview', criticPromptAugmented);
             if (isErr(backupResult)) return { score: 95, flaws: [] };
             if (backupResult.ok) {
                 return this.parseCriticResponse(backupResult.value.response);

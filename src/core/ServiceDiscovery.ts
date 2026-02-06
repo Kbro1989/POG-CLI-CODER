@@ -82,10 +82,11 @@ export class ServiceDiscovery {
 
     private async checkCloudExtensions(): Promise<Omit<ServiceStatus, 'enabled'>[]> {
         const extensions: Omit<ServiceStatus, 'enabled'>[] = [
-            { id: 'healthcare', name: 'Healthcare AI', status: 'INACTIVE', type: 'EXTENSION' },
+            { id: 'healthcare', name: 'Bio Intelligence (MedGemma)', status: 'INACTIVE', type: 'EXTENSION' },
             { id: 'documentai', name: 'Document AI', status: 'INACTIVE', type: 'EXTENSION' },
             { id: 'vision', name: 'Cloud Vision', status: 'INACTIVE', type: 'EXTENSION' },
-            { id: 'mediaforge', name: 'Media Forge', status: 'INACTIVE', type: 'EXTENSION' }
+            { id: 'mediaforge', name: 'Media Forge (Imagen/Veo)', status: 'INACTIVE', type: 'EXTENSION' },
+            { id: 'gutenberg', name: 'Gutenberg Knowledge', status: 'INACTIVE', type: 'EXTENSION' }
         ];
 
         let deps: Record<string, string> = {};
@@ -110,7 +111,7 @@ export class ServiceDiscovery {
 
         return extensions.map(ext => {
             const id = ext.id;
-            const depKey = `@google-cloud/${id === 'healthcare' ? 'healthcare' : id === 'documentai' ? 'document-ai' : 'vision'}`;
+            const depKey = `@google-cloud/${id === 'healthcare' ? 'healthcare' : id === 'documentai' ? 'document-ai' : id === 'gutenberg' ? 'storage' : 'vision'}`;
             const isInstalled = !!deps[depKey] || !!coreDeps[depKey];
             const isAuthorized = this.isServiceAuthorized(id);
 

@@ -29,6 +29,7 @@ import { CircuitState as CS, TaskType as TT, ModelType as MT } from './models.js
 import { ContextBuilder } from '../context/ContextBuilder.js';
 import { VectorDB } from '../learning/VectorDB.js';
 import { GeminiService } from './GeminiService.js';
+import { TaskClassifier } from './TaskClassifier.js';
 
 const logger = pino({
   name: 'Router',
@@ -53,22 +54,33 @@ class OverrideStrategy implements IRoutingStrategy {
     const prompt = ctx.prompt.toLowerCase();
 
     // Simple diagnostic overrides
-    if (prompt.length < 15 && /\b(health|status|audit)\b/.test(prompt)) {
+    if (prompt.length < 25 && /\b(health|status|audit|check|verify|ping)\b/.test(prompt)) {
       return {
         modelName: 'gemini-flash',
         path: [-1],
-        reason: 'Override: Short diagnostic task',
+        reason: 'Override: Rapid health/status check',
         candidateConfidence: 1.0,
         regretLikelihood: 0.01
       };
     }
 
-    // Complex diagnostic overrides
-    if (ctx.weightedTasks[TT.Diagnostic] > 0.7) {
+    // High-Stakes Cloud/DevOps overrides
+    if (/\b(wrangler|gcloud|deploy|production|critical|security|auth|secrets|env)\b/.test(prompt)) {
       return {
-        modelName: 'diagnostic-critic',
+        modelName: 'gemini-3-pro-preview',
         path: [1],
-        reason: 'Override: High diagnostic probability',
+        reason: 'Override: High-stakes DevOps/Security target',
+        candidateConfidence: 0.95,
+        regretLikelihood: 0.02
+      };
+    }
+
+    // Complex Research/Architecture overrides
+    if (ctx.weightedTasks[TT.Architecture] > 0.8 || ctx.weightedTasks[TT.APIOrchestration] > 0.8) {
+      return {
+        modelName: 'gemini-thinking',
+        path: [1],
+        reason: 'Override: Extreme abstract complexity',
         candidateConfidence: 0.9,
         regretLikelihood: 0.05
       };
@@ -105,6 +117,9 @@ export class FreeModelRouter {
   private readonly performanceDB: string;
   private readonly circuitBreakers: Map<string, CircuitBreakerState> = new Map();
   private readonly strategies: IRoutingStrategy[] = [];
+  private healthCache: ReadonlyArray<FreeModelConfig> | null = null;
+  private lastHealthCheck = 0;
+  private readonly HEALTH_TTL = 30000; // 30 seconds
 
   // Model Inventory - Optimized by Speed & Job Type
   private readonly FREE_MODELS: ReadonlyArray<FreeModelConfig> = [
@@ -285,7 +300,7 @@ export class FreeModelRouter {
 
   route(prompt: string, filePath?: string): Result<string> {
     try {
-      const weightedTasks = this.analyzeTaskProbabilities(prompt);
+      const weightedTasks = TaskClassifier.analyzeProbabilities(prompt);
       const availableModels = this.getModelHealthGrid();
 
       if (availableModels.filter(m => m.health?.isAvailable).length === 0) {
@@ -303,7 +318,7 @@ export class FreeModelRouter {
 
       const context: RoutingContext = {
         ...rawContext,
-        complexity: this.assessComplexity(rawContext),
+        complexity: TaskClassifier.assessComplexity(prompt, weightedTasks),
         availableModels
       };
 
@@ -321,7 +336,8 @@ export class FreeModelRouter {
 
       logger.info({
         decision: modelName,
-        strategy: decision?.reason || 'default'
+        strategy: decision?.reason || 'default',
+        complexity: context.complexity
       }, 'Decision Engine Chain Resolution');
 
       return { ok: true, value: finalModel };
@@ -330,40 +346,7 @@ export class FreeModelRouter {
     }
   }
 
-  private analyzeTaskProbabilities(prompt: string): Record<TaskType, number> {
-    const patterns = {
-      [TT.APIOrchestration]: /\b(wrangler|gcloud|gemini|github|api|deploy|cloud|cli)\b/i,
-      [TT.Architecture]: /\b(design|architect|system|microservice|pattern)\b/i,
-      [TT.Syntax]: /\b(fix|syntax|error|lint)\b/i,
-      [TT.Refactor]: /\b(refactor|optimize|clean)\b/i,
-      [TT.Debug]: /\b(debug|bug|crash|stack)\b/i,
-      [TT.Generate]: /\b(create|generate|build)\s+(app|project|website)\b/i,
-      [TT.Test]: /\b(test|spec|assert|verify)\b/i,
-      [TT.Docs]: /\b(document|comment|explain)\b/i,
-      [TT.Diagnostic]: /\b(diagnostic|critic|error-track|path-correction|analyze-error|health|status)\b/i,
-      [TT.Esoteric]: /\b(medical|bio|hear|video|music|image|forge|acoustics|pathology|derm)\b/i
-    };
-
-    const weights = {
-      [TT.Architecture]: 0,
-      [TT.Syntax]: 0,
-      [TT.Refactor]: 0,
-      [TT.Debug]: 0,
-      [TT.Generate]: 0,
-      [TT.Test]: 0,
-      [TT.Docs]: 0,
-      [TT.APIOrchestration]: 0,
-      [TT.Diagnostic]: 0,
-      [TT.Esoteric]: 0
-    } satisfies Record<TaskType, number>;
-
-    for (const [type, regex] of Object.entries(patterns)) {
-      const matches = (prompt.match(new RegExp(regex, 'gi')) || []).length;
-      weights[type as TaskType] = matches > 0 ? Math.min(1.0, (matches * 2) / 10 + 0.5) : 0;
-    }
-
-    return weights;
-  }
+  // Removed local analyzeTaskProbabilities to use TaskClassifier
 
   public traverseTree(
     node: TernaryNode,
@@ -391,25 +374,7 @@ export class FreeModelRouter {
     return this.traverseTree(nextNode, context, [...path, decision], [...reasons, currentReason]);
   }
 
-  private assessComplexity(ctx: RawRoutingContext): Ternary {
-    const userIntentMatch = ctx.prompt.match(/### CURRENT USER INTENT\n([\s\S]*?)\n\n### EXECUTION DIRECTIVE/);
-    const rawIntent: string = (userIntentMatch && userIntentMatch[1]) ? (userIntentMatch[1] as string) : ctx.prompt;
-    const prompt = rawIntent.toLowerCase();
-
-    if (/\b(function|class|const|let|var|if|return|while|for|switch)\b/.test(prompt)) {
-      return -1;
-    }
-
-    const wordCount = prompt.split(/\s+/).length;
-    let score = 0;
-
-    if (wordCount > 60) score += 1;
-    if (ctx.weightedTasks[TT.Architecture] > 0.5) score += 2;
-    if (ctx.weightedTasks[TT.APIOrchestration] > 0.5) score += 2;
-    if (ctx.weightedTasks[TT.Generate] > 0.5) score += 2;
-
-    return score >= 3 ? 1 : score >= 1 ? 0 : -1;
-  }
+  // Removed local assessComplexity to use TaskClassifier
 
   private checkCircuitHealth(ctx: AssessedRoutingContext): Ternary {
     const healthScores = ctx.availableModels.map(m => m.health?.circuitLevel ?? 1);
@@ -421,13 +386,18 @@ export class FreeModelRouter {
   }
 
   private getModelHealthGrid(): ReadonlyArray<FreeModelConfig> {
+    if (this.healthCache && (Date.now() - this.lastHealthCheck < this.HEALTH_TTL)) {
+      return this.healthCache;
+    }
+
     try {
       let output = '';
       try {
+        // Fast check only: don't wait for models to load
         output = execSync('ollama list', { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
       } catch { }
 
-      return this.FREE_MODELS.map(m => {
+      const grid = this.FREE_MODELS.map(m => {
         const isPresent = m.type === MT.CloudFree
           ? !!process.env['GOOGLE_API_KEY']
           : output.includes(m.name);
@@ -446,6 +416,10 @@ export class FreeModelRouter {
           }
         };
       });
+
+      this.healthCache = grid;
+      this.lastHealthCheck = Date.now();
+      return grid;
     } catch {
       return this.FREE_MODELS.map(m => ({ ...m, health: { isAvailable: false, circuitLevel: -1 } }));
     }

@@ -13,7 +13,8 @@ export const enum TaskType {
   Docs = 'docs',
   APIOrchestration = 'api-orchestration',
   Diagnostic = 'diagnostic',
-  Esoteric = 'esoteric'
+  Esoteric = 'esoteric',
+  Conversational = 'conversational'
 }
 
 export const enum ModelType {

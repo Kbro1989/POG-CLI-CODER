@@ -45,6 +45,7 @@ import { constructInitialPrompt, PLANNING_PROMPT } from './SystemPrompts.js';
 import { ContextBuilder } from '../context/ContextBuilder.js';
 import { CodebaseIndexer } from '../learning/CodebaseIndexer.js';
 import { ModelExecutor } from './ModelExecutor.js';
+import { TaskClassifier } from './TaskClassifier.js';
 import { ValidationSystem } from './validation/ValidationSystem.js';
 import { NoMockValidator } from './validation/NoMockValidator.js';
 import { ArchitecturalValidator } from './validation/ArchitecturalValidator.js';
@@ -379,6 +380,26 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
 
     this.logger.info({ prompt: prompt.substring(0, 100) }, 'Executing intent (Advanced Loop)');
 
+    const taskType = TaskClassifier.classify(prompt);
+
+    // Phase 21: Conversational Bypass (Fast Path)
+    if (taskType === TaskType.Conversational) {
+      this.logger.info('Conversational intent detected - bypassing supervisor planning');
+      const result = await this.modelExecutor.callModel(
+        'gemini:gemini-3-flash-preview', // Use fast model for chat
+        `You are POG-CODER-VIBE, an advanced AI coding assistant.
+User: ${prompt}
+Respond conversationally, concisely, and helpfully. Do not strictly adhere to JSON formats unless requested.`,
+        []
+      );
+
+      if (result.ok) {
+        this.recordSuccessMetadata('conversational', prompt, Date.now() - context.startTime, filePath);
+        return { ok: true, value: result.value.response };
+      }
+      return { ok: false, error: result.error };
+    }
+
 
     // 0. Check Neural Limbs (Specialized Agents)
     if (await this.webAppForgeLimb.canHandle({ prompt: fullPrompt })) {
@@ -695,7 +716,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
 
   private recordSuccessMetadata(model: string, prompt: string, latency: number, filePath?: string): void {
-    const taskType = this.classifyTaskType(prompt);
+    const taskType = TaskClassifier.classify(prompt);
     const performance: ModelPerformance = {
       model,
       taskType,
@@ -734,7 +755,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
   }
 
   private recordFailureMetadata(model: string, prompt: string, errorMsg: string, filePath?: string): void {
-    const taskType = this.classifyTaskType(prompt);
+    const taskType = TaskClassifier.classify(prompt);
 
     // Learn from failure (VectorDB)
     void (async () => {
@@ -766,23 +787,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
     return this.modelExecutor.callModel(model, prompt, tools);
   }
 
-  private classifyTaskType(prompt: string): TaskType {
-    const patterns = {
-      [TaskType.APIOrchestration]: /\b(wrangler|gcloud|gemini|github|api|deploy|cloud|cli)\b/i,
-      [TaskType.Architecture]: /\b(design|architect|system)\b/i,
-      [TaskType.Syntax]: /\b(fix|syntax|error)\b/i,
-      [TaskType.Refactor]: /\b(refactor|optimize)\b/i,
-      [TaskType.Debug]: /\b(debug|bug)\b/i,
-      [TaskType.Generate]: /\b(create|generate)\b/i,
-      [TaskType.Test]: /\b(test|spec)\b/i,
-      [TaskType.Docs]: /\b(document|comment|explain)\b/i,
-      [TaskType.Diagnostic]: /\b(diagnostic|critic|error-track|path-correction|analyze-error)\b/i
-    };
-    for (const [type, regex] of Object.entries(patterns)) {
-      if (regex.test(prompt)) return type as TaskType;
-    }
-    return TaskType.Generate;
-  }
+  // Removed local classifyTaskType to use TaskClassifier
 
   private recordIntent(context: ExecutionContext, model: string, success: boolean, time: number): void {
     const intent: IntentHistory = {

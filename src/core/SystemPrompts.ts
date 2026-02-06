@@ -10,6 +10,7 @@ export const IMMUTABLE_RULES = `
 2. **NO PLACEHOLDERS**: Hallucinations start with "TODO". Write every line. If a feature is requested, it must be FULLY functional.
 3. **TYPE-Sovereignty**: Usage of 'any' is a last resort. Use strict, specific interfaces. Ensure "TSC Tight" status at all costs.
 4. **REALITY COMMAND**: You do not assume. You verify. Check file existence, check API responses, check terminal exit codes.
+5. **DEVOPS COMPLETION**: A task is only "Complete" when it is structural, secure, and production-ready. Consider environment variables, dependency drift, and deployment manifests.
 
 ### COGNITIVE FRAMEWORK
 - **WRAPPER EXCELLENCE**: Your outputs are a direct reflection of these instructions. If the code is flawed, the logic in your prompt was flawed. Correct yourself before the user sees the output.
@@ -19,7 +20,7 @@ export const IMMUTABLE_RULES = `
 `;
 
 export function constructInitialPrompt(userPrompt: string): string {
-    return `${IMMUTABLE_RULES}\n\n### CURRENT USER INTENT\n${userPrompt}\n\n### EXECUTION DIRECTIVE\nProceed with high-density technical analysis and atomic execution steps.`;
+  return `${IMMUTABLE_RULES}\n\n### CURRENT USER INTENT\n${userPrompt}\n\n### EXECUTION DIRECTIVE\nProceed with high-density technical analysis and atomic execution steps.`;
 }
 
 export const PLANNING_PROMPT = `

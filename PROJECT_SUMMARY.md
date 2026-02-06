@@ -25,10 +25,14 @@ POG-CODER-VIBE is a functional, enterprise-grade AI coding assistant with cognit
 - ✅ **Hybrid Orchestrator**: LocalOllama + Cloud Gemini with intelligent fallback
 - ✅ **VectorDB + RAG**: SQLite-backed semantic memory with proactive indexing
 - ✅ **WebApp Forge Limb**: Full-stack project scaffolding (Vite, Next.js, etc.)
+- ✅ **Media Forge Limb**: Creative generation (Imagen/Veo/Lyria)
+- ✅ **Bio Intelligence Limb**: Clinical analysis (MedGemma/HEAR)
+- ✅ **Gutenberg Limb**: Literary ingestion & style modeling
+- ✅ **Hexagram Limb**: Intent-aware dynamic context
 - ✅ **Sandbox**: Snapshot-based rollback for safe command execution
 - ✅ **VS Code Extension**: WebSocket-connected state dashboard
 - ✅ **KeyVault**: Multi-key API rotation with automatic failover
-- ✅ **Sovereign Budget Control**: Human-in-the-loop authorization for all paid AI substrates
+- ✅ **Sovereign Budget Control**: Human-in-the-loop authorization
 - ✅ **Static Registry**: 283-model baked-in definitions (Zero Mocks)
 - ✅ **Semantic Intent**: High-fidelity routing and multi-path chains
 

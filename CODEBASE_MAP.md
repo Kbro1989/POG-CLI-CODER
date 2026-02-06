@@ -59,8 +59,12 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 |------|---------|--------|
 | **[NeuralLimb.ts](./src/limbs/core/NeuralLimb.ts)** | Base class for agent extensions | ✅ Abstract Pattern |
 | **[WebAppForgeLimb.ts](./src/limbs/webapp/WebAppForgeLimb.ts)** | Full-stack project scaffolding (Vite, Next.js, Fastify) | ✅ Template-Driven |
-| **[AILimb.ts](./src/api/ai/AILimb.ts)** | Intent-pathed specialized AI agent | ✅ Real FS Scanning |
-| **[Dispatcher.ts](./src/api/ai/Dispatcher.ts)** | Live gcloud auth bridge for Vertex AI REST | ✅ Live REST fetch |
+| **[MediaForgeLimb.ts](./src/limbs/media/MediaForgeLimb.ts)** | Creative generation (Imagen 4, Veo 3, Lyria 2) | ✅ Esoteric Substrates |
+| **[BioIntelligenceLimb.ts](./src/limbs/bio/BioIntelligenceLimb.ts)** | Bio-medical analysis (MedGemma, HEAR, Pathology) | ✅ Clinical Precision |
+| **[GutenbergLimb.ts](./src/limbs/gutenberg/GutenbergLimb.ts)** | Literary knowledge & styled corpus ingestion | ✅ Historical Reach |
+| **[HexagramLimb.ts](./src/limbs/core/HexagramLimb.ts)** | Intent-aware context hexagram management | ✅ Context-Tight |
+| **[AILimb.ts](./src/api/ai/AILimb.ts)** | Registry-pathed specialized AI dispatcher | ✅ 283 Models |
+| **[Dispatcher.ts](./src/api/ai/Dispatcher.ts)** | gcloud Auth bridge for Vertex AI & Google Cloud REST | ✅ Live REST fetch |
 
 ---
 
@@ -148,6 +152,12 @@ Orchestrator (Research → Plan → Execute → Review)
     ├─→ Router (Ternary Decision)
     │       ├─→ Ollama (Local-First)
     │       └─→ Gemini (Cloud Fallback)
+    ├─→ Limbs (Specialized Skills)
+    │       ├─→ WebAppForge (Scaffolding)
+    │       ├─→ MediaForge (Imagery/Video/Audio)
+    │       ├─→ BioIntelligence (Clinical/Bio)
+    │       ├─→ Gutenberg (Literature/Styles)
+    │       └─→ Hexagram (Dynamic Context)
     ├─→ ContextBuilder (Query VectorDB)
     ├─→ Sandbox (Execute with Snapshot)
     └─→ ASTWatcher (Monitor Changes)

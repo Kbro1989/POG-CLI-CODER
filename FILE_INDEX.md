@@ -45,8 +45,14 @@ This index catalogs all source files, documentation, and artifacts in the produc
 ## 🤖 Specialized Agents (`/src/limbs`)
 
 - ✅ **`core/NeuralLimb.ts`** - Base class for agent extensions
+- ✅ **`core/HexagramLimb.ts`** - Intent-aware context management
 - ✅ **`webapp/WebAppForgeLimb.ts`** - Full-stack project scaffolding
+- ✅ **`media/MediaForgeLimb.ts`** - Creative media generation
+- ✅ **`bio/BioIntelligenceLimb.ts`** - Bio-medical intelligence
+- ✅ **`gutenberg/GutenbergLimb.ts`** - Literary corpus ingestion
 - ✅ **`webapp/tools/definitions.ts`** - Tool schemas for WebApp Forge
+- ✅ **`api/ai/AILimb.ts`** - Path-based AI capability dispatcher
+- ✅ **`api/ai/Dispatcher.ts`** - Vertex AI & Cloud REST bridge
 
 ---
 
@@ -86,6 +92,7 @@ This index catalogs all source files, documentation, and artifacts in the produc
 - ✅ **`migrate_ollama.ps1`** - Local model setup (Windows)
 - ✅ **`test_gemini_thinking.ts`** - Reasoning model diagnostics
 - ✅ **`test_model_health.ts`** - Endpoint verification
+- ✅ **`verify_conversational.ts`** - Verify conversational task classification
 
 ---
 
