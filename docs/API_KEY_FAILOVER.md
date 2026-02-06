@@ -5,11 +5,11 @@
 ### 1. Add Backup Keys
 ```bash
 # Add your current key (if not already in vault)
-npx tsx cli/cli-keys.ts add primary AIzaSyDOoSSyVk6Gk8tTbBAuCuCa0udOq-WN5g4
+npx tsx cli/cli-keys.ts add primary YOUR_PRIMARY_API_KEY
 
 # Add backup keys
-npx tsx cli/cli-keys.ts add backup-1 AIzaSyABCDEFG...
-npx tsx cli/cli-keys.ts add backup-2 AIzaSyXYZ1234...
+npx tsx cli/cli-keys.ts add backup-1 YOUR_BACKUP_KEY_1
+npx tsx cli/cli-keys.ts add backup-2 YOUR_BACKUP_KEY_2
 ```
 
 ### 2. List Keys
