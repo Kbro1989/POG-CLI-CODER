@@ -99,6 +99,7 @@ vibe> suggest improvements for scalability
 ```bash
 vibe> history          # View intent history
 vibe> state            # Show current state
+vibe> manifest <path>  # Generate pog.md manifest for a folder
 vibe> revert <id>      # Revert to snapshot
 vibe> exit             # Quit (saves session)
 ```

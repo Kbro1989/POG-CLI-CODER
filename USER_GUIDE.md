@@ -8,8 +8,9 @@ Welcome to the **Sovereign Intelligence** production environment. POG is a proje
 1. **Mock-Free Execution**: Every action is performed against real project substrates.
 2. **Project Omniscience**: High-resolution awareness of the entire codebase and its dependencies.
 3. **Ternary Model Sharding**: Intelligent routing between local (Ollama) and cloud (Gemini) tiers based on diagnostic complexity.
-4. **Service Passthrough**: Leverage elite Google Cloud AI APIs (Health, Geospatial, Video) in your created products via the POG-VIBE internal dispatcher.
-5. **Sovereign Budget Control**: All external services (Cloud APIs, MCP) are human-gated. Use the `toggle` command to authorize specific substrates based on your budget.
+4. **Synthesis Sovereignty**: Automatically merge multiple candidate solutions into a single high-fidelity "Masterpiece" using the **Synthesis Weaver**.
+5. **Continuous Reflection**: Real-time anti-pattern hunting and architectural alignment checks via the **9-Node Cluster Matrix**.
+6. **Sovereign Budget Control**: All external services (Cloud APIs, MCP) are human-gated.
 
 ---
 
@@ -56,9 +57,10 @@ The system will decompose the request, route step 1 to **DALL-E 3** and step 2 t
 Generate professional project structures instantly using the `create` command:
 
 **Workflow:**
-1. **Planning**: Diagnostic analysis evaluates the request against professional templates.
-2. **Implementation**: The system constructs the project substrate in the specified directory.
-3. **Validation**: Automated verification loop (Research -> Plan -> Execute -> Review).
+1. **Sensing**: Evaluating architectural alignment and retrieving "Golden Templates" for context.
+2. **Thinking**: Predicting failure modes via "Adversarial Pre-Mortem" and checking cluster resource health.
+3. **Acting**: Generating code with strict "Type-Safety Sentinel" hints and virtual success scenarios.
+4. **Reflecting**: Critiquing output for anti-patterns and weaving candidates into a final result.
 
 ---
 
@@ -104,10 +106,19 @@ The **Vibe Viewer** extension turns VS Code into a live dashboard.
 
 ---
 
+## 📁 Project Portability & Manifests (pog.md)
+To ensure every folder in your project is understood by developers and clones alike, use the manifest system.
+
+1. **Generate Manifest**: Run `pog manifest <path>` (e.g., `pog manifest src/core`).
+2. **Contextual Awareness**: The system creates a `pog.md` file in the folder, detailing the purpose of each file and the directory's architectural role.
+3. **Cloning Support**: When you clone a project, these manifests provide immediate high-fidelity context to the AI, reducing "cold-start" friction.
+
+---
+
 ## 🛡️ Best Practices
-1. **Trust the Planning**: The agent performs a "Supervisor Thinking" turn before every major change. Review its plan in the logs.
+1. **Trust the Cluster**: The system performs 3 parallel cognitive simulations for every intent. Review the synthesized plan in the logs.
 2. **Use Natural Language**: Don't force technical commands; simply describe your goal.
-3. **Offline Mode**: If `Ollama` is running, the agent will gracefully switch to local models if the cloud is unreachable.
+3. **Stability Wins**: If a model is struggling, the system will automatically "Pre-Mortem" its likely failure and pivot to a more robust route.
 
 ---
 

@@ -21,14 +21,14 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 
 | File | Purpose | Status |
 |------|---------|--------|
-| **[Orchestrator.ts](./src/core/Orchestrator.ts)** | Main execution engine with Omniscience planning loop | ✅ Production Ready |
-| **[Router.ts](./src/core/Router.ts)** | Ternary decision tree with tiered legacy fallbacks | ✅ Production Ready |
+| **[Orchestrator.ts](./src/core/Orchestrator.ts)** | Main execution engine with Omniscience planning loop | ✅ Production Ready (Phase 10) |
+| **[Router.ts](./src/core/Router.ts)** | Ternary decision tree with tiered legacy fallbacks | ✅ Production Ready (Phase 10) |
 | **[GeminiService.ts](./src/core/GeminiService.ts)** | Native SDK client with stable Gemini 2.0 integration | ✅ Phase 4 Complete |
 | **[PreviewServer.ts](./src/core/PreviewServer.ts)** | Live dev-server manager for generated projects | ✅ Interactive |
 | **[SystemPrompts.ts](./src/core/SystemPrompts.ts)** | Immutable agent rules (NO MOCKS/NO PLACEHOLDERS) | ✅ Enforced |
 | **[models.ts](./src/core/models.ts)** | Centralized type definitions (TSC Tight) | ✅ 0 Errors |
-| **[StaticModelRegistry.ts](./src/api/ai/StaticModelRegistry.ts)** | Baked-in 283-model definitions (No Mockery) | ✅ Production Ready |
-| **[IntentMap.ts](./api/ai/IntentMap.ts)** | Semantic routing for specialized intents | ✅ Production Ready |
+| **[StaticModelRegistry.ts](./src/api/ai/StaticModelRegistry.ts)** | Baked-in 283-model definitions (No Mockery) | ✅ Production Ready (Phase 10) |
+| **[IntentMap.ts](./api/ai/IntentMap.ts)** | Semantic routing for specialized intents | ✅ Production Ready (Phase 10) |
 | **[CapabilityRegistry.ts](./src/api/ai/CapabilityRegistry.ts)** | Model capability types & metadata | ✅ Verified |
 
 ---
@@ -57,15 +57,22 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 
 | File | Purpose | Status |
 |------|---------|--------|
-| **[NeuralLimb.ts](./src/limbs/core/NeuralLimb.ts)** | Base class for agent extensions | ✅ Abstract Pattern |
+| **[BaseLimb.ts](./src/limbs/core/BaseLimb.ts)** | Abstract foundation with ToolingSpine integration | ✅ Foundation |
+| **[NeuralLimb.ts](./src/limbs/core/NeuralLimb.ts)** | Interface contract for agent extensions | ✅ Abstract Pattern |
+| **[DashboardLimb.ts](./src/limbs/core/DashboardLimb.ts)** | Session-specific QOL Control Plane (HTML UI) | ✅ Interactive |
+| **[FileSystemLimb.ts](./src/limbs/core/FileSystemLimb.ts)** | Atomic file operations (read/write/patch/rollback) | ✅ Sandboxed |
+| **[NeuralForgeLimb.ts](./src/limbs/core/NeuralForgeLimb.ts)** | Specialized high-tier creation (SQL, Docs, Refactor) | ✅ Adversarial |
+| **[VoiceLimb.ts](./src/limbs/core/VoiceLimb.ts)** | Audio & Speech Intelligence (Whisper, TTS, Wake Word) | ✅ Voice Chat |
+| **[YoloLimb.ts](./src/limbs/core/YoloLimb.ts)** | High-Risk Reasoning & Unrestricted Creation | ✅ Gemini CLI |
+| **[HexagramLimb.ts](./src/limbs/core/HexagramLimb.ts)** | Intent-aware context hexagram management | ✅ Context-Tight |
 | **[WebAppForgeLimb.ts](./src/limbs/webapp/WebAppForgeLimb.ts)** | Full-stack project scaffolding (Vite, Next.js, Fastify) | ✅ Template-Driven |
 | **[MediaForgeLimb.ts](./src/limbs/media/MediaForgeLimb.ts)** | Creative generation (Imagen 4, Veo 3, Lyria 2) | ✅ Esoteric Substrates |
 | **[BioIntelligenceLimb.ts](./src/limbs/bio/BioIntelligenceLimb.ts)** | Bio-medical analysis (MedGemma, HEAR, Pathology) | ✅ Clinical Precision |
 | **[GutenbergLimb.ts](./src/limbs/gutenberg/GutenbergLimb.ts)** | Literary knowledge & styled corpus ingestion | ✅ Historical Reach |
-| **[HexagramLimb.ts](./src/limbs/core/HexagramLimb.ts)** | Intent-aware context hexagram management | ✅ Context-Tight |
+| **[CloudflareLimb.ts](./src/limbs/cloud/CloudflareLimb.ts)** | Unified Cloudflare AI (Image, Chat, Embeddings) | ✅ Production Ready |
 | **[AILimb.ts](./src/api/ai/AILimb.ts)** | Registry-pathed specialized AI dispatcher | ✅ 283 Models |
 | **[Dispatcher.ts](./src/api/ai/Dispatcher.ts)** | gcloud Auth bridge for Vertex AI & Google Cloud REST | ✅ Live REST fetch |
-| **[CloudflareLimb.ts](./src/limbs/cloud/CloudflareLimb.ts)** | Unified Cloudflare AI capabilities (Image, Chat, Embd) | ✅ Production Ready |
+
 
 ---
 

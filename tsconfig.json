@@ -62,6 +62,8 @@
   "exclude": [
     "node_modules",
     "dist",
-    "vscode-extension"
+    "vscode-extension",
+    "src/references",
+    "src/workers"
   ]
 }

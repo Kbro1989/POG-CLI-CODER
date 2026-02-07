@@ -57,6 +57,23 @@ Unified Cloudflare integration for high-performance AI tools:
 - **Cloudflare Workers AI**: Native support for `@cf/stabilityai/stable-diffusion-xl-base-1.0` (Image), `@cf/meta/llama-3.1-8b-instruct-fp8` (Chat), and `@cf/baai/bge-large-en-v1.5` (Embeddings).
 - **Portability**: Fully relative pathing for easy project cloning.
 
+### 9. **Core Limbs** 🦾
+Specialized capability extensions for the Sovereign AI:
+- **VoiceLimb**: Audio & Speech Intelligence (Whisper transcription, TTS, wake word detection)
+- **FileSystemLimb**: Atomic file operations (read/write/patch) with automatic snapshot rollback
+- **NeuralForgeLimb**: High-tier SQL, Docs, and Refactoring via Adversarial Orchestration
+- **YoloLimb**: High-Risk Reasoning via `gemini-cli --yolo` for unrestricted creation
+- **DashboardLimb**: Session-specific HTML Control Plane UI
+
+
+### 10. **Cluster Intelligence (9-Node Matrix)** 🕸️
+Advanced cognitive loop implemented in Phase 10:
+- **Sensing Helpers**: Ghost of Architecture + Semantic Scout
+- **Thinking Helpers**: Resource Futurist + Adversarial Pre-Mortem
+- **Acting Helpers**: Type-Safety Sentinel + Success Scenario
+- **Reflecting Helpers**: Anti-Pattern Hunter + Synthesis Weaver
+- **O(3³)**: Parallel cognitive simulations for maximum fidelity.
+
 ---
 
 ## 🤖 Model Strategy
@@ -173,12 +190,15 @@ The extension provides:
 - [x] **Audit Clean**: 0 npm vulnerabilities (via `tar` override)
 - [x] **VS Code Extension**: Fully configured with proper types
 
-### Phase 13: Live AI Engine & Intent Pathing ✅
-- [x] **Static 283-Model Registry**: Baked-in definitions for all Vertex AI & Google models.
-- [x] **Live gcloud Auth**: Real-time token exchange and project context discovery.
-- [x] **Semantic Intent Router**: Pathing by purpose (Clinical, Creative, Marketing).
-- [x] **Multi-Path Chains**: Support for sequential "and then" execution.
-- [x] **Omniscient Media Scaling**: Real-time FS scanning for multimodal payloads.
+### Phase 10: Cluster Intelligence ✅
+- [x] **9-Node Sovereign Matrix**: Sensing, Thinking, Acting, and Reflecting helpers.
+- [x] **Adversarial Pre-Mortem**: Predictive failure mode analysis.
+- [x] **Synthesis Weaver**: Merging candidate code into high-fidelity "Masterpieces".
+- [x] **Anti-Pattern Hunter**: Real-time penalization of mocks and placeholders.
+
+### Phase 11: Project Portability & Manifests (Current) 🚧
+- [x] **Documentation Audit**: Aligning all 7 core guides with Cluster Intelligence.
+- [ ] **pog.md Manifests**: Recursive folder-level context for clones.
 
 ### Sovereign Rules
 This project enforces strict quality standards:

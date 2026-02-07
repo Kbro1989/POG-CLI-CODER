@@ -36,6 +36,15 @@ These rules are enforced across the entire codebase and all development activiti
 
 ---
 
+### 5. CLUSTER INTELLIGENCE 🧠
+**Always leverage the 9-node cognitive loop (Sense-Think-Act-Reflect) for complex work.**
+- **Sensing**: Verify architectural alignment before proposing edits.
+- **Thinking**: Predict failure modes via Adversarial Pre-Mortems.
+- **Acting**: Enforce strict type-safety and use virtual success scenarios.
+- **Reflecting**: Proactively hunt anti-patterns and weave candidates into masterpieces.
+
+---
+
 ## Code Quality Standards
 
 ### TypeScript

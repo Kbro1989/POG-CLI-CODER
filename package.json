@@ -17,6 +17,9 @@
     "test:watch": "npm run test -- --watch",
     "lint": "eslint src cli --ext .ts",
     "typecheck": "tsc --noEmit",
+    "typecheck:extension": "cd vscode-extension && tsc --noEmit",
+    "typecheck:worker": "cd src/workers/pog-vibe-worker && tsc --noEmit",
+    "typecheck:all": "npm run typecheck && npm run typecheck:extension && npm run typecheck:worker",
     "vscode:package": "cd vscode-extension && vsce package",
     "deploy": "pwsh ./deploy.ps1",
     "prepare": "husky install"
