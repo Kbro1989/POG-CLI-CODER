@@ -1,0 +1,2 @@
+cli/InteractiveMenu.ts(18,26): error TS6138: Property 'rl' is declared but its value is never read.
+cli/InteractiveMenu.ts(40,28): error TS6133: 'str' is declared but its value is never read.

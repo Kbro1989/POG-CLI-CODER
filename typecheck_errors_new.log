@@ -1,0 +1,18 @@
+﻿
+> pog-coder-vibe@1.0.0 typecheck
+> tsc --noEmit
+
+src/routing/strategies/DefaultStrategy.ts(38,25): error TS2339: Property 'ollamaModels' does not exist on type 'VibeConfig'.
+src/routing/strategies/DefaultStrategy.ts(38,53): error TS2339: Property 'ollamaModels' does not exist on type 'VibeConfig'.
+src/routing/strategies/DefaultStrategy.ts(43,25): error TS2339: Property 'geminiModel' does not exist on type 'VibeConfig'.
+src/routing/strategies/FallbackStrategy.ts(42,17): error TS6133: 'context' is declared but its value is never read.
+src/routing/strategies/FallbackStrategy.ts(75,25): error TS2339: Property 'ollamaModels' does not exist on type 'VibeConfig'.
+src/routing/strategies/FallbackStrategy.ts(75,53): error TS2339: Property 'ollamaModels' does not exist on type 'VibeConfig'.
+src/routing/strategies/FallbackStrategy.ts(82,25): error TS2339: Property 'geminiModel' does not exist on type 'VibeConfig'.
+src/routing/strategies/FallbackStrategy.ts(82,52): error TS2339: Property 'apiKey' does not exist on type 'VibeConfig'.
+src/routing/strategies/FallbackStrategy.ts(105,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/routing/strategies/TernaryClassifierStrategy.ts(9,36): error TS2307: Cannot find module '../../services/OllamaService.js' or its corresponding type declarations.
+src/routing/strategies/TernaryClassifierStrategy.ts(125,47): error TS2339: Property 'reasoning' does not exist on type 'TernaryClassification'.
+src/routing/strategies/TernaryClassifierStrategy.ts(159,17): error TS2353: Object literal may only specify known properties, and 'reasoning' does not exist in type 'TernaryClassification'.
+src/routing/types.ts(8,36): error TS2307: Cannot find module './models.js' or its corresponding type declarations.

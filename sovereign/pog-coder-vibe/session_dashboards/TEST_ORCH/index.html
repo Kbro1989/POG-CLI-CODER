@@ -13,13 +13,14 @@
             <div class="logo">POG-VIBE <span>CORE</span></div>
             <div class="workspace-selector">
                 <select id="workspace-select" onchange="switchWorkspace(this.value)">
-                    <option value="C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant" >Ollama_Code_Editor_Quant</option><option value="C:\\Users\\Destiny\\Desktop\\ai-architect-mmorpg\\copy-of-rsc-evolution-ai" >copy-of-rsc-evolution-ai</option><option value="C:\\Users\\Destiny\\Desktop\\New folder\\POG-Ultimate" >POG-Ultimate</option><option value="C:\\Users\\Destiny\\Desktop\\projects\\OKComputer_rebuild my app for me\\antigravity-engine" >antigravity-engine</option>
+                    
                 </select>
             </div>
-            <nav class="tab-nav">
+                <nav class="tab-nav">
                 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
                 <button class="tab-btn" data-tab="ai">AI Pipeline</button>
                 <button class="tab-btn" data-tab="terminal">Terminal</button>
+                <button class="tab-btn" data-tab="health">Health</button>
                 <button class="tab-btn" data-tab="media">Media Forge</button>
                 <button class="tab-btn" data-tab="docs">Docs</button>
                 <button class="tab-btn" data-tab="settings">Settings</button>
@@ -60,6 +61,10 @@
                                 <div id="pinned-files-list" class="scroll-box mini-list">
                                     <p class="muted">No files pinned.</p>
                                 </div>
+                                <div id="context-preview" class="context-preview-box">
+                                    <h4 id="preview-title">File Preview</h4>
+                                    <pre id="preview-content" class="preview-code">Select a pinned file to preview...</pre>
+                                </div>
                             </div>
                             <div class="pipeline-section">
                                 <h4>MODEL GALLERY (CATEGORIZED)</h4>
@@ -80,6 +85,62 @@
                             <div id="terminal-header" class="terminal-meta">Process: PowerShell Extension (14528) | Status: <span id="term-status-val">Active</span></div>
                             <div id="terminal-body" class="terminal-output">
                                 <pre id="terminal-content">Initializing cognitive terminal link...</pre>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="health" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">📊</span> SYSTEM HEALTH</h3>
+                        <div class="health-grid">
+                            <div class="health-gauge">
+                                <div class="gauge-label">CPU LOAD</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="cpu-gauge" class="gauge-fg cpu" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="cpu-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">MEMORY</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="mem-gauge" class="gauge-fg mem" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="mem-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">DISK I/O</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="disk-gauge" class="gauge-fg disk" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="disk-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="health-history" class="scroll-box">
+                            <h4>System Events</h4>
+                            <div id="health-events"></div>
+                        </div>
+                        <div id="env-status-section" class="scroll-box mt-20">
+                            <h4>Active Environment Status</h4>
+                            <div id="env-status-grid" class="env-status-view">
+                                <p class="muted">Detecting global settings...</p>
+                            </div>
+                        </div>
+                        <div id="env-status-section" class="scroll-box mt-20">
+                            <h4>Active Environment Status</h4>
+                            <div id="env-status-grid" class="env-status-view">
+                                <p class="muted">Detecting global settings...</p>
                             </div>
                         </div>
                     </section>
@@ -136,6 +197,30 @@
                                     <label>VISION</label>
                                     <label class="switch">
                                         <input type="checkbox" checked onchange="toggleService('vision', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>MEDIAFORGE</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('mediaforge', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>GUTENBERG</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('gutenberg', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>DASHBOARD</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('dashboard', this.checked)">
                                         <span class="slider round"></span>
                                     </label>
                                 </div>

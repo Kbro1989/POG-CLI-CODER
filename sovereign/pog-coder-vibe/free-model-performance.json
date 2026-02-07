@@ -494,6 +494,15 @@
       "success": true,
       "timestamp": 1770414657052,
       "isFree": true
+    },
+    {
+      "model": "gutenberg_knowledge",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 45001,
+      "success": true,
+      "timestamp": 1770487102987,
+      "isFree": true
     }
   ],
   "version": "1.2.0"

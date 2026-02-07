@@ -1,0 +1,18 @@
+﻿{"level":30,"time":1768655132272,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":30,"time":1768655132493,"hostname":"POG-VIBE","name":"Router","pogDir":"C:\\Users\\Destiny\\.pog-coder-vibe","msg":"Router initialized with Multi-Tool Architecture"}
+{"level":30,"time":1768655132610,"hostname":"POG-VIBE-AGENT","name":"Orchestrator","sessionId":"session_1768655132029_1b5e55p","agentName":"POG-VIBE-AGENT","pogDir":"C:\\Users\\Destiny\\.pog-coder-vibe","adversarialEnabled":true,"msg":"Orchestrator initialized with Sovereign Intelligence"}
+≡ƒÜÇ Starting POG-CODER-VIBE E2E Demonstration...
+{"level":30,"time":1768655132642,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant","msg":"Initializing AST Watcher"}
+{"level":30,"time":1768655132705,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"C:\\Users\\Destiny\\.pog-coder-vibe\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":30,"time":1768655132480,"hostname":"POG-VIBE","name":"KeyVault","name":"default","masked":"AIza****...N5g4","msg":"API key added"}
+{"level":50,"time":1768655132714,"hostname":"POG-VIBE-AGENT","name":"Orchestrator","error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":8765},"msg":"WebSocket error"}
+{"level":30,"time":1768655132779,"hostname":"POG-VIBE-AGENT","name":"Orchestrator","port":8765,"msg":"WebSocket server started"}
+Γÿü∩╕Å Gemini Cloud Tier: ACTIVE
+Γ£à System Initialized.
+≡ƒÄ¿ Mode: Sovereign Intelligence (Production)
+≡ƒºá Building Omniscience Map...
+≡ƒö¿ Executing Intent: "create sovereign-health-monitor app - interactive status page showing Cloud/Local model tiers. Incorporate design philosophy from our RuneApps model viewer and Morrowind total conversion project (Sovereign Aesthetics). Use all available models and tools."
+{"level":30,"time":1768655132782,"hostname":"POG-VIBE","name":"WebAppForge","msg":"≡ƒö¿ WebApp Forge activated"}
+{"level":30,"time":1768655132781,"hostname":"POG-VIBE-AGENT","name":"Orchestrator","prompt":"create sovereign-health-monitor app - interactive status page showing Cloud/Local model tiers. Incor","msg":"Executing intent (Advanced Loop)"}
+{"level":30,"time":1768655135139,"hostname":"POG-VIBE","name":"WebAppForge","blueprint":{"stack":"nextjs-vibe","name":"sovereign-health-monitor","features":["api-routes","server-side-rendering","typescript"],"file_count":20},"msg":"Blueprint created"}
+{"level":30,"time":1768655135142,"hostname":"POG-VIBE","name":"WebAppForge","msg":"Scaffolding nextjs-vibe in C:\\Users\\Destiny\\.pog-coder-vibe\\projects\\sovereign-health-monitor"}

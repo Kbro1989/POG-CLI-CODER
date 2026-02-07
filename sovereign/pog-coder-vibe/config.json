@@ -1,6 +1,6 @@
 {
   "pogDir": "D:\\pog-coder-vibe",
-  "projectRoot": "C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant",
+  "projectRoot": "C:\\users\\destiny\\desktop\\projects\\new folder",
   "agentName": "POG-VIBE-AGENT",
   "wsPort": 8765,
   "maxSnapshotAge": 86400000,
@@ -17,7 +17,10 @@
     "mcp_gitkraken",
     "healthcare",
     "documentai",
-    "vision"
+    "vision",
+    "mediaforge",
+    "gutenberg",
+    "dashboard"
   ],
   "cloudflareGatewayUrl": "https://gateway.ai.cloudflare.com/v1/6872653edcee9c787c1b783173793/pick-of-gods/workers-ai/run/"
 }

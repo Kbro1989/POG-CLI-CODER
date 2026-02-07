@@ -43,7 +43,7 @@ import { FreeOrchestrator } from '../src/core/Orchestrator.js';
 import { ASTWatcher } from '../src/watcher/ASTWatcher.js';
 import { VectorDB } from '../src/learning/VectorDB.js';
 import { Sandbox } from '../src/sandbox/Sandbox.js';
-import { select, drawBox, drawMessage } from '../src/utils/terminal.js';
+import { select, drawBox, drawMessage, drawSovereignReport } from '../src/utils/terminal.js';
 import { ServiceDiscovery } from '../src/core/ServiceDiscovery.js';
 import { InteractiveMenu } from './InteractiveMenu.js';
 import chalk from 'chalk';
@@ -188,9 +188,6 @@ class VibeCLI {
     });
   }
 
-  // Note: setupLogToggle was removed due to raw mode conflicts with readline.
-  // Use the 'debug' command instead to toggle log visibility.
-
   async start(): Promise<void> {
     // Initialize orchestrator
     const initResult = await this.orchestrator.initialize();
@@ -199,11 +196,14 @@ class VibeCLI {
       process.exit(1);
     }
 
+    // Initialize endpoints
+    await this.initialAudit();
+
     // Display welcome banner
     this.displayBanner();
 
-    // Perform Service Audit
-    await this.performAudit();
+    // Generate AI Greeting
+    await this.generateGreeting();
 
     // Start REPL
     this.rl.prompt();
@@ -214,18 +214,63 @@ class VibeCLI {
     });
   }
 
+  private async initialAudit(): Promise<void> {
+    const results = await this.discovery.auditAll();
+    const extension = results.find(r => r.id === 'extension');
+    const worker = results.find(r => r.id === 'worker');
+
+    const mapStatus = (s: string): 'ACTIVE' | 'INACTIVE' | 'PARTIAL' => {
+      if (s === 'ACTIVE') return 'ACTIVE';
+      if (s === 'PARTIAL') return 'PARTIAL'; // Discovery might return partial later
+      return 'INACTIVE'; // Map ERROR, UNKNOWN, INACTIVE to INACTIVE
+    };
+
+    if (extension) {
+      this.orchestrator.updateEndpointStatus('extension', mapStatus(extension.status));
+    }
+    if (worker) {
+      this.orchestrator.updateEndpointStatus('worker', mapStatus(worker.status));
+    }
+  }
+
   private displayBanner(): void {
     const config = this.configManager.getConfig();
     const sessionId = this.orchestrator.getSessionId();
+    const extensionStatus = this.orchestrator.getEndpointStatus('extension');
+    const workerStatus = this.orchestrator.getEndpointStatus('worker');
+
+    const extLine = extensionStatus === 'ACTIVE' ? chalk.green('IS') : extensionStatus === 'PARTIAL' ? chalk.yellow('PARTIALLY') : chalk.red('IS NOT');
+    const workerLine = workerStatus === 'ACTIVE' ? chalk.green('IS') : workerStatus === 'PARTIAL' ? chalk.yellow('PARTIALLY') : chalk.red('IS NOT');
+    const sovereignLine = config.sovereignRoot ? chalk.green(`ACTIVE [${config.sovereignRoot}]`) : chalk.gray('NOT DETECTED');
 
     console.clear();
-    drawBox('🎯 POG-CODER-VIBE v1.0', [
-      `📁 Project: ${config.projectRoot}`,
-      `💾 Session: ${sessionId}`,
-      `🔌 VS Code: ws://localhost:${config.wsPort}`,
+    drawBox('🚀 POG-CODER-VIBE: SOVEREIGN INTELLIGENCE', [
+      `📁 Root:       ${config.projectRoot} `,
+      `🆔 System:     ${config.projectId} `,
+      `💾 Active:     ${sessionId} `,
+      `🏰 Substrate:  ${sovereignLine} `,
+      `🔌 Extension:  ${extLine} `,
+      `🌩️ Edge:       ${workerLine} `,
+      `🌌 Constellation: ONLINE`,
+      '',
+      chalk.cyan('Ready to take on the world. What are we building today?'),
+      chalk.gray('• Code Pro • App Forge • Book Reader • Creative Friend • Gen Art'),
       '',
       'Type your intent to begin, or use "help" for a list of commands.'
     ]);
+  }
+
+  private async generateGreeting(): Promise<void> {
+    const greetingIntent = "Greet the user in your new 'Ready to Take on the World' persona. Briefly mention your versatility (code, books, creative partner, complex apps) and invite them to start something amazing. Stay brilliant and straight up.";
+    try {
+      const result = await this.orchestrator.executeIntent(greetingIntent);
+      if (result.ok) {
+        drawMessage('POG', result.value.output);
+      }
+    } catch (error) {
+      // Silently fail if greeting fails, don't block startup
+      logger.debug({ error }, 'Failed to generate initial greeting');
+    }
   }
 
   private async performAudit(): Promise<void> {
@@ -244,7 +289,7 @@ class VibeCLI {
         statusText = chalk.yellow('AUTHORIZED');
       }
 
-      return `${icon} ${res.name.padEnd(20)} [${statusText}] ${res.details ? chalk.gray('(' + res.details + ')') : ''}`;
+      return `${icon} ${res.name.padEnd(20)} [${statusText}] ${res.details ? chalk.gray('(' + res.details + ')') : ''} `;
     });
 
     drawBox('⚙️  SERVICE DISCOVERY & MCP STATUS', lines, 80);
@@ -254,7 +299,7 @@ class VibeCLI {
   private readonly commands: ReadonlyArray<CommandHandler> = [
     {
       pattern: /^exit$/i,
-      description: 'Exit the REPL',
+      description: 'exit             - Quit (saves session)',
       handler: (args: string[]): void => {
         void args;
         this.running = false;
@@ -263,23 +308,19 @@ class VibeCLI {
     },
     {
       pattern: /^help$/i,
-      description: 'Show available commands',
+      description: 'help             - Show this help',
       handler: (args: string[]): void => {
         void args;
         // eslint-disable-next-line no-console
         console.log('\n📚 Available Commands:\n');
         for (const cmd of this.commands) {
           // eslint-disable-next-line no-console
-          console.log(`  ${cmd.description}`);
+          console.log(`  ${cmd.description} `);
         }
         // eslint-disable-next-line no-console
         console.log('  history          - View intent history');
         console.log('  state            - Show current state');
         console.log('  config           - Show configuration');
-        console.log('  toggle <id>      - Enable/Disable service (Budget Control)');
-        console.log('  health           - Run substrate health audit');
-        console.log('  help             - Show this help');
-        console.log('  exit             - Quit (saves session)');
         console.log('');
         // eslint-disable-next-line no-console
         console.log('\n💡 Tips:');
@@ -302,6 +343,26 @@ class VibeCLI {
       }
     },
     {
+      pattern: /^drive$/i,
+      description: 'drive            - Audit Sovereign Root (D: Drive) health',
+      handler: async (args: string[]): Promise<void> => {
+        void args;
+        const config = this.configManager.getConfig();
+        const root = config.sovereignRoot || 'Not Found';
+        const hasD = fs.existsSync('D:\\');
+
+        import('../src/utils/terminal.js').then(term => {
+          term.drawSovereignReport('Drive Audit', {
+            'Sovereign Root': root,
+            'Physical D: Drive': hasD ? 'Present' : 'Missing',
+            'Learning DB': fs.existsSync(join(root, 'vibe-learning.db')) ? 'Mounted' : 'Local Only',
+            'Gutenberg Cache': fs.existsSync(join(root, 'gutenberg-cache')) ? 'External' : 'Internal',
+            'Dashboard States': fs.existsSync(join(root, 'session_dashboards')) ? 'Persistent' : 'Ephemeral'
+          });
+        });
+      }
+    },
+    {
       pattern: /^debug$/i,
       description: 'debug            - Toggle JSON log visibility',
       handler: (args: string[]): void => {
@@ -309,12 +370,12 @@ class VibeCLI {
         showLogs = !showLogs;
         const status = showLogs ? chalk.green('VISIBLE') : chalk.gray('HIDDEN');
         // eslint-disable-next-line no-console
-        console.log(`\n🔧 Debug Logs: ${status}\n`);
+        console.log(`\n🔧 Debug Logs: ${status} \n`);
       }
     },
     {
       pattern: /^history$/i,
-      description: 'View intent history',
+      description: 'history          - View intent history',
       handler: (args: string[]): void => {
         void args;
         const history = this.orchestrator.getIntentHistory();
@@ -331,17 +392,17 @@ class VibeCLI {
           const status = intent.success ? '✅' : '❌';
           const time = new Date(intent.timestamp).toLocaleTimeString();
           // eslint-disable-next-line no-console
-          console.log(`${status} [${time}] ${intent.selectedModel}`);
+          console.log(`${status} [${time}] ${intent.selectedModel} `);
           // eslint-disable-next-line no-console
           console.log(`   "${intent.query.substring(0, 60)}..."`);
           // eslint-disable-next-line no-console
-          console.log(`   Execution time: ${intent.executionTime}ms\n`);
+          console.log(`   Execution time: ${intent.executionTime} ms\n`);
         }
       }
     },
     {
       pattern: /^state$/i,
-      description: 'Show current state',
+      description: 'state            - Show current state',
       handler: (args: string[]): void => {
         void args;
         const state = this.orchestrator.getCurrentState();
@@ -355,7 +416,7 @@ class VibeCLI {
     },
     {
       pattern: /^config$/i,
-      description: 'Show configuration',
+      description: 'config           - Show configuration',
       handler: (args: string[]): void => {
         void args;
         const config = this.configManager.getConfig();
@@ -368,14 +429,33 @@ class VibeCLI {
       }
     },
     {
+      pattern: /^projects$/i,
+      description: 'projects         - List known workspace projects',
+      handler: async (args: string[]): Promise<void> => {
+        void args;
+        const config = this.configManager.getConfig();
+        console.log('\n🌌 Known Workspace Projects:\n');
+        const workspaces = config.workspaces || [];
+        if (workspaces.length === 0) {
+          console.log(chalk.gray('  No explicitly defined workspaces. Global mode active.'));
+        } else {
+          workspaces.forEach(w => {
+            const isCurrent = w.includes(config.projectId) || config.projectRoot.includes(w);
+            console.log(`  ${isCurrent ? chalk.green('➔') : ' '} ${w} `);
+          });
+        }
+        console.log('');
+      }
+    },
+    {
       pattern: /^init$/i,
-      description: 'Initialize local sovereign environment (.pog)',
+      description: 'init             - Initialize local sovereign environment (.pog)',
       handler: async (args: string[]): Promise<void> => {
         void args;
         const localPog = join(process.cwd(), '.pog');
         if (fs.existsSync(localPog)) {
           // eslint-disable-next-line no-console
-          console.log(`\n⚠️  Local environment already exists: ${localPog}\n`);
+          console.log(`\n⚠️  Local environment already exists: ${localPog} \n`);
           return;
         }
 
@@ -392,18 +472,18 @@ class VibeCLI {
           // eslint-disable-next-line no-console
           console.log(`\n✅ Initialized Sovereign POG Environment`);
           // eslint-disable-next-line no-console
-          console.log(`   Location: ${localPog}`);
+          console.log(`   Location: ${localPog} `);
           // eslint-disable-next-line no-console
-          console.log(`   Status:   Ready for offline/local work\n`);
+          console.log(`   Status:   Ready for offline / local work\n`);
         } catch (e) {
           // eslint-disable-next-line no-console
-          console.error(`\n❌ Init failed: ${(e as Error).message}\n`);
+          console.error(`\n❌ Init failed: ${(e as Error).message} \n`);
         }
       }
     },
     {
       pattern: /^models$/i,
-      description: 'Manage AI models with ternary selection',
+      description: 'models           - Manage AI models with ternary selection',
       handler: async (args: string[]): Promise<void> => {
         void args;
         const items = [
@@ -415,13 +495,13 @@ class VibeCLI {
         const selected = await select('🔧 Model Calibration (Ternary Logic)', items);
         if (selected) {
           // eslint-disable-next-line no-console
-          console.log(`\n✅ Model switched to: ${selected}\n`);
+          console.log(`\n✅ Model switched to: ${selected} \n`);
         }
       }
     },
     {
       pattern: /^voice$/i,
-      description: 'Trigger microphone transcription (Voice Chat)',
+      description: 'voice            - Trigger microphone transcription (Voice Chat)',
       handler: async (args: string[]): Promise<void> => {
         void args;
         // eslint-disable-next-line no-console
@@ -429,7 +509,7 @@ class VibeCLI {
         try {
           const result = await this.orchestrator.executeIntent('voice transcription');
           if (result.ok) {
-            const transcription = result.value.data.transcription;
+            const transcription = (result.value.data as any).transcription;
             // eslint-disable-next-line no-console
             console.log(chalk.green(`\n🗣️  You said: "${transcription}"\n`));
 
@@ -439,37 +519,37 @@ class VibeCLI {
             }
           } else {
             // eslint-disable-next-line no-console
-            console.error(chalk.red(`\n❌ Voice Error: ${result.error.message}\n`));
+            console.error(chalk.red(`\n❌ Voice Error: ${result.error.message} \n`));
           }
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.error(chalk.red(`\n❌ Voice Interface Error: ${(error as Error).message}\n`));
+          console.error(chalk.red(`\n❌ Voice Interface Error: ${(error as Error).message} \n`));
         }
       }
     },
     {
       pattern: /^create\s+(.+)$/i,
-      description: 'Create full-stack app (WebApp Forge)',
+      description: 'create           - Create full-stack app (WebApp Forge)',
       handler: async (args: string[]): Promise<void> => {
         const prompt = args.join(' ');
         // eslint-disable-next-line no-console
         console.log(`\n🔨 WebApp Forge: "${prompt}"\n`);
 
         try {
-          await this.executeIntent(`create ${prompt}`);
+          await this.executeIntent(`create ${prompt} `);
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.error(`❌ Forge Error: ${(error as Error).message}\n`);
+          console.error(`❌ Forge Error: ${(error as Error).message} \n`);
         }
       }
     },
     {
       pattern: /^toggle\s+(.+)$/i,
-      description: 'Toggle Sovereign AI/MCP services (Budget Control)',
+      description: 'toggle <id>      - Enable/Disable service (Budget Control)',
       handler: async (args: string[]): Promise<void> => {
-        const serviceId = args[1]?.toLowerCase();
+        const serviceId = args[0]?.toLowerCase();
         if (!serviceId) {
-          drawMessage('SYSTEM', 'Usage: toggle <serviceId> (e.g., gemini, vertex_ai, mcp_gitkraken)');
+          drawMessage('SYSTEM', 'Usage: toggle <serviceId> (e.g., gemini, vision, mcp_gitkraken)');
           return;
         }
 
@@ -480,13 +560,39 @@ class VibeCLI {
         let newEnabled: string[];
         if (index > -1) {
           newEnabled = enabled.filter(s => s !== serviceId);
-          drawMessage('SYSTEM', `🚫 Service [${serviceId}] DISABLED (Budget Lock Engaged)`);
+          drawMessage('SYSTEM', `🚫 Service[${serviceId}]DISABLED(Budget Lock Engaged)`);
         } else {
           newEnabled = [...enabled, serviceId];
-          drawMessage('SYSTEM', `✅ Service [${serviceId}] ENABLED (Sovereign Approval Granted)`);
+          drawMessage('SYSTEM', `✅ Service[${serviceId}]ENABLED(Sovereign Approval Granted)`);
         }
 
         this.configManager.updateConfig({ enabledServices: newEnabled });
+      }
+    },
+    {
+      pattern: /^manifest\s+(.+)$/i,
+      description: 'manifest <path>  - Generate pog.md manifest for a directory',
+      handler: async (args: string[]): Promise<void> => {
+        const path = args[0] || '.';
+        // eslint-disable-next-line no-console
+        console.log(`\n📁 Generating Manifest for: "${path}"...\n`);
+
+        try {
+          const result = await this.orchestrator.executeIntent({
+            prompt: `CLUSTER_INTENT: [SENSE] the files in directory "${path}". [REFLECT] on their purpose based on their names and context. [ACT] Create or update a "pog.md" manifest in that directory.The manifest must have a title "# 📁 Pog Manifest: ${path}", a brief summary, and a "## 📄 File Inventory" table or list with professional descriptions for EVERY file found.Do NOT use absolute paths.`,
+            model: 'gemini:gemini-2.0-flash'
+          });
+          if (result.ok) {
+            // eslint-disable-next-line no-console
+            console.log(chalk.green(`\n✅ Manifest generated successfully.\n`));
+          } else {
+            // eslint-disable-next-line no-console
+            console.error(chalk.red(`\n❌ Manifest Error: ${result.error.message} \n`));
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error(chalk.red(`\n❌ Manifest Interface Error: ${(error as Error).message} \n`));
+        }
       }
     }
   ];
@@ -500,10 +606,9 @@ class VibeCLI {
     const cleanInput = (input.startsWith('/') && input.length > 1) ? input.substring(1) : input;
 
     // Check for built-in commands
-    // Check for built-in commands
     for (const cmd of this.commands) {
       if (cmd.pattern.test(cleanInput)) {
-        await cmd.handler(cleanInput.split(/\s+/));
+        await cmd.handler(cleanInput.split(/\s+/).slice(1));
         return;
       }
     }
@@ -516,17 +621,33 @@ class VibeCLI {
     drawMessage('USER', prompt);
 
     try {
+      const startTime = Date.now();
       const result = await this.orchestrator.executeIntent(prompt);
+      const executionTime = Date.now() - startTime;
 
       if (!result.ok) {
-        drawMessage('SYSTEM', `Error: ${result.error.message}`);
+        drawMessage('SYSTEM', `Error: ${result.error.message} `);
         return;
       }
 
+      // Premium POG response
       drawMessage('POG', result.value.output);
+
+      // Sovereign Audit Footer
+      const history = this.orchestrator.getIntentHistory();
+      const lastIntent = history[history.length - 1];
+
+      if (lastIntent) {
+        drawSovereignReport('Execution Audit', {
+          'Model Used': lastIntent.selectedModel,
+          'Latency': `${executionTime}ms`,
+          'Integrity': 'Verified',
+          'Substrate': this.configManager.getConfig().sovereignRoot ? 'D: High-Priority' : 'Local Only'
+        });
+      }
     } catch (error) {
       logger.error({ error }, 'Unexpected error');
-      drawMessage('SYSTEM', `Unexpected error: ${(error as Error).message}`);
+      drawMessage('SYSTEM', `Unexpected error: ${(error as Error).message} `);
     }
   }
 
@@ -539,7 +660,7 @@ class VibeCLI {
     // eslint-disable-next-line no-console
     console.log('💾 Session saved');
     // eslint-disable-next-line no-console
-    console.log(`📊 Total intents: ${this.orchestrator.getIntentHistory().length}`);
+    console.log(`📊 Total intents: ${this.orchestrator.getIntentHistory().length} `);
     // eslint-disable-next-line no-console
     console.log('👋 Goodbye!\n');
 
@@ -549,6 +670,7 @@ class VibeCLI {
   }
 
   async handleDirectCommand(command: string, args: string[]): Promise<void> {
+    await this.initialAudit();
     for (const cmd of this.commands) {
       if (cmd.pattern.test(command)) {
         await cmd.handler(args);

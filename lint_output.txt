@@ -1,0 +1,212 @@
+﻿
+> pog-coder-vibe@1.0.0 lint
+> eslint src cli --ext .ts
+
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\cli\cli-keys.ts
+  18:1   error    Missing return type on function                  @typescript-eslint/explicit-function-return-type
+  19:5   warning  Unexpected console statement                     no-console
+  39:13  warning  Unexpected console statement                     no-console
+  47:13  warning  Unexpected console statement                     no-console
+  48:25  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  49:13  warning  Unexpected console statement                     no-console
+  49:45  error    Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  58:13  warning  Unexpected console statement                     no-console
+  59:13  warning  Unexpected console statement                     no-console
+  63:9   warning  Unexpected console statement                     no-console
+  67:13  warning  Unexpected console statement                     no-console
+  69:9   warning  Unexpected console statement                     no-console
+  75:13  warning  Unexpected console statement                     no-console
+  82:9   warning  Unexpected console statement                     no-console
+  88:13  warning  Unexpected console statement                     no-console
+  96:13  warning  Unexpected console statement                     no-console
+  97:25  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  98:13  warning  Unexpected console statement                     no-console
+  98:45  error    Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\context\ContextBuilder.ts
+   24:17  error  Member 'vectorDB: VectorDB' is never reassigned; mark it as `readonly`      @typescript-eslint/prefer-readonly
+   25:17  error  Member 'projectRoot: string' is never reassigned; mark it as `readonly`     @typescript-eslint/prefer-readonly
+   26:17  error  Member 'gemini?: GeminiService' is never reassigned; mark it as `readonly`  @typescript-eslint/prefer-readonly
+  123:17  error  'fullPath' is never reassigned. Use 'const' instead                         prefer-const
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\GeminiService.ts
+  10:5   error  Member 'keyVault' is never reassigned; mark it as `readonly`           @typescript-eslint/prefer-readonly
+  12:41  error  Member 'modelName: string' is never reassigned; mark it as `readonly`  @typescript-eslint/prefer-readonly
+  34:25  error  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+  36:19  error  Unsafe assignment of an `any` value                                    @typescript-eslint/no-unsafe-assignment
+  36:33  error  Unsafe call of an `any` typed value                                    @typescript-eslint/no-unsafe-call
+  36:39  error  Unsafe member access .message on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  36:67  error  Unsafe call of an `any` typed value                                    @typescript-eslint/no-unsafe-call
+  36:73  error  Unsafe member access .message on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  37:19  error  Unsafe assignment of an `any` value                                    @typescript-eslint/no-unsafe-assignment
+  37:33  error  Unsafe call of an `any` typed value                                    @typescript-eslint/no-unsafe-call
+  37:39  error  Unsafe member access .message on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  37:67  error  Unsafe call of an `any` typed value                                    @typescript-eslint/no-unsafe-call
+  37:73  error  Unsafe member access .message on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  41:31  error  Unsafe assignment of an `any` value                                    @typescript-eslint/no-unsafe-assignment
+  41:44  error  Unsafe member access .message on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  57:28  error  Unsafe assignment of an `any` value                                    @typescript-eslint/no-unsafe-assignment
+  70:13  error  Missing return type on function                                        @typescript-eslint/explicit-function-return-type
+  70:13  error  Move function declaration to function body root                        no-inner-declarations
+  83:25  error  Unexpected any. Specify a different type                               @typescript-eslint/no-explicit-any
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts
+   78:3   error  Member 'webAppForgeLimb' is never reassigned; mark it as `readonly`  @typescript-eslint/prefer-readonly
+  435:20  error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+  463:20  error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+  599:17  error  Unexpected any. Specify a different type                             @typescript-eslint/no-explicit-any
+  600:5   error  Unsafe return of an `any` typed value                                @typescript-eslint/no-unsafe-return
+  600:17  error  Unsafe member access .response on an `any` value                     @typescript-eslint/no-unsafe-member-access
+  634:3   error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+  643:3   error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+  644:3   error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Router.ts
+  108:23  error  Member 'config: VibeConfig' is never reassigned; mark it as `readonly`  @typescript-eslint/prefer-readonly
+  292:11  error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+  292:72  error  Unsafe member access .history on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  297:13  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  298:7   error  Unsafe call of an `any` typed value                                     @typescript-eslint/no-unsafe-call
+  298:12  error  Unsafe member access .history on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  299:16  error  Unsafe member access .history on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  299:39  error  Unsafe call of an `any` typed value                                     @typescript-eslint/no-unsafe-call
+  299:44  error  Unsafe member access .history on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  301:13  error  Empty block statement                                                   no-empty
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\diff\DiffPresenter.ts
+  106:9  warning  Unexpected console statement  no-console
+  107:9  warning  Unexpected console statement  no-console
+  108:9  warning  Unexpected console statement  no-console
+  109:9  warning  Unexpected console statement  no-console
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\git\GitManager.ts
+  12:5   error  Member 'git' is never reassigned; mark it as `readonly`                  @typescript-eslint/prefer-readonly
+  14:25  error  Member 'projectRoot: string' is never reassigned; mark it as `readonly`  @typescript-eslint/prefer-readonly
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\learning\CodebaseIndexer.ts
+   16:5   error  Member 'vectorDB' is never reassigned; mark it as `readonly`                                 @typescript-eslint/prefer-readonly
+   17:5   error  Member 'gemini' is never reassigned; mark it as `readonly`                                   @typescript-eslint/prefer-readonly
+   18:5   error  Member 'ignoreFilter' is never reassigned; mark it as `readonly`                             @typescript-eslint/prefer-readonly
+   19:5   error  Member 'projectRoot' is never reassigned; mark it as `readonly`                              @typescript-eslint/prefer-readonly
+   69:48  error  Missing return type on function                                                              @typescript-eslint/explicit-function-return-type
+   97:43  error  Unsafe assignment of an `any` value                                                          @typescript-eslint/no-unsafe-assignment
+   97:63  error  Unsafe call of an `any` typed value                                                          @typescript-eslint/no-unsafe-call
+   97:79  error  Unexpected any. Specify a different type                                                     @typescript-eslint/no-explicit-any
+   97:84  error  Unsafe member access .embed on an `any` value                                                @typescript-eslint/no-unsafe-member-access
+   98:54  error  Unsafe member access .ok on an `any` value                                                   @typescript-eslint/no-unsafe-member-access
+   99:41  error  Unsafe assignment of type Float32Array<any> to a variable of type Float32Array<ArrayBuffer>  @typescript-eslint/no-unsafe-assignment
+   99:82  error  Unsafe member access .value on an `any` value                                                @typescript-eslint/no-unsafe-member-access
+  197:23  error  Unsafe assignment of an `any` value                                                          @typescript-eslint/no-unsafe-assignment
+  197:43  error  Unsafe call of an `any` typed value                                                          @typescript-eslint/no-unsafe-call
+  197:59  error  Unexpected any. Specify a different type                                                     @typescript-eslint/no-explicit-any
+  197:64  error  Unsafe member access .embed on an `any` value                                                @typescript-eslint/no-unsafe-member-access
+  198:34  error  Unsafe member access .ok on an `any` value                                                   @typescript-eslint/no-unsafe-member-access
+  199:21  error  Unsafe assignment of type Float32Array<any> to a variable of type Float32Array<ArrayBuffer>  @typescript-eslint/no-unsafe-assignment
+  199:62  error  Unsafe member access .value on an `any` value                                                @typescript-eslint/no-unsafe-member-access
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\learning\VectorDB.ts
+  117:95  error  Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  125:17  error  Unsafe member access .embedding on an `any` value                                                            @typescript-eslint/no-unsafe-member-access
+  126:13  error  Unsafe argument of type `any` assigned to a parameter of type `number | undefined`                           @typescript-eslint/no-unsafe-argument
+  126:17  error  Unsafe member access .embedding on an `any` value                                                            @typescript-eslint/no-unsafe-member-access
+  127:17  error  Unsafe member access .embedding on an `any` value                                                            @typescript-eslint/no-unsafe-member-access
+  130:11  error  Unsafe return of an `any` typed value                                                                        @typescript-eslint/no-unsafe-return
+  133:63  error  Unsafe argument of type `Float32Array<any>` assigned to a parameter of type `Float32Array<ArrayBufferLike>`  @typescript-eslint/no-unsafe-argument
+  134:13  error  Unsafe assignment of an `any` value                                                                          @typescript-eslint/no-unsafe-assignment
+  134:38  error  Unsafe member access .metadata on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+  140:29  error  Unsafe member access .similarity on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  140:44  error  Unsafe member access .similarity on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  170:71  error  Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
+  172:22  error  Unsafe argument of type `any` assigned to a parameter of type `number | PromiseLike<number>`                 @typescript-eslint/no-unsafe-argument
+  172:27  error  Unsafe member access .count on an `any` value                                                                @typescript-eslint/no-unsafe-member-access
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\limbs\core\NeuralLimb.ts
+   9:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\limbs\webapp\WebAppForgeLimb.ts
+   38:5   error  Member 'gemini' is never reassigned; mark it as `readonly`              @typescript-eslint/prefer-readonly
+   39:5   error  Member 'git' is never reassigned; mark it as `readonly`                 @typescript-eslint/prefer-readonly
+   40:5   error  Member 'tester' is never reassigned; mark it as `readonly`              @typescript-eslint/prefer-readonly
+   41:5   error  Member 'templates' is never reassigned; mark it as `readonly`           @typescript-eslint/prefer-readonly
+   43:25  error  Member 'config: VibeConfig' is never reassigned; mark it as `readonly`  @typescript-eslint/prefer-readonly
+   55:13  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   62:5   error  Async method 'canHandle' has no 'await' expression                      @typescript-eslint/require-await
+  129:13  error  Unsafe return of an `any` typed value                                   @typescript-eslint/no-unsafe-return
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\limbs\webapp\tools\definitions.ts
+  25:5   error  Missing return type on function                                     @typescript-eslint/explicit-function-return-type
+  25:27  error  Unexpected any. Specify a different type                            @typescript-eslint/no-explicit-any
+  31:19  error  Unsafe assignment of an `any` value                                 @typescript-eslint/no-unsafe-assignment
+  33:19  error  Unsafe assignment of an `any` value                                 @typescript-eslint/no-unsafe-assignment
+  33:40  error  Unsafe member access [args.stack] on an `any` value                 @typescript-eslint/no-unsafe-member-access
+  33:40  error  Computed name [args.stack] resolves to an any value                 @typescript-eslint/no-unsafe-member-access
+  33:45  error  Unsafe member access .stack on an `any` value                       @typescript-eslint/no-unsafe-member-access
+  35:46  error  Unsafe member access .stack on an `any` value                       @typescript-eslint/no-unsafe-member-access
+  35:79  error  Unsafe argument of type `any` assigned to a parameter of type `{}`  @typescript-eslint/no-unsafe-argument
+  38:19  error  Unsafe assignment of an `any` value                                 @typescript-eslint/no-unsafe-assignment
+  38:29  error  Unsafe member access .packageManager on an `any` value              @typescript-eslint/no-unsafe-member-access
+  41:43  error  Unsafe member access .name on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  44:19  error  Unsafe assignment of an `any` value                                 @typescript-eslint/no-unsafe-assignment
+  44:29  error  Unsafe call of an `any` typed value                                 @typescript-eslint/no-unsafe-call
+  44:38  error  Unsafe member access .init on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  46:44  error  Unsafe member access .name on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  47:40  error  Unsafe member access .stack on an `any` value                       @typescript-eslint/no-unsafe-member-access
+  47:65  error  Unsafe member access .name on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  49:37  error  Unsafe member access .stack on an `any` value                       @typescript-eslint/no-unsafe-member-access
+  52:43  error  Invalid type "unknown" of template literal expression               @typescript-eslint/restrict-template-expressions
+  67:5   error  Missing return type on function                                     @typescript-eslint/explicit-function-return-type
+  67:27  error  Unexpected any. Specify a different type                            @typescript-eslint/no-explicit-any
+  68:18  error  Unsafe member access .type on an `any` value                        @typescript-eslint/no-unsafe-member-access
+  87:5   error  Missing return type on function                                     @typescript-eslint/explicit-function-return-type
+  87:27  error  Unexpected any. Specify a different type                            @typescript-eslint/no-explicit-any
+  87:32  error  Async method 'handler' has no 'await' expression                    @typescript-eslint/require-await
+  89:41  error  Unsafe member access .port on an `any` value                        @typescript-eslint/no-unsafe-member-access
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\sandbox\Sandbox.ts
+  60:23  error  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  62:32  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  62:45  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  68:13  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  68:27  error  Unsafe member access .stdout on an `any` value   @typescript-eslint/no-unsafe-member-access
+  69:13  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  69:27  error  Unsafe member access .stderr on an `any` value   @typescript-eslint/no-unsafe-member-access
+  70:13  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  70:29  error  Unsafe member access .code on an `any` value     @typescript-eslint/no-unsafe-member-access
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\testing\TestRunner.ts
+   21:5   error  Member 'projectRoot' is never reassigned; mark it as `readonly`         @typescript-eslint/prefer-readonly
+   48:25  error  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+   49:19  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   49:40  error  Unsafe member access .stdout on an `any` value                          @typescript-eslint/no-unsafe-member-access
+   49:63  error  Unsafe member access .stderr on an `any` value                          @typescript-eslint/no-unsafe-member-access
+   50:49  error  Unsafe argument of type `any` assigned to a parameter of type `string`  @typescript-eslint/no-unsafe-argument
+   55:17  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   82:25  error  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+   83:19  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+   83:40  error  Unsafe member access .stdout on an `any` value                          @typescript-eslint/no-unsafe-member-access
+   83:63  error  Unsafe member access .stderr on an `any` value                          @typescript-eslint/no-unsafe-member-access
+   84:47  error  Unsafe argument of type `any` assigned to a parameter of type `string`  @typescript-eslint/no-unsafe-argument
+   91:17  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  105:17  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  105:27  error  Unsafe member access .message on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  106:28  error  Unsafe member access .message on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  170:19  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  170:33  error  Require statement not part of import statement                          @typescript-eslint/no-var-requires
+  171:34  error  Unsafe member access .scripts on an `any` value                         @typescript-eslint/no-unsafe-member-access
+  182:19  error  Unsafe assignment of an `any` value                                     @typescript-eslint/no-unsafe-assignment
+  182:33  error  Require statement not part of import statement                          @typescript-eslint/no-var-requires
+  183:34  error  Unsafe member access .scripts on an `any` value                         @typescript-eslint/no-unsafe-member-access
+
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\utils\KeyVault.ts
+   26:5   error  Member 'keys' is never reassigned; mark it as `readonly`  @typescript-eslint/prefer-readonly
+  227:19  error  Unsafe assignment of an `any` value                       @typescript-eslint/no-unsafe-assignment
+  229:13  error  Unsafe assignment of an `any` value                       @typescript-eslint/no-unsafe-assignment
+  229:40  error  Unsafe member access .currentKey on an `any` value        @typescript-eslint/no-unsafe-member-access
+  230:13  error  Unsafe call of an `any` typed value                       @typescript-eslint/no-unsafe-call
+  230:18  error  Unsafe member access .keys on an `any` value              @typescript-eslint/no-unsafe-member-access
+
+Γ£û 174 problems (156 errors, 18 warnings)
+  21 errors and 0 warnings potentially fixable with the `--fix` option.
+

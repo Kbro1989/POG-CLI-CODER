@@ -1,0 +1,8 @@
+﻿C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:84:3: Member 'webAppForgeLimb' is never reassigned; mark it as `readonly`. [Error/@typescript-eslint/prefer-readonly]
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:441:20: Missing return type on function. [Error/@typescript-eslint/explicit-function-return-type]
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:469:20: Missing return type on function. [Error/@typescript-eslint/explicit-function-return-type]
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:640:3: Missing return type on function. [Error/@typescript-eslint/explicit-function-return-type]
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:649:3: Missing return type on function. [Error/@typescript-eslint/explicit-function-return-type]
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:650:3: Missing return type on function. [Error/@typescript-eslint/explicit-function-return-type]
+
+6 problems

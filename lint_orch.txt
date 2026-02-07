@@ -1,0 +1,12 @@
+﻿
+C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts
+   84:3   error  Member 'webAppForgeLimb' is never reassigned; mark it as `readonly`  @typescript-eslint/prefer-readonly
+  441:20  error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+  469:20  error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+  640:3   error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+  649:3   error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+  650:3   error  Missing return type on function                                      @typescript-eslint/explicit-function-return-type
+
+Γ£û 6 problems (6 errors, 0 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+
