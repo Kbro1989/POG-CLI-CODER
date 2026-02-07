@@ -1,6 +1,7 @@
 import { NeuralLimb, Intent, Execution } from '../../limbs/core/NeuralLimb.js';
 import { Result, VibeConfig } from '../../core/models.js';
-import { AIDispatcher } from './Dispatcher.js';
+import { ModelExecutor } from '../../core/ModelExecutor.js';
+import { FreeModelRouter } from '../../core/Router.js';
 import { CapabilityRegistry, CatalogMetadata } from './CapabilityRegistry.js';
 import { IntentMap } from './IntentMap.js';
 import { readFileSync, readdirSync } from 'fs';
@@ -24,14 +25,19 @@ export class AILimb implements NeuralLimb {
         providers: CatalogMetadata.providers
     };
 
-    private dispatcher: AIDispatcher;
-
-    constructor(config: VibeConfig) {
-        this.dispatcher = new AIDispatcher(config);
-        logger.debug('AILimb initialized with baked-in capabilities');
+    constructor(
+        private readonly config: VibeConfig,
+        private readonly modelExecutor: ModelExecutor,
+        private readonly router: FreeModelRouter
+    ) {
+        logger.debug('AILimb initialized with ternary routing integration');
     }
 
     async canHandle(intent: Intent): Promise<boolean> {
+        if (!this.config.enabledServices.includes('AI') && !this.config.enabledServices.includes('ai')) {
+            return false;
+        }
+
         const p = intent.prompt.toLowerCase();
 
         // Support for Meta-queries
@@ -133,20 +139,35 @@ export class AILimb implements NeuralLimb {
             }
         }
 
-        const response = await this.dispatcher.dispatch({
-            capabilityId,
-            payload
-        });
+        logger.info({ capabilityId, serviceType: capability.serviceType }, 'Dispatching specialized AI task via ModelExecutor');
 
-        if (!response.success) {
-            return { ok: false, error: new Error(response.error) };
+        // Use ModelExecutor to handle the service-specific call
+        // For Gemini/Vertex, we use callModel (which handles Gemini fallback logic)
+        // For others, we can use callCloudflareAI or direct service calls
+        let result: Result<any>;
+        if (capability.serviceType === 'GEMINI' || capability.serviceType === 'VERTEX_AI') {
+            // Map to capability model if possible, otherwise use standard router decision
+            let model = capability.modelId;
+            if (!model) {
+                const modelResult = await this.router.route(prompt);
+                model = modelResult.ok ? modelResult.value : 'gemini-2.0-flash';
+            }
+            result = await this.modelExecutor.callModel(model, typeof payload === 'string' ? payload : JSON.stringify(payload));
+        } else {
+            // For specialized cloud services, use the professional Cloudflare sidecar if available
+            const model = this.router.routeByAbility(capability.taskType as any);
+            result = await this.modelExecutor.callCloudflareAI(model, payload);
+        }
+
+        if (!result.ok) {
+            return { ok: false, error: result.error };
         }
 
         return {
             ok: true,
             value: {
-                output: `Specialized AI Result (${response.serviceUsed}):\n${JSON.stringify(response.result, null, 2)}`,
-                data: response.result
+                output: `Specialized AI Result:\n${typeof result.value === 'string' ? result.value : JSON.stringify(result.value.response || result.value, null, 2)}`,
+                data: result.value
             }
         };
     }
