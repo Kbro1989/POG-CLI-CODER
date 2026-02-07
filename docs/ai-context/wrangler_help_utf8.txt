@@ -1,0 +1,48 @@
+﻿wrangler
+
+COMMANDS
+  wrangler docs [search..]        ≡ƒôÜ Open Wrangler's command documentation in your browser
+
+  wrangler init [name]            ≡ƒôÑ Initialize a basic Worker
+  wrangler dev [script]           ≡ƒæé Start a local server for developing your Worker
+  wrangler deploy [script]        ≡ƒåÖ Deploy a Worker to Cloudflare
+  wrangler setup                  ≡ƒ¬ä Setup a project to work on Cloudflare [experimental]
+  wrangler deployments            ≡ƒÜó List and view the current and past deployments for your Worker
+  wrangler rollback [version-id]  ≡ƒöÖ Rollback a deployment for a Worker
+  wrangler versions               ≡ƒ½º List, view, upload and deploy Versions of your Worker to Cloudflare
+  wrangler triggers               ≡ƒÄ» Updates the triggers of your current deployment [experimental]
+  wrangler delete [script]        ≡ƒùæ  Delete a Worker from Cloudflare
+  wrangler tail [worker]          ≡ƒªÜ Start a log tailing session for a Worker
+  wrangler secret                 ≡ƒñ½ Generate a secret that can be referenced in a Worker
+  wrangler types [path]           ≡ƒô¥ Generate types from your Worker configuration
+
+  wrangler kv                     ≡ƒùé∩╕Å  Manage Workers KV Namespaces
+  wrangler queues                 ≡ƒô¼ Manage Workers Queues
+  wrangler r2                     ≡ƒôª Manage R2 buckets & objects
+  wrangler d1                     ≡ƒùä  Manage Workers D1 databases
+  wrangler vectorize              ≡ƒº« Manage Vectorize indexes
+  wrangler hyperdrive             ≡ƒÜÇ Manage Hyperdrive databases
+  wrangler cert                   ≡ƒ¬¬ Manage client mTLS certificates and CA certificate chains used for secured connections [open-beta]
+  wrangler pages                  ΓÜí∩╕Å Configure Cloudflare Pages
+  wrangler mtls-certificate       ≡ƒ¬¬ Manage certificates used for mTLS connections
+  wrangler containers             ≡ƒôª Manage Containers [open-beta]
+  wrangler pubsub                 ≡ƒô« Manage Pub/Sub brokers [private beta]
+  wrangler dispatch-namespace     ≡ƒÅù∩╕Å  Manage dispatch namespaces
+  wrangler ai                     ≡ƒñû Manage AI models
+  wrangler secrets-store          ≡ƒöÉ Manage the Secrets Store [open-beta]
+  wrangler workflows              ≡ƒöü Manage Workflows
+  wrangler pipelines              ≡ƒÜ░ Manage Cloudflare Pipelines [open-beta]
+  wrangler vpc                    ≡ƒîÉ Manage VPC [open-beta]
+  wrangler login                  ≡ƒöô Login to Cloudflare
+  wrangler logout                 ≡ƒÜ¬ Logout from Cloudflare
+  wrangler whoami                 ≡ƒò╡∩╕Å  Retrieve your user information
+
+GLOBAL FLAGS
+  -c, --config    Path to Wrangler configuration file  [string]
+      --cwd       Run as if Wrangler was started in the specified directory instead of the current working directory  [string]
+  -e, --env       Environment to use for operations, and for selecting .env and .dev.vars files  [string]
+      --env-file  Path to an .env file to load - can be specified multiple times - values from earlier files are overridden by values in later files  [array]
+  -h, --help      Show help  [boolean]
+  -v, --version   Show version number  [boolean]
+
+Please report any issues to https://github.com/cloudflare/workers-sdk/issues/new/choose

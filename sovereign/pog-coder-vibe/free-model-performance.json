@@ -1,0 +1,500 @@
+{
+  "history": [
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369249073,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369249074,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369249086,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369249095,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369249104,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369249115,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369249125,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369249136,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369249147,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369249159,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369313174,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369313174,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369313187,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369313199,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369313210,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369313221,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369313231,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369313242,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369313253,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369313264,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369405276,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369405276,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369405293,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369405306,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369405317,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369405328,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369405339,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369405352,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369405364,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369405375,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369636903,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369636904,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369636916,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369636927,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770369636938,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369636950,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369636962,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369636973,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369636984,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770369636995,
+      "isFree": true
+    },
+    {
+      "model": "conversational",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 6750,
+      "success": true,
+      "timestamp": 1770371448928,
+      "isFree": true
+    },
+    {
+      "model": "conversational",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 4159,
+      "success": true,
+      "timestamp": 1770371634296,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770371978399,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770371978401,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770371978493,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770371978566,
+      "isFree": true
+    },
+    {
+      "model": "qwen2.5-coder:14b-instruct-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 200,
+      "success": true,
+      "timestamp": 1770371978649,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770371978755,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770371978867,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770371978957,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770371979013,
+      "isFree": true
+    },
+    {
+      "model": "yi-coder:9b-chat-q5_K_M",
+      "taskType": "generate",
+      "extension": "ts",
+      "latency": 5000,
+      "success": false,
+      "timestamp": 1770371979091,
+      "isFree": true
+    },
+    {
+      "model": "conversational",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 3975,
+      "success": true,
+      "timestamp": 1770414319062,
+      "isFree": true
+    },
+    {
+      "model": "hexagram_memory",
+      "taskType": "diagnostic",
+      "extension": "",
+      "latency": 3,
+      "success": true,
+      "timestamp": 1770414630413,
+      "isFree": true
+    },
+    {
+      "model": "hexagram_memory",
+      "taskType": "diagnostic",
+      "extension": "",
+      "latency": 1,
+      "success": true,
+      "timestamp": 1770414657052,
+      "isFree": true
+    }
+  ],
+  "version": "1.2.0"
+}

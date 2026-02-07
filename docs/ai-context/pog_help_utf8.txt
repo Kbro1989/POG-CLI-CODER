@@ -1,0 +1,17 @@
+﻿[dotenv@17.2.3] injecting env (6) from .env -- tip: ΓÜÖ∩╕Å  load multiple .env files with { path: ['.env.local', '.env'] }
+{"level":30,"time":1770431520310,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":30,"time":1770431520334,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":288,"msg":"Router Strategy Chain established"}
+{"level":30,"time":1770431520395,"hostname":"POG-VIBE","projectId":"TEST_ORCH","name":"Orchestrator","msg":"Monitor Agent enabled - continuous TSC watch active"}
+{"level":30,"time":1770431520396,"hostname":"POG-VIBE","projectId":"TEST_ORCH","name":"Orchestrator","sessionId":"TEST_ORCH_vibe_1770431520093_dvj1ti","agentName":"POG-VIBE-AGENT","pogDir":"D:\\pog-coder-vibe","adversarialEnabled":true,"msg":"Orchestrator initialized with Sovereign Intelligence"}
+
+≡ƒæñ YOU:
+--help
+{"level":30,"time":1770431521102,"hostname":"POG-VIBE","projectId":"TEST_ORCH","name":"Orchestrator","prompt":"--help","msg":"Executing intent (Advanced Loop)"}
+
+ΓÜÖ∩╕Å  SYS:
+Error: Use formal tool calls for FileSystem operations.
+≡ƒÆ╛ Session saved
+≡ƒôè Total intents: 0
+≡ƒæï Goodbye!
+
+{"level":30,"time":1770431521117,"hostname":"POG-VIBE","projectId":"TEST_ORCH","name":"Orchestrator","msg":"Cleaning up orchestrator"}

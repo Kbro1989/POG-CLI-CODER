@@ -1,0 +1,23 @@
+{
+  "pogDir": "D:\\pog-coder-vibe",
+  "projectRoot": "C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant",
+  "agentName": "POG-VIBE-AGENT",
+  "wsPort": 8765,
+  "maxSnapshotAge": 86400000,
+  "circuitBreakerThreshold": 3,
+  "circuitBreakerCooldown": 1000,
+  "embeddingDimensions": 768,
+  "logLevel": "info",
+  "projectId": "TEST_ORCH",
+  "workspaces": [],
+  "errorTrackerModelPath": "D:\\ollama-models",
+  "enabledServices": [
+    "gemini",
+    "ollama",
+    "mcp_gitkraken",
+    "healthcare",
+    "documentai",
+    "vision"
+  ],
+  "cloudflareGatewayUrl": "https://gateway.ai.cloudflare.com/v1/6872653edcee9c787c1b783173793/pick-of-gods/workers-ai/run/"
+}
