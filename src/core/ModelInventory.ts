@@ -8,20 +8,45 @@ import { FreeModelConfig, ModelType } from './models.js';
 export class ModelInventory {
     static getAvailableModels(): FreeModelConfig[] {
         return Object.values(StaticModelRegistry).map(cap => {
-            const serviceType = cap.serviceType;
+            const serviceType = cap.serviceType as string;
             const modelId = cap.modelId || 'unknown-model';
+            const id = cap.id;
 
-            const isLocal = serviceType === 'OLLAMA' || modelId.includes('qwen') || modelId.includes('llama');
+            const isLocal = serviceType === 'OLLAMA';
+            const isCloudflare = serviceType === 'MEDIA_FORGE' && modelId.startsWith('@cf');
+            const isGemini = serviceType === 'GEMINI';
+
+            let type = ModelType.CloudFree;
+            if (isLocal) type = ModelType.Local;
+            else if (isCloudflare) type = ModelType.Cloudflare;
+
             const taskType = cap.taskType.toLowerCase();
+
+            // Determine command
+            let command = `google:${modelId}`;
+            if (isLocal) command = `ollama run ${modelId}`;
+            else if (isCloudflare) command = `cloudflare:run ${modelId}`;
+
+            // Determine Priority & Fallback
+            let priority = id.startsWith('gold_') ? 90 : 50;
+            let fallback: string | undefined = 'gold_gemini_3_flash';
+
+            if (id.includes('pro')) priority = 100;
+            if (id.includes('flash')) priority = 80;
+
+            // Tiered Fallback Logic
+            if (isGemini) fallback = (id.includes('pro')) ? 'gold_gemini_3_flash' : 'gold_cloudflare_llama_3_1';
+            if (isCloudflare) fallback = 'gold_qwen_2_5_coder_7b';
+            if (isLocal) fallback = 'gold_gemini_3_flash'; // Local failure jumps to cloud-flash
 
             return {
                 name: modelId,
-                command: isLocal ? `ollama run ${modelId}` : `gemini:${modelId}`,
-                type: isLocal ? ModelType.Local : ModelType.CloudFree,
+                command,
+                type,
                 capabilities: [taskType, 'agentic'],
-                fallback: 'gemini-flash',
-                maxTokens: 32768,
-                priority: 50,
+                fallback,
+                maxTokens: id.includes('pro') ? 128000 : 32768,
+                priority,
                 health: {
                     isAvailable: true,
                     circuitLevel: 1

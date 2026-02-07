@@ -37,19 +37,21 @@ export class TaskClassifier {
     }
 
     static assessComplexity(prompt: string, weightedTasks: Record<TT, number>): Ternary {
-        if (/\b(function|class|const|let|var|if|return|while|for|switch|try|catch|async|await|interface|type)\b/.test(prompt)) {
-            return -1; // Code-heavy = Low abstract complexity (Direct task)
-        }
+        // High word count or formal code structure usually requires higher-tier reasoning
+        const codeDensity = (prompt.match(/\b(function|class|const|let|var|if|return|while|for|switch|try|catch|async|await|interface|type)\b/g) || []).length;
 
         const wordCount = prompt.split(/\s+/).length;
         let score = 0;
 
-        if (wordCount > 60) score += 1;
-        if (weightedTasks[TT.Architecture] > 0.5) score += 2;
+        if (wordCount > 60 || codeDensity > 5) score += 1;
+        if (weightedTasks[TT.Architecture] > 0.4) score += 2;
         if (weightedTasks[TT.APIOrchestration] > 0.5) score += 2;
-        if (weightedTasks[TT.Generate] > 0.5) score += 2;
-        if (weightedTasks[TT.Esoteric] > 0.5) score += 1;
+        if (weightedTasks[TT.Generate] > 0.6) score += 2;
+        if (weightedTasks[TT.Esoteric] > 0.4) score += 2; // Cloudflare/Specialized services
 
+        // 1: Cloud-preferred (Gemini/Cloudflare)
+        // 0: Mixed/Ambiguous
+        // -1: Local-sufficient (Ollama)
         return score >= 3 ? 1 : score >= 1 ? 0 : -1;
     }
 

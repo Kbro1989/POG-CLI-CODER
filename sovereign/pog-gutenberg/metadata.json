@@ -1,0 +1,226 @@
+[
+  {
+    "id": 84,
+    "title": "Frankenstein; Or, The Modern Prometheus",
+    "author": "Shelley, Mary Wollstonecraft",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\84.txt"
+  },
+  {
+    "id": 2701,
+    "title": "Moby Dick; Or, The Whale",
+    "author": "Melville, Herman",
+    "domain": "psychology",
+    "path": "D:\\pog-gutenberg\\domains\\psychology\\2701.txt"
+  },
+  {
+    "id": 1342,
+    "title": "Pride and Prejudice",
+    "author": "Austen, Jane",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\1342.txt"
+  },
+  {
+    "id": 1513,
+    "title": "Romeo and Juliet",
+    "author": "Shakespeare, William",
+    "domain": "literature",
+    "path": "D:\\pog-gutenberg\\domains\\literature\\1513.txt"
+  },
+  {
+    "id": 100,
+    "title": "The Complete Works of William Shakespeare",
+    "author": "Shakespeare, William",
+    "domain": "literature",
+    "path": "D:\\pog-gutenberg\\domains\\literature\\100.txt"
+  },
+  {
+    "id": 2641,
+    "title": "A Room with a View",
+    "author": "Forster, E. M. (Edward Morgan)",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\2641.txt"
+  },
+  {
+    "id": 145,
+    "title": "Middlemarch",
+    "author": "Eliot, George",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\145.txt"
+  },
+  {
+    "id": 43,
+    "title": "The Strange Case of Dr. Jekyll and Mr. Hyde",
+    "author": "Stevenson, Robert Louis",
+    "domain": "psychology",
+    "path": "D:\\pog-gutenberg\\domains\\psychology\\43.txt"
+  },
+  {
+    "id": 11,
+    "title": "Alice's Adventures in Wonderland",
+    "author": "Carroll, Lewis",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\11.txt"
+  },
+  {
+    "id": 2554,
+    "title": "Crime and Punishment",
+    "author": "Dostoyevsky, Fyodor",
+    "domain": "psychology",
+    "path": "D:\\pog-gutenberg\\domains\\psychology\\2554.txt"
+  },
+  {
+    "id": 37106,
+    "title": "Little Women; Or, Meg, Jo, Beth, and Amy",
+    "author": "Alcott, Louisa May",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\37106.txt"
+  },
+  {
+    "id": 17135,
+    "title": "Twas the Night before Christmas: A Visit from St. Nicholas",
+    "author": "Moore, Clement Clarke",
+    "domain": "literature",
+    "path": "D:\\pog-gutenberg\\domains\\literature\\17135.txt"
+  },
+  {
+    "id": 1260,
+    "title": "Jane Eyre: An Autobiography",
+    "author": "Brontë, Charlotte",
+    "domain": "psychology",
+    "path": "D:\\pog-gutenberg\\domains\\psychology\\1260.txt"
+  },
+  {
+    "id": 67979,
+    "title": "The Blue Castle: a novel",
+    "author": "Montgomery, L. M. (Lucy Maud)",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\67979.txt"
+  },
+  {
+    "id": 768,
+    "title": "Wuthering Heights",
+    "author": "Brontë, Emily",
+    "domain": "psychology",
+    "path": "D:\\pog-gutenberg\\domains\\psychology\\768.txt"
+  },
+  {
+    "id": 16389,
+    "title": "The Enchanted April",
+    "author": "Von Arnim, Elizabeth",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\16389.txt"
+  },
+  {
+    "id": 6761,
+    "title": "The Adventures of Ferdinand Count Fathom — Complete",
+    "author": "Smollett, T. (Tobias)",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\6761.txt"
+  },
+  {
+    "id": 394,
+    "title": "Cranford",
+    "author": "Gaskell, Elizabeth Cleghorn",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\394.txt"
+  },
+  {
+    "id": 2160,
+    "title": "The Expedition of Humphry Clinker",
+    "author": "Smollett, T. (Tobias)",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\2160.txt"
+  },
+  {
+    "id": 5197,
+    "title": "My Life — Volume 1",
+    "author": "Wagner, Richard",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\5197.txt"
+  },
+  {
+    "id": 1259,
+    "title": "Twenty years after",
+    "author": "Dumas, Alexandre",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\1259.txt"
+  },
+  {
+    "id": 4085,
+    "title": "The Adventures of Roderick Random",
+    "author": "Smollett, T. (Tobias)",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\4085.txt"
+  },
+  {
+    "id": 6593,
+    "title": "History of Tom Jones, a Foundling",
+    "author": "Fielding, Henry",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\6593.txt"
+  },
+  {
+    "id": 8492,
+    "title": "The King in Yellow",
+    "author": "Chambers, Robert W. (Robert William)",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\8492.txt"
+  },
+  {
+    "id": 1184,
+    "title": "The Count of Monte Cristo",
+    "author": "Dumas, Alexandre",
+    "domain": "history",
+    "path": "D:\\pog-gutenberg\\domains\\history\\1184.txt"
+  },
+  {
+    "id": 174,
+    "title": "The Picture of Dorian Gray",
+    "author": "Wilde, Oscar",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\174.txt"
+  },
+  {
+    "id": 16328,
+    "title": "Beowulf: An Anglo-Saxon Epic Poem",
+    "author": "Unknown",
+    "domain": "fantasy",
+    "path": "D:\\pog-gutenberg\\domains\\fantasy\\16328.txt"
+  },
+  {
+    "id": 64317,
+    "title": "The Great Gatsby",
+    "author": "Fitzgerald, F. Scott (Francis Scott)",
+    "domain": "psychology",
+    "path": "D:\\pog-gutenberg\\domains\\psychology\\64317.txt"
+  },
+  {
+    "id": 28054,
+    "title": "The Brothers Karamazov",
+    "author": "Dostoyevsky, Fyodor",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\28054.txt"
+  },
+  {
+    "id": 844,
+    "title": "The Importance of Being Earnest: A Trivial Comedy for Serious People",
+    "author": "Wilde, Oscar",
+    "domain": "literature",
+    "path": "D:\\pog-gutenberg\\domains\\literature\\844.txt"
+  },
+  {
+    "id": 345,
+    "title": "Dracula",
+    "author": "Stoker, Bram",
+    "domain": "uncategorized",
+    "path": "D:\\pog-gutenberg\\domains\\uncategorized\\345.txt"
+  },
+  {
+    "id": 98,
+    "title": "A Tale of Two Cities",
+    "author": "Dickens, Charles",
+    "domain": "history",
+    "path": "D:\\pog-gutenberg\\domains\\history\\98.txt"
+  }
+]

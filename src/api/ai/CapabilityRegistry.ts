@@ -185,6 +185,31 @@ export const CapabilityRegistry: Record<string, AICapability> = {
         description: 'List available author styles for storytelling.',
         passthroughEnabled: true
     },
+    // Neural Forges (Expansion)
+    'sql_forge': {
+        id: 'sql_forge',
+        name: 'Neural SQL Forge',
+        serviceType: 'GEMINI',
+        taskType: 'TEXT',
+        description: 'Specialized SQL architecture, migration, and optimization forge.',
+        passthroughEnabled: false
+    },
+    'docs_forge': {
+        id: 'docs_forge',
+        name: 'Neural Docs Forge',
+        serviceType: 'GEMINI',
+        taskType: 'TEXT',
+        description: 'Specialized technical documentation and architecture deep-dive forge.',
+        passthroughEnabled: false
+    },
+    'refactor_forge': {
+        id: 'refactor_forge',
+        name: 'Neural Refactor Forge',
+        serviceType: 'GEMINI',
+        taskType: 'TEXT',
+        description: 'Specialized architectural cleanup and code quality forge.',
+        passthroughEnabled: false
+    },
     ...StaticModelRegistry
 }
 

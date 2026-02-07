@@ -96,7 +96,7 @@ export class HexagramManager {
         return HEXAGRAM_REGISTRY[binaryId] || fallback;
     }
 
-    async formatForPrompt(): Promise<string> {
+    async formatForPrompt(queryEmbedding?: Float32Array): Promise<string> {
         const result = await this.getHexagramContext();
         if (!result.ok) return 'Hexagram context unavailable.';
 
@@ -125,6 +125,22 @@ export class HexagramManager {
             }
         }
 
+        // --- PROJECT CONSTELLATION (Cross-Project Shortcuts) ---
+        if (queryEmbedding) {
+            const similar = await this.vectorDB.searchSimilar(queryEmbedding, 3, this.projectId);
+            if (similar.ok) {
+                const crossProject = similar.value.filter(l => l.projectId !== this.projectId && l.projectId !== 'global');
+                if (crossProject.length > 0) {
+                    output += '=== PROJECT CONSTELLATION (Cross-Project Knowledge) ===\n';
+                    output += 'Highly relevant patterns identified from previous projects:\n\n';
+                    for (const lesson of crossProject) {
+                        output += `[SHORTCUT FROM PROJECT: ${lesson.projectId}]\n`;
+                        output += `PATTERN: ${lesson.text.substring(0, 500)}${lesson.text.length > 500 ? '...' : ''}\n\n`;
+                    }
+                }
+            }
+        }
+
         const hasMoving = cards.some(c => (c as any).state === YaoState.OldYang || (c as any).state === YaoState.OldYin);
 
         if (hasMoving) {
@@ -139,10 +155,10 @@ export class HexagramManager {
 
     private getStateString(state: number): string {
         switch (state) {
-            case YaoState.OldYang: return 'Old Yang (Moving ——O)';
-            case YaoState.YoungYin: return 'Young Yin (Stable - -)';
-            case YaoState.YoungYang: return 'Young Yang (Stable ——)';
-            case YaoState.OldYin: return 'Old Yin (Moving - -X)';
+            case YaoState.OldYang: return 'Old Yang (◯ Moving)';
+            case YaoState.YoungYin: return 'Young Yin (⚋ Stable)';
+            case YaoState.YoungYang: return 'Young Yang (⚊ Stable)';
+            case YaoState.OldYin: return 'Old Yin (✕ Moving)';
             default: return 'Unknown';
         }
     }

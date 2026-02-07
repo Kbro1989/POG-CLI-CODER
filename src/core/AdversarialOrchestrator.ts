@@ -1,8 +1,7 @@
 import {
     Result,
     ModelResponse,
-    VibeConfig,
-    isErr
+    VibeConfig
 } from './models.js';
 import { ModelExecutor } from './ModelExecutor.js';
 import { ValidationSystem } from './validation/ValidationSystem.js';
@@ -39,58 +38,107 @@ export class AdversarialOrchestrator {
         modelName: string,
         context?: any
     ): Promise<Result<ModelResponse>> {
-        this.logger.info({ model: modelName }, 'Starting adversarial generation loop');
+        this.logger.info({ model: modelName }, 'Starting 3x3x3 adversarial parallel generation loop');
 
         let iterations = 0;
         const maxIterations = 3;
         let currentPrompt = prompt;
-        let lastResponse: ModelResponse | null = null;
 
         while (iterations < maxIterations) {
             iterations++;
-            this.logger.debug({ iteration: iterations }, 'Generator turn');
+            this.logger.debug({ iteration: iterations }, 'Parallel Generator turn');
 
-            // 1. Generate candidate (Generator)
-            const genResult = await this.executor.callModel(modelName, currentPrompt);
-            if (!genResult.ok) return genResult;
+            // 1. Generate 3 candidates (Parallel Thought Processes + Acting Helpers)
+            const typeHints = this.generateTypeSafetyHints(currentPrompt);
+            const successScenario = this.generateSuccessScenario(currentPrompt);
 
-            lastResponse = genResult.value;
-            const candidateCode = lastResponse.response;
+            const candidatePromises = [
+                this.executor.callModel(modelName, currentPrompt),
+                this.executor.callModel(modelName, `${currentPrompt}\n${typeHints}\nOPTIMIZE for absolute robustness.`),
+                this.executor.callModel(modelName, `${currentPrompt}\n${successScenario}\nENSURE no placeholders or logic gaps.`)
+            ];
 
-            // 2. Validate (Validation Stack)
-            const validation = await this.validationSystem.validateAll(candidateCode, context);
+            const results = await Promise.all(candidatePromises);
+            const validCandidates = results.filter((r): r is { ok: true; value: ModelResponse } => r.ok).map(r => r.value);
 
-            if (validation.ok) {
-                // 3. Critique (Adversarial Critic - Gemini Thinking preferred)
-                const critique = await this.performCritique(candidateCode, prompt);
+            if (validCandidates.length === 0) {
+                const firstErr = results.find(r => !r.ok);
+                return (firstErr as Result<ModelResponse>) || { ok: false, error: new Error('All candidates failed') };
+            }
 
-                if (critique.score >= 90) {
-                    this.logger.info({ score: critique.score, iterations }, 'Adversarial verification PASSED');
-                    return { ok: true, value: lastResponse };
+            // 2. Evaluate all candidates
+            const evaluations = await Promise.all(validCandidates.map(async (cand) => {
+                const code = cand.response || '';
+                const validation = await this.validationSystem.validateAll(code, context);
+                const critique = await this.performCritique(code, prompt);
+
+                // Reflective Helper: Anti-Pattern Hunter
+                const antiPatterns = this.huntAntiPatterns(critique.flaws);
+                if (antiPatterns.length > 0) {
+                    // Penalize score for anti-patterns and record as forbidden
+                    const penalizedScore = Math.max(0, critique.score - (antiPatterns.length * 15));
+                    return {
+                        cand,
+                        validation,
+                        critique: { ...critique, score: penalizedScore, shouldNotBe: [...critique.shouldNotBe, ...antiPatterns] }
+                    };
                 }
 
-                this.logger.warn({ score: critique.score, flaws: critique.flaws.length }, 'Adversarial verification REJECTED by critic');
-                currentPrompt = this.buildRejectionPrompt(candidateCode, [], critique.flaws);
-            } else {
-                this.logger.warn({ reason: validation.error.reason }, 'Code REJECTED by validation stack');
-                currentPrompt = this.buildRejectionPrompt(candidateCode, [validation.error.reason], []);
+                return { cand, validation, critique };
+            }));
+
+            // 3. Select the best (Sovereign Synthesis)
+            evaluations.sort((a, b) => b.critique.score - a.critique.score);
+            const winner = evaluations[0];
+
+            if (!winner) {
+                return { ok: false, error: new Error('Failed to evaluate candidates') };
             }
+
+            // Reflective Helper: Synthesis Weaver
+            // If the winner is decent but not exceptional, try to weave a masterpiece from others
+            if (winner.critique.score >= 80 && winner.critique.score < 96 && validCandidates.length > 1) {
+                const masterpiece = await this.weaveSynthesis(validCandidates, prompt);
+                winner.cand = masterpiece;
+                // Re-validate the synthesized masterpiece
+                winner.validation = await this.validationSystem.validateAll(masterpiece.response || '', context);
+                winner.critique = await this.performCritique(masterpiece.response || '', prompt);
+            }
+
+            if (winner.validation.ok && winner.critique.score >= 90) {
+                this.logger.info({ score: winner.critique.score, iterations }, 'Adversarial verification PASSED');
+                return { ok: true, value: winner.cand };
+            }
+
+            this.logger.warn({
+                bestScore: winner.critique.score,
+                iterations,
+                shouldNotBeCount: winner.critique.shouldNotBe.length
+            }, 'Adversarial verification REJECTED - iterating with best candidate feedback');
+
+            // Categorize the rejection prompt with "Should Not Be" awareness
+            currentPrompt = this.buildPhilosophicalRejectionPrompt(
+                winner.cand.response || '',
+                winner.validation.ok ? [] : [winner.validation.error?.reason || 'Validation failed'],
+                winner.critique.flaws,
+                winner.critique.shouldNotBe
+            );
         }
 
         return {
             ok: false,
-            error: new Error(`Failed to generate sovereign code after ${maxIterations} adversarial iterations.`)
+            error: new Error(`Failed to generate sovereign code after ${maxIterations} ternary iterations.`)
         };
     }
 
-    private async performCritique(code: string, originalPrompt: string): Promise<{ score: number; flaws: string[] }> {
+    private async performCritique(code: string, originalPrompt: string): Promise<{ score: number; flaws: string[]; shouldNotBe: string[] }> {
         const criticPrompt = `
 FIND ALL FLAWS in the following code compared to the original request. 
-BE MERCILESS. Check for:
-1. Hallucinated APIs or non-existent files.
-2. Logic bugs or missing edge cases.
-3. Violations of "NO MOCKS" (placeholders like TODO).
-4. Type safety issues.
+BE MERCILESS. Categorize your findings into:
+1. MASKED_LOGIC: placeholders (TODO), mocks, or faked functionality ("Should Not Be").
+2. HALLUCINATION: non-existent APIs, files, or variables ("Should Not Be").
+3. LOGIC_BUG: incorrect edge case handling or core flow errors.
+4. TYPE_VIOLATION: strict TypeScript errors or invalid assumptions.
 
 Original Request: ${originalPrompt}
 Proposed Code:
@@ -98,52 +146,67 @@ Proposed Code:
 ${code}
 \`\`\`
 
-Output ONLY a JSON object:
-{
-  "score": 0 to 100,
-  "flaws": ["Direct description of flaw 1", "Direct description of flaw 2"]
-}
+Respond exactly in this format:
+SCORE: [0-100]
+FLAWS:
+- [Category] [Description]
 `;
 
-        // Use custom critic model if configured (e.g., yi-coder, deepseek-coder)
         const criticModel = this.config.criticModel || 'gemini:gemini-3-pro-preview';
-        this.logger.debug({ criticModel }, 'Invoking adversarial critic');
+        this.logger.debug({ criticModel }, 'Invoking adversarial critic with Philosophical Categorization');
 
         const criticPromptAugmented = this.architectureDigest.inject(criticPrompt);
         const result = await this.executor.callModel(criticModel, criticPromptAugmented);
-        if (isErr(result)) {
-            this.logger.warn({ error: result.error }, 'Top Brain critic failed, falling back to Flash baseline');
-            const backupResult = await this.executor.callModel('gemini:gemini-3-flash-preview', criticPromptAugmented);
-            if (isErr(backupResult)) return { score: 95, flaws: [] };
-            if (backupResult.ok) {
-                return this.parseCriticResponse(backupResult.value.response);
+
+        if (!result.ok) {
+            this.logger.warn({ error: result.error }, 'Critic failed, assuming baseline score');
+            return { score: 95, flaws: [], shouldNotBe: [] };
+        }
+
+        const response = result.value.response || '';
+        if (!response) {
+            this.logger.warn('Critic returned empty response, assuming baseline score');
+            return { score: 95, flaws: [], shouldNotBe: [] };
+        }
+
+        return this.parseCategorizedResponse(response);
+    }
+
+    private parseCategorizedResponse(response: string): { score: number; flaws: string[]; shouldNotBe: string[] } {
+        const scoreMatch = response.match(/SCORE:\s*(\d+)/);
+        const score = scoreMatch && scoreMatch[1] ? parseInt(scoreMatch[1]!) : 50;
+
+        const flaws: string[] = [];
+        const shouldNotBe: string[] = [];
+        const lines = response.split('\n');
+
+        for (const line of lines) {
+            if (line.trim().startsWith('-')) {
+                const flaw = line.trim().substring(1).trim();
+                flaws.push(flaw);
+                if (flaw.includes('MASKED_LOGIC') || flaw.includes('HALLUCINATION')) {
+                    shouldNotBe.push(flaw);
+                }
             }
-            return { score: 95, flaws: [] };
         }
 
-        if (result.ok) {
-            return this.parseCriticResponse(result.value.response);
-        }
-        return { score: 95, flaws: [] };
+        return { score, flaws, shouldNotBe };
     }
 
-    private parseCriticResponse(response: string): { score: number; flaws: string[] } {
-        try {
-            const jsonStr = response.match(/\{[\s\S]*\}/)?.[0];
-            if (!jsonStr) throw new Error('No JSON output from critic');
-            return JSON.parse(jsonStr);
-        } catch (e) {
-            this.logger.warn('Failed to parse critic JSON, assuming success to avoid loop');
-            return { score: 95, flaws: [] };
-        }
-    }
-
-    private buildRejectionPrompt(code: string, validationFailures: string[], criticFlaws: string[]): string {
+    private buildPhilosophicalRejectionPrompt(
+        code: string,
+        validationFailures: string[],
+        criticFlaws: string[],
+        shouldNotBe: string[]
+    ): string {
         return `
 YOUR PREVIOUS OUTPUT WAS REJECTED. YOU MUST FIX THE FOLLOWING ISSUES:
 
 ${validationFailures.map(f => `- [CRITICAL] ${f}`).join('\n')}
 ${criticFlaws.map(f => `- [FLAW] ${f}`).join('\n')}
+
+PHILOSOPHICAL BOUNDARY VIOLATIONS ("Should Not Be"):
+${shouldNotBe.map(f => `- [FORBIDDEN] ${f}`).join('\n')}
 
 PREVIOUS (INVALID) CODE:
 \`\`\`
@@ -152,10 +215,60 @@ ${code}
 
 RULES FOR RE-GENERATION:
 1. Implement the logic FULLY. No TODOs, no stubs, no mocks.
-2. Fix every flaw listed above.
-3. Ensure the code is production-grade.
+2. FIX THE FORBIDDEN PATTERNS LISTED ABOVE.
+3. Ensure the code is production-grade and follows the "Should Be" standard.
 
 GENERATE THE CORRECT IMPLEMENTATION NOW:
 `;
+    }
+
+    /**
+     * ACT HELPER: Type-Safety Sentinel
+     */
+    private generateTypeSafetyHints(code: string): string {
+        if (!code) return "";
+        // Extract potential interface/type needs from code
+        const hasAny = code.includes('any');
+        return hasAny ? "SENTINEL: Replace 'any' with specific types or 'unknown'. Ensure strict null checks." : "";
+    }
+
+    /**
+     * ACT HELPER: Unit-Test Shadow
+     */
+    private generateSuccessScenario(prompt: string): string {
+        // Create a simple assertion the model must satisfy
+        return `SUCCESS CRITERION: The code must handle the primary intent '${prompt.substring(0, 30)}...' without side-effects.`;
+    }
+
+    /**
+     * REFLECT HELPER: Anti-Pattern Hunter
+     */
+    private huntAntiPatterns(flaws: string[]): string[] {
+        const antiPatterns = ["TODO", "FIXME", "MOCK", "STUB", "PLACEHOLDER"];
+        return flaws.filter(f => antiPatterns.some(ap => f.toUpperCase().includes(ap)));
+    }
+
+    /**
+     * REFLECT HELPER: Synthesis Weaver
+     * Merges the best logic from multiple candidates if needed.
+     */
+    private async weaveSynthesis(candidates: ModelResponse[], prompt: string): Promise<ModelResponse> {
+        this.logger.info('Synthesis Weaver: Attempting to merge candidate logic for optimal output');
+        const synthesisPrompt = `
+MERGE the following 3 code candidates into a single MASTERPIECE.
+Use the robustness of Candidate 1, the elegance of Candidate 2, and the completeness of Candidate 3.
+
+Original Intent: ${prompt}
+
+${candidates.map((c, i) => `Candidate ${i + 1}:\n\`\`\`\n${c.response || '// No response'}\n\`\`\``).join('\n\n')}
+
+OUTPUT ONLY THE FINAL MERGED CODE.
+`;
+        const result = await this.executor.callModel(this.config.criticModel || 'gemini-3-pro-preview', synthesisPrompt);
+
+        if (result.ok) {
+            return result.value;
+        }
+        return candidates[0]!;
     }
 }

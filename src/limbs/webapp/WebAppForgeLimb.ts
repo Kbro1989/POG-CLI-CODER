@@ -1,27 +1,24 @@
 /**
  * WebAppForgeLimb - Generates full-stack apps locally
  * Replaces Lovable by using local models + templates + git/test integration
+ * 
+ * Migrated to ToolingSpine for standardized orchestration.
  */
 
-import { NeuralLimb, Intent, Execution } from '../core/NeuralLimb.js';
-import { Result, VibeConfig } from '../../core/models.js';
-import { GeminiService, GeminiConfig } from '../../core/GeminiService.js';
+import { BaseLimb } from '../core/BaseLimb.js';
+import type { Intent, Execution } from '../core/NeuralLimb.js';
+import type { Result, VibeConfig } from '../../core/models.js';
+import { ModelExecutor } from '../../core/ModelExecutor.js';
+import { AdversarialOrchestrator } from '../../core/AdversarialOrchestrator.js';
 import { GitManager } from '../../git/GitManager.js';
-import { TestRunner } from '../../testing/TestRunner.js';
 import { join } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
-import pino from 'pino';
 import { PreviewServer } from '../../core/PreviewServer.js';
 import { FORGE_TOOLS } from './tools/definitions.js';
 
 const execAsync = promisify(exec);
-
-const logger = pino({
-    name: 'WebAppForge',
-    base: { hostname: 'POG-VIBE' }
-});
 
 interface StackTemplate {
     readonly init?: string;
@@ -38,33 +35,30 @@ interface AppBlueprint {
     file_count: number;
 }
 
-export class WebAppForgeLimb implements NeuralLimb {
-    id = 'webapp_forge';
-    type = 'creative' as const;
-    capabilities = ['scaffold_project', 'generate_frontend', 'generate_backend', 'setup_database'];
+export class WebAppForgeLimb extends BaseLimb {
+    readonly id = 'webapp_forge';
+    readonly type = 'creative' as const;
 
-    private gemini: GeminiService;
-    private git: GitManager;
-    private tester: TestRunner;
+    private modelExecutor: ModelExecutor;
+    private adversarialOrchestrator: AdversarialOrchestrator;
     private templates: Record<string, StackTemplate>;
     private previewServer: PreviewServer;
 
-    constructor(private config: VibeConfig, previewServer: PreviewServer) {
-        const apiKey = process.env['GOOGLE_API_KEY'] || '';
-        const geminiConfig: GeminiConfig = { apiKey, modelName: 'gemini-2.0-flash' };
-        this.gemini = new GeminiService(geminiConfig);
-        this.git = new GitManager(config.pogDir);
-        this.tester = new TestRunner(config.projectRoot); // Use projectRoot for tester
+    constructor(
+        config: VibeConfig,
+        previewServer: PreviewServer,
+        modelExecutor: ModelExecutor,
+        adversarialOrchestrator: AdversarialOrchestrator
+    ) {
+        super(config);
+        this.modelExecutor = modelExecutor;
+        this.adversarialOrchestrator = adversarialOrchestrator;
         this.previewServer = previewServer;
 
-        // Silence unused warnings for now (reserved for Phase 2: Execution)
-        logger.debug({ gitCtx: !!this.git, testCtx: !!this.tester }, 'Limb initialized');
-
         // Load templates
-        // Load templates from multiple potential locations
         const potentialPaths = [
             join(this.config.projectRoot, 'src/templates/stacks.json'),
-            join(this.config.pogDir, 'stacks.json'), // Shared location
+            join(this.config.pogDir, 'stacks.json'),
             join(process.cwd(), 'src/templates/stacks.json')
         ];
 
@@ -73,7 +67,7 @@ export class WebAppForgeLimb implements NeuralLimb {
             try {
                 if (fs.existsSync(tp)) {
                     this.templates = JSON.parse(fs.readFileSync(tp, 'utf8'));
-                    logger.debug({ templatePath: tp }, 'Stack templates loaded');
+                    this.logger.debug({ templatePath: tp }, 'Stack templates loaded');
                     break;
                 }
             } catch (e) {
@@ -82,8 +76,7 @@ export class WebAppForgeLimb implements NeuralLimb {
         }
 
         if (Object.keys(this.templates).length === 0) {
-            logger.warn('No stack templates found, using internal defaults');
-            // Inline basic fallback to ensure Gamma-level functionality
+            this.logger.warn('No stack templates found, using internal defaults');
             this.templates = {
                 "react-vite-internal": {
                     "init": "npx -y create-vite@latest . --template react-ts",
@@ -94,11 +87,27 @@ export class WebAppForgeLimb implements NeuralLimb {
                 }
             };
         }
+
+        this.registerForgeTools();
     }
 
-    async canHandle(intent: Intent): Promise<boolean> {
-        // High-Fidelity Intent Guard: Only look at the user intent section
-        // to avoid triggering on system prompt words like "generate" or "create"
+    private registerForgeTools(): void {
+        this.registerTools(FORGE_TOOLS.map(t => ({
+            name: t.name,
+            description: t.description,
+            parameters: t.parameters,
+            handler: async (args: any) => {
+                try {
+                    const output = await t.handler(args);
+                    return { ok: true, value: output };
+                } catch (e) {
+                    return { ok: false, error: e as Error };
+                }
+            }
+        })));
+    }
+
+    override async canHandle(intent: Intent): Promise<boolean> {
         const userIntentMatch = intent.prompt.match(/### CURRENT USER INTENT\n([\s\S]*?)\n\n### EXECUTION DIRECTIVE/);
         const rawIntent = (userIntentMatch && userIntentMatch[1]) ? userIntentMatch[1] : intent.prompt;
         const p = rawIntent.toLowerCase();
@@ -106,28 +115,24 @@ export class WebAppForgeLimb implements NeuralLimb {
         const triggers = ['create', 'scaffold', 'generate', 'new', 'make'];
         const targets = ['app', 'website', 'project', 'template', 'starter'];
 
-        // Logic Gate: Must have a structural trigger AND a structural target.
-        // It must NOT look like a simple function or variable snippet.
         const hasTrigger = triggers.some(t => p.includes(t));
         const hasTarget = targets.some(ta => p.includes(ta));
         const isSimpleCode = /\b(function|class|const|let|var|if|return)\b/.test(p);
 
-        return hasTrigger && hasTarget && !isSimpleCode;
+        return (hasTrigger && hasTarget && !isSimpleCode) ||
+            this.spine.getCapabilities().some(cap => p.includes(cap));
     }
 
-    async execute(intent: Intent): Promise<Result<Execution>> {
-        logger.info('🔨 WebApp Forge activated');
+    override async execute(intent: Intent): Promise<Result<Execution>> {
+        this.logger.info('🔨 WebApp Forge activated');
 
         try {
             // 1. Planning Phase (Gemini Flash)
             const blueprint = await this.planApp(intent.prompt);
-            logger.info({ blueprint }, 'Blueprint created');
+            this.logger.info({ blueprint }, 'Blueprint created');
 
             // 2. Execution Phase (Local Tools)
-            // Use projectRoot (Current Working Directory) for project creation
             const projectDir = join(this.config.projectRoot, blueprint.name);
-
-            // Removed internal 'projects' directory creation as we now use CWD
 
             if (fs.existsSync(projectDir)) {
                 return { ok: false, error: new Error(`Project ${blueprint.name} already exists`) };
@@ -146,8 +151,8 @@ export class WebAppForgeLimb implements NeuralLimb {
             let previewUrl: string | undefined;
             if (template && template.devCommand) {
                 const previewResult = await this.previewServer.startPreview(
-                    blueprint.name, // Assuming projectName should be blueprint.name
-                    projectDir,     // Assuming projectPath should be projectDir
+                    blueprint.name,
+                    projectDir,
                     template.devCommand || 'npm run dev',
                     template.defaultPort ?? undefined
                 );
@@ -167,7 +172,7 @@ export class WebAppForgeLimb implements NeuralLimb {
 
         } catch (error: unknown) {
             const err = error instanceof Error ? error : new Error(String(error));
-            logger.error({ error: err }, 'WebApp Forge failed');
+            this.logger.error({ error: err }, 'WebApp Forge failed');
             return { ok: false, error: err };
         }
     }
@@ -184,19 +189,37 @@ export class WebAppForgeLimb implements NeuralLimb {
     }`;
 
         try {
-            const result = await this.gemini.generateContent(prompt + "\n" + systemPrompt);
+            const fullPrompt = prompt + "\n" + systemPrompt;
+            const result = await this.adversarialOrchestrator.generateValidatedCode(
+                fullPrompt,
+                this.config.criticModel || 'gemini-2.0-flash'
+            );
+
             if (!result.ok) throw result.error;
 
             const response = result.value.response;
-            // Clean markdown code blocks if present
             const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonStr);
         } catch (e) {
-            // Fallback
-            logger.warn('Planning failed, falling back to default');
+            this.logger.warn({ error: e }, 'Validated planning failed, attempting robust single-shot fallback');
+
+            const fallbackResult = await this.modelExecutor.callModel(
+                this.config.planningModel || 'gemini-2.0-flash',
+                prompt + "\nOutput ONLY the JSON for the project blueprint."
+            );
+
+            if (fallbackResult.ok) {
+                try {
+                    const jsonStr = fallbackResult.value.response.replace(/```json/g, '').replace(/```/g, '').trim();
+                    return JSON.parse(jsonStr);
+                } catch (parseError) {
+                    this.logger.error({ parseError }, 'Single-shot fallback JSON parse failed');
+                }
+            }
+
             return {
-                stack: 'react-vite-internal',
-                name: 'generated-app-' + Date.now(),
+                stack: Object.keys(this.templates)[0] || 'react-vite-internal',
+                name: 'generated-app-emergency-' + Date.now(),
                 features: [],
                 file_count: 5
             };
@@ -207,38 +230,14 @@ export class WebAppForgeLimb implements NeuralLimb {
         const template = this.templates[stackKey];
         if (!template) throw new Error(`Unknown stack: ${stackKey}`);
 
-        logger.info(`Scaffolding ${stackKey} in ${dir}`);
+        this.logger.info(`Scaffolding ${stackKey} in ${dir}`);
 
-        // Run init command
         if (template.init) {
             await execAsync(template.init, { cwd: dir });
         }
 
-        // Run install command
         if (template.install) {
             await execAsync(template.install, { cwd: dir });
-        }
-    }
-
-    getTools(): any[] {
-        return [{
-            functionDeclarations: FORGE_TOOLS.map(t => ({
-                name: t.name,
-                description: t.description,
-                parameters: t.parameters
-            }))
-        }];
-    }
-
-    async handleToolCall(name: string, args: any): Promise<Result<any>> {
-        const tool = FORGE_TOOLS.find(t => t.name === name);
-        if (!tool) return { ok: false, error: new Error(`Unknown tool: ${name}`) };
-
-        try {
-            const output = await tool.handler(args);
-            return { ok: true, value: output };
-        } catch (e) {
-            return { ok: false, error: e as Error };
         }
     }
 }

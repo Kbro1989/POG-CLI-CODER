@@ -60,6 +60,7 @@ export interface Lesson {
   readonly sessionId: string;
   readonly errorType: string;
   readonly createdAt: number;
+  readonly projectId?: string;
   readonly regretLikelihood?: number;
   readonly metadata?: Record<string, unknown>;
 }
@@ -131,6 +132,11 @@ export interface RoutingDecision {
   readonly reason: string;
   readonly candidateConfidence: number; // 0-1 scale
   readonly regretLikelihood: number;   // 0-1 scale, chance a better model was skipped
+  readonly philosophy?: {
+    readonly couldBe: string;      // The "High Intelligence" exploratory route
+    readonly shouldBe: string;     // The "Ideal/Standard" selected route
+    readonly shouldNotBe: string[]; // The "Forbidden/Suboptimal" rejected routes
+  };
 }
 
 export interface RawRoutingContext {
@@ -140,6 +146,8 @@ export interface RawRoutingContext {
   readonly fileSize?: number | undefined;
   readonly historicalPerformance: ReadonlyArray<ModelPerformance>;
   readonly availableModels: ReadonlyArray<FreeModelConfig>; // Now includes health signals
+  readonly architectureAlignment?: string[]; // Phase 10: Sense Helper
+  readonly goldenTemplates?: string[]; // Phase 10: Sense Helper
 }
 
 export interface AssessedRoutingContext extends RawRoutingContext {
@@ -238,7 +246,9 @@ export interface VibeConfig {
   readonly monitorModel?: string | undefined;
   readonly snapshotModel?: string | undefined;
   readonly criticModel?: string | undefined;
+  readonly planningModel?: string | undefined;
   readonly healThreshold?: 'low' | 'medium' | 'high' | 'critical' | undefined;
+  readonly sovereignRoot?: string | undefined;
 }
 
 export const enum AgentTerminateMode {

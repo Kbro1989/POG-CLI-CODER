@@ -1,15 +1,10 @@
-import { NeuralLimb, Intent, Execution } from '../core/NeuralLimb.js';
-import { Result, VibeConfig } from '../../core/models.js';
-import pino from 'pino';
+import { BaseLimb } from '../core/BaseLimb.js';
+import type { Intent, Execution } from '../core/NeuralLimb.js';
+import type { Result, VibeConfig } from '../../core/models.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { StyleAnalyzer } from './StyleAnalyzer.js';
 import { GeminiService } from '../../core/GeminiService.js';
-
-const logger = pino({
-    name: 'GutenbergLimb',
-    base: { hostname: 'POG-VIBE' }
-});
 
 // Domain taxonomy for intelligent book categorization
 export const GUTENBERG_DOMAINS = {
@@ -51,10 +46,14 @@ interface IngestionReport {
     cacheSizeMB: number;
 }
 
-export class GutenbergLimb implements NeuralLimb {
-    id = 'gutenberg_knowledge';
-    type = 'analytical' as const;
-    capabilities = ['gutenberg_search', 'gutenberg_ingest', 'gutenberg_styles'];
+/**
+ * GutenbergLimb - Literary Knowledge Ingestion
+ * 
+ * Migrated to ToolingSpine for standardized orchestration.
+ */
+export class GutenbergLimb extends BaseLimb {
+    readonly id = 'gutenberg_knowledge';
+    readonly type = 'analytical' as const;
 
     private readonly GUTENBERG_CACHE: string;
     private readonly GUTENDEX_API = 'https://gutendex.com/books';
@@ -63,152 +62,123 @@ export class GutenbergLimb implements NeuralLimb {
     private vectorDB: any;
     private gemini: GeminiService | undefined;
 
-    constructor(vectorDB?: any, config?: VibeConfig, gemini?: GeminiService | undefined) {
+    constructor(
+        config: VibeConfig,
+        vectorDB?: any,
+        gemini?: GeminiService
+    ) {
+        super(config);
         this.vectorDB = vectorDB;
         this.gemini = gemini;
-        const pogDir = config?.pogDir || join(process.cwd(), '.pog-coder-vibe');
-        this.GUTENBERG_CACHE = join(pogDir, 'gutenberg-cache');
+        const GUTENBERG_D_DRIVE = 'D:\\pog-gutenberg';
+        const hasGutenbergD = existsSync(GUTENBERG_D_DRIVE);
+
+        const sovereignRoot = this.config.sovereignRoot;
+        const pogDir = this.config.pogDir || join(process.cwd(), '.pog-coder-vibe');
+
+        this.GUTENBERG_CACHE = hasGutenbergD ? GUTENBERG_D_DRIVE : (sovereignRoot ? join(sovereignRoot, 'gutenberg-cache') : join(pogDir, 'gutenberg-cache'));
 
         if (!existsSync(this.GUTENBERG_CACHE)) {
             mkdirSync(this.GUTENBERG_CACHE, { recursive: true });
-            logger.info({ path: this.GUTENBERG_CACHE }, 'Created Gutenberg cache directory');
+            this.logger.info({ path: this.GUTENBERG_CACHE }, 'Created Gutenberg cache directory');
         }
+
+        this.registerGutenbergTools();
     }
 
-    async canHandle(intent: Intent): Promise<boolean> {
+    private registerGutenbergTools(): void {
+        this.registerTools([
+            {
+                name: 'gutenberg_search',
+                description: 'Search or retrieve 60k+ books from Project Gutenberg by domain, author, or topic.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        search: { type: 'string', description: 'General search term' },
+                        authors: { type: 'array', items: { type: 'string' }, description: 'Specific authors' },
+                        domains: { type: 'array', items: { type: 'string' }, description: 'Literary domains (e.g., science, mathematics)' },
+                        limit: { type: 'number', description: 'Maximum number of results' }
+                    }
+                },
+                handler: async (args: any) => {
+                    const searchResult = await this.searchBooks(args);
+                    return {
+                        ok: true,
+                        value: {
+                            output: `Found ${searchResult.length} books.`,
+                            data: { books: searchResult.slice(0, 5) }
+                        }
+                    };
+                }
+            },
+            {
+                name: 'gutenberg_ingest',
+                description: 'Download and cache books for local knowledge base ingestion.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        search: { type: 'string' },
+                        authors: { type: 'array', items: { type: 'string' } },
+                        domains: { type: 'array', items: { type: 'string' } }
+                    }
+                },
+                handler: async (args: any) => {
+                    const booksToIngest = await this.searchBooks(args);
+                    const ingestResult = await this.ingestBooks(booksToIngest);
+                    return {
+                        ok: true,
+                        value: {
+                            output: `Ingested ${ingestResult.success}/${ingestResult.total} books.`,
+                            data: ingestResult
+                        }
+                    };
+                }
+            },
+            {
+                name: 'gutenberg_styles',
+                description: 'List available author styles and domains currently in the local cache.',
+                parameters: {
+                    type: 'object',
+                    properties: {}
+                },
+                handler: async () => {
+                    return this.handleListStyles();
+                }
+            }
+        ]);
+    }
+
+    override async canHandle(intent: Intent): Promise<boolean> {
         const prompt = intent.prompt.toLowerCase();
         const keywords = ['gutenberg', 'book', 'ingest', 'download', 'corpus', 'literature', 'author style'];
-        return keywords.some(k => prompt.includes(k));
+        return keywords.some(k => prompt.includes(k)) ||
+            this.spine.getCapabilities().some(cap => prompt.includes(cap));
     }
 
-    async execute(intent: Intent): Promise<Result<Execution>> {
+    override async execute(intent: Intent): Promise<Result<Execution>> {
         const prompt = intent.prompt.toLowerCase();
 
-        // Determine action
+        // Determine action and route through spine
         if (prompt.includes('search') || prompt.includes('find') || prompt.includes('retrieve') || prompt.includes('get') || prompt.includes('fetch')) {
-            return await this.handleSearch(intent.prompt);
+            const params = this.parseSearchParams(prompt);
+            const result = await this.spine.handleCall('gutenberg_search', params);
+            if (result.ok) return { ok: true, value: result.value };
+            return { ok: false, error: result.error };
         } else if (prompt.includes('ingest') || prompt.includes('download')) {
-            return await this.handleIngest(intent.prompt);
+            const params = this.parseSearchParams(prompt);
+            const result = await this.spine.handleCall('gutenberg_ingest', params);
+            if (result.ok) return { ok: true, value: result.value };
+            return { ok: false, error: result.error };
         } else if (prompt.includes('styles') || prompt.includes('authors')) {
-            return await this.handleListStyles();
+            const result = await this.spine.handleCall('gutenberg_styles', {});
+            if (result.ok) return { ok: true, value: result.value };
+            return { ok: false, error: result.error };
         }
 
         return { ok: false, error: new Error('Unknown Gutenberg action. Use: search, ingest, or styles') };
     }
 
-    getTools(): any[] {
-        return [
-            {
-                functionDeclarations: [
-                    {
-                        name: 'gutenberg_search',
-                        description: 'Search or retrieve 60k+ books from Project Gutenberg by domain, author, or topic.',
-                        parameters: {
-                            type: 'object',
-                            properties: {
-                                search: { type: 'string', description: 'General search term' },
-                                authors: { type: 'array', items: { type: 'string' }, description: 'Specific authors' },
-                                domains: { type: 'array', items: { type: 'string' }, description: 'Literary domains (e.g., science, mathematics)' },
-                                limit: { type: 'number', description: 'Maximum number of results' }
-                            }
-                        }
-                    },
-                    {
-                        name: 'gutenberg_ingest',
-                        description: 'Download and cache books for local knowledge base ingestion.',
-                        parameters: {
-                            type: 'object',
-                            properties: {
-                                search: { type: 'string' },
-                                authors: { type: 'array', items: { type: 'string' } },
-                                domains: { type: 'array', items: { type: 'string' } }
-                            }
-                        }
-                    },
-                    {
-                        name: 'gutenberg_styles',
-                        description: 'List available author styles and domains currently in the local cache.',
-                        parameters: {
-                            type: 'object',
-                            properties: {}
-                        }
-                    }
-                ]
-            }
-        ];
-    }
-
-    async handleToolCall(name: string, args: any): Promise<Result<any>> {
-        logger.info({ tool: name, args }, 'Executing Gutenberg tool call');
-
-        switch (name) {
-            case 'gutenberg_search':
-                const searchResult = await this.searchBooks(args);
-                return {
-                    ok: true,
-                    value: {
-                        output: `Found ${searchResult.length} books.`,
-                        data: { books: searchResult.slice(0, 5) }
-                    }
-                };
-            case 'gutenberg_ingest':
-                const booksToIngest = await this.searchBooks(args);
-                const ingestResult = await this.ingestBooks(booksToIngest);
-                return {
-                    ok: true,
-                    value: {
-                        output: `Ingested ${ingestResult.success}/${ingestResult.total} books.`,
-                        data: ingestResult
-                    }
-                };
-            case 'gutenberg_styles':
-                const styles = await this.handleListStyles();
-                return styles;
-            default:
-                return { ok: false, error: new Error(`Unknown Gutenberg tool: ${name}`) };
-        }
-    }
-
-
-    private async handleSearch(prompt: string): Promise<Result<Execution>> {
-        try {
-            const params = this.parseSearchParams(prompt);
-            const books = await this.searchBooks(params);
-
-            return {
-                ok: true,
-                value: {
-                    output: `Found ${books.length} books matching your criteria`,
-                    data: { books: books.slice(0, 10) } // Return top 10
-                }
-            };
-        } catch (error) {
-            return { ok: false, error: error as Error };
-        }
-    }
-
-    private async handleIngest(prompt: string): Promise<Result<Execution>> {
-        try {
-            const params = this.parseSearchParams(prompt);
-            const books = await this.searchBooks(params);
-
-            logger.info({ count: books.length }, 'Starting book ingestion');
-
-            const results = await this.ingestBooks(books);
-
-            return {
-                ok: true,
-                value: {
-                    output: `Ingested ${results.success}/${results.total} books. Cache: ${results.cacheSizeMB}MB`,
-                    data: results
-                }
-            };
-        } catch (error) {
-            return { ok: false, error: error as Error };
-        }
-    }
-
-    private async handleListStyles(): Promise<Result<Execution>> {
+    private async handleListStyles(): Promise<Result<any>> {
         const metadata = this.loadMetadataCache();
         const authors = new Set<string>();
         const domains = new Set<string>();
@@ -300,7 +270,7 @@ export class GutenbergLimb implements NeuralLimb {
                 await this.downloadAndCache(book);
                 results.success++;
             } catch (error) {
-                logger.error({ bookId: book.id, error }, 'Failed to ingest book');
+                this.logger.error({ bookId: book.id, error }, 'Failed to ingest book');
                 results.failed++;
             }
         }
@@ -315,7 +285,7 @@ export class GutenbergLimb implements NeuralLimb {
 
         // Skip if already cached
         if (existsSync(cachePath)) {
-            logger.debug({ bookId: book.id }, 'Book already cached');
+            this.logger.debug({ bookId: book.id }, 'Book already cached');
             return;
         }
 
@@ -346,7 +316,7 @@ export class GutenbergLimb implements NeuralLimb {
             path: cachePath
         });
 
-        logger.info({ bookId: book.id, domain, title: book.title }, 'Book cached successfully');
+        this.logger.info({ bookId: book.id, domain, title: book.title }, 'Book cached successfully');
 
 
         // Integrating Learning Mechanism with Style Analysis
@@ -379,9 +349,9 @@ export class GutenbergLimb implements NeuralLimb {
                         styleProfile // Inject style data
                     }
                 });
-                logger.info({ bookId: book.id, style: styleProfile }, 'Book ingested with style profile and embedding');
+                this.logger.info({ bookId: book.id, style: styleProfile }, 'Book ingested with style profile and embedding');
             } catch (err) {
-                logger.error({ err, bookId: book.id }, 'Failed to index book into VectorDB');
+                this.logger.error({ err, bookId: book.id }, 'Failed to index book into VectorDB');
             }
         }
     }

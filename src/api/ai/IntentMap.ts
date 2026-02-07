@@ -91,5 +91,28 @@ export const IntentMap: Record<string, IntentPathway[]> = {
             keywords: ['satellite', 'geospatial', 'air quality', 'solar', 'environment'],
             reasoning: 'Specialized APIs provide real-time environment data.'
         }
+    ],
+    FORGECraft: [
+        {
+            id: 'sql_forge_intent',
+            description: 'Database schema and migration tasks',
+            targetCapabilityId: 'sql_forge',
+            keywords: ['sql forge', 'migration', 'database schema', 'query optimization'],
+            reasoning: 'Neural SQL Forge is tailored for database structural integrity.'
+        },
+        {
+            id: 'docs_forge_intent',
+            description: 'Technical documentation tasks',
+            targetCapabilityId: 'docs_forge',
+            keywords: ['docs forge', 'technical deep-dive', 'readme', 'api reference'],
+            reasoning: 'Neural Docs Forge ensures technical precision and clarity.'
+        },
+        {
+            id: 'refactor_forge_intent',
+            description: 'Architectural cleanup and refactoring',
+            targetCapabilityId: 'refactor_forge',
+            keywords: ['refactor forge', 'code smell', 'cleanup', 'improve architecture'],
+            reasoning: 'Neural Refactor Forge focuses on architectural longevity and quality.'
+        }
     ]
 };

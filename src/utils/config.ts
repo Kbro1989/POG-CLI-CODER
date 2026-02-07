@@ -21,12 +21,14 @@ const ConfigSchema = z.object({
   projectId: z.string().default('pog-vibe-session'),
   workspaces: z.array(z.string()).default([]),
   errorTrackerModelPath: z.string().optional(),
-  enabledServices: z.array(z.string()).default(['gemini', 'ollama', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge', 'gutenberg', 'dashboard']),
+  enabledServices: z.array(z.string()).default(['gemini', 'ollama', 'cloudflare', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge', 'gutenberg', 'dashboard']),
   cloudflareGatewayUrl: z.string().url().optional(),
   monitorModel: z.string().optional(),
   snapshotModel: z.string().optional(),
   criticModel: z.string().optional(),
-  healThreshold: z.enum(['low', 'medium', 'high', 'critical']).optional()
+  planningModel: z.string().optional(),
+  healThreshold: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  sovereignRoot: z.string().optional()
 });
 
 type ConfigInput = z.input<typeof ConfigSchema>;
@@ -39,22 +41,27 @@ export class ConfigManager {
   private readonly configPath: string;
 
   constructor(projectRoot: string, overrides?: Partial<ConfigInput>) {
-    // Check for local .pog directory preference
+    // 1. Detect Sovereign Root (High Priority D: Drive)
+    const SOVEREIGN_CANDIDATE = 'D:\\pog-coder-vibe';
+    const hasSovereign = existsSync(SOVEREIGN_CANDIDATE);
+
+    // 2. Check for local .pog directory preference
     const localPogDir = join(projectRoot, '.pog');
     const useLocal = process.env['POG_USE_LOCAL'] === 'true' || existsSync(localPogDir);
 
-    const resolvedDefault = useLocal ? localPogDir : DEFAULT_POG_DIR;
+    const resolvedDefault = hasSovereign ? SOVEREIGN_CANDIDATE : (useLocal ? localPogDir : DEFAULT_POG_DIR);
     const pogDir = process.env['POG_DIR'] ?? overrides?.pogDir ?? resolvedDefault;
 
     this.configPath = join(pogDir, CONFIG_FILE_NAME);
+    const sovereignRoot = hasSovereign ? SOVEREIGN_CANDIDATE : undefined;
 
-    // Ensure POG directory exists
+    // Ensure POG directory exists (if not sovereign, we might need to create it)
     if (!existsSync(pogDir)) {
       mkdirSync(pogDir, { recursive: true });
     }
 
     // Load or create config
-    this.config = this.loadConfig(projectRoot, pogDir, overrides);
+    this.config = this.loadConfig(projectRoot, pogDir, { ...overrides, sovereignRoot });
   }
 
   private loadConfig(
@@ -88,12 +95,14 @@ export class ConfigManager {
       logLevel: (process.env['VIBE_LOG_LEVEL'] as VibeConfig['logLevel']) || overrides?.logLevel || fileConfig.logLevel || 'info',
       projectId: process.env['POG_PROJECT_ID'] || overrides?.projectId || fileConfig.projectId || projectRoot.split(/[\\/]/).pop() || 'default-project',
       errorTrackerModelPath: process.env['POG_ERROR_TRACKER_PATH'] || overrides?.errorTrackerModelPath || fileConfig.errorTrackerModelPath || '',
-      enabledServices: overrides?.enabledServices || fileConfig.enabledServices || ['gemini', 'ollama', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision'],
+      enabledServices: overrides?.enabledServices || fileConfig.enabledServices || ['gemini', 'ollama', 'cloudflare', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge', 'gutenberg', 'dashboard'],
       cloudflareGatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'] || overrides?.cloudflareGatewayUrl || fileConfig.cloudflareGatewayUrl,
       monitorModel: process.env['VIBE_MONITOR_MODEL'] || overrides?.monitorModel || fileConfig.monitorModel,
       snapshotModel: process.env['VIBE_SNAPSHOT_MODEL'] || overrides?.snapshotModel || fileConfig.snapshotModel,
       criticModel: process.env['VIBE_CRITIC_MODEL'] || overrides?.criticModel || fileConfig.criticModel,
-      healThreshold: (process.env['VIBE_HEAL_THRESHOLD'] as VibeConfig['healThreshold']) || overrides?.healThreshold || fileConfig.healThreshold
+      planningModel: process.env['VIBE_PLANNING_MODEL'] || overrides?.planningModel || fileConfig.planningModel,
+      healThreshold: (process.env['VIBE_HEAL_THRESHOLD'] as VibeConfig['healThreshold']) || overrides?.healThreshold || fileConfig.healThreshold,
+      sovereignRoot: overrides?.sovereignRoot || fileConfig.sovereignRoot
     } as any; // Cast for now to satisfy strict Zod vs Interface drift
 
     // Validate

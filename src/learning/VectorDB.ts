@@ -69,8 +69,34 @@ export class VectorDB {
           )
         `);
 
-        // Placeholder for batch insertion logic
-        resolve({ ok: true, value: undefined });
+        const stmt = this.db!.prepare(`
+          INSERT OR REPLACE INTO model_capabilities (id, name, description, capabilities, embedding)
+          VALUES (?, ?, ?, ?, ?)
+        `);
+
+        try {
+          this.db!.run('BEGIN TRANSACTION');
+
+          for (const [id, model] of Object.entries(_registry)) {
+            // Safe fallback for optional fields
+            const name = model.name || id;
+            const desc = model.description || '';
+            const caps = JSON.stringify(model.capabilities || []);
+            const embed = model.embedding ? Buffer.from(model.embedding) : null;
+
+            stmt.run(id, name, desc, caps, embed);
+          }
+
+          this.db!.run('COMMIT', (err) => {
+            stmt.finalize();
+            if (err) resolve({ ok: false, error: err });
+            else resolve({ ok: true, value: undefined });
+          });
+        } catch (err) {
+          this.db!.run('ROLLBACK');
+          stmt.finalize();
+          resolve({ ok: false, error: err as Error });
+        }
       });
     });
   }
@@ -268,7 +294,7 @@ export class VectorDB {
     });
   }
 
-  async searchSimilar(queryEmbedding: Float32Array, limit = 5): Promise<Result<Lesson[]>> {
+  async searchSimilar(queryEmbedding: Float32Array, limit = 5, currentProjectId?: string): Promise<Result<Lesson[]>> {
     return new Promise((resolve) => {
       if (!this.db) {
         resolve({ ok: false, error: new Error('Database not initialized') });
@@ -289,10 +315,18 @@ export class VectorDB {
             row.embedding.byteLength / 4
           );
 
+          let similarity = this.cosineSimilarity(queryEmbedding, embedding);
+
+          // Apply boost if it's the current project
+          if (currentProjectId && row.projectId === currentProjectId) {
+            similarity += 0.1;
+          }
+
           return {
             ...row,
             embedding,
-            similarity: this.cosineSimilarity(queryEmbedding, embedding),
+            projectId: row.projectId,
+            similarity,
             metadata: JSON.parse(row.metadata as string)
           };
         });

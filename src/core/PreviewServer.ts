@@ -98,6 +98,11 @@ export class PreviewServer extends EventEmitter {
                     pid: child.pid || 0,
                     projectPath
                 };
+
+                // Auto-open in browser (Windows)
+                if (process.platform === 'win32') {
+                    spawn('start', [metadata.url!], { shell: true });
+                }
             } else {
                 metadata = {
                     projectName,

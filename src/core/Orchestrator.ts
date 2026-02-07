@@ -28,6 +28,7 @@ import {
   type Lesson,
   type AgentTurnResult,
   AgentTerminateMode,
+  isOk,
   isErr,
   type ModelResponse,
   type Execution
@@ -63,7 +64,9 @@ import { HexagramLimb } from '../limbs/core/HexagramLimb.js';
 import { MonitorAgent } from '../monitor/MonitorAgent.js';
 import { AILimb } from '../api/ai/AILimb.js';
 import { CloudflareLimb } from '../limbs/cloud/CloudflareLimb.js';
+import { NeuralForgeLimb } from '../limbs/core/NeuralForgeLimb.js';
 import { ModelInventory } from './ModelInventory.js';
+import { SystemEnvChecker, EnvStatus } from '../utils/SystemEnvChecker.js';
 
 // Note: Component logger is initialized in the constructor for dynamic identity.
 
@@ -130,6 +133,7 @@ export class FreeOrchestrator extends EventEmitter {
   private readonly limbs: NeuralLimb[] = [];
   private lastSentFileHashes: Map<string, string> = new Map();
   private forceFullContext = true;
+  private readonly endpointStatus: Map<string, 'ACTIVE' | 'INACTIVE' | 'PARTIAL'> = new Map();
 
 
   constructor(
@@ -145,53 +149,48 @@ export class FreeOrchestrator extends EventEmitter {
       base: { hostname: 'POG-VIBE', projectId: config.projectId }
     });
 
-    // Initialize Preview Server
+    // 1. Core Services (Prerequisites)
     this.previewServer = new PreviewServer();
-    this.webAppForgeLimb = new WebAppForgeLimb(config, this.previewServer);
-
-    // Initialize Hexagram Context System
     this.hexagramManager = new HexagramManager(this.vectorDB, config.projectId);
-    // Initialize KeyVault for API key rotation
     const keyVault = new KeyVault();
-
-    // Initialize Gemini Service with KeyVault support
-    this.geminiService = new GeminiService(process.env['GOOGLE_API_KEY'] || '', keyVault);
-
-    // Initialize Router (Phase 18: Google Standard Routing)
+    this.geminiService = new GeminiService({ apiKey: process.env['GOOGLE_API_KEY'] || '' }, keyVault);
     this.router = new FreeModelRouter(config, this.geminiService);
-
-    // Initialize Model Executor with router for multi-tier selection
     this.modelExecutor = new ModelExecutor(config, this.geminiService, this.router);
 
-    // Initialize specialized Esoteric Limbs (Phase 19)
-    const mediaForgeLimb = new MediaForgeLimb(config, this.modelExecutor);
+    this.architectureDigest = new ArchitectureDigest(config.projectRoot);
+    this.validationSystem = new ValidationSystem([
+      new NoMockValidator(),
+      new ArchitecturalValidator(this.architectureDigest.getManifest())
+    ]);
+
+    this.adversarialOrchestrator = new AdversarialOrchestrator(
+      config,
+      this.modelExecutor,
+      this.validationSystem,
+      this.architectureDigest
+    );
+
+    // 2. Specialized Limbs (Utilizing Core Services)
+    this.webAppForgeLimb = new WebAppForgeLimb(config, this.previewServer, this.modelExecutor, this.adversarialOrchestrator);
+    this.hexagramLimb = new HexagramLimb(config, this.hexagramManager);
+
+    const mediaForgeLimb = new MediaForgeLimb(config, this.modelExecutor, this.router);
     const bioIntelligenceLimb = new BioIntelligenceLimb(config);
-
-    this.hexagramLimb = new HexagramLimb(this.hexagramManager);
-
-    // Initialize Knowledge Limbs (Phase 20)
-    const gutenbergLimb = new GutenbergLimb(this.vectorDB, config, this.geminiService);
-    const yoloLimb = new YoloLimb();
-
-    // Initialize AI Dispatcher Limb
-    const aiLimb = new AILimb(config);
-
-    // Initialize FileSystem Limb (Phase 23: Persistence Fix)
+    const gutenbergLimb = new GutenbergLimb(config, this.vectorDB, this.geminiService);
+    const yoloLimb = new YoloLimb(config);
+    const aiLimb = new AILimb(config, this.modelExecutor, this.router);
     const fileSystemLimb = new FileSystemLimb(config, sandbox);
-
-    // Initialize Voice Limb (Phase: Voice Chat)
     const voiceLimb = new VoiceLimb(config, this.modelExecutor);
-
-    // Initialize Dashboard Limb (Phase: QOL Dashboard)
     const dashboardLimb = new DashboardLimb(config, this.previewServer);
-
-    // Initialize Cloudflare Limb (Unified Cloud Tools)
     const cloudflareLimb = new CloudflareLimb(config);
+    const neuralForgeLimb = new NeuralForgeLimb(config, this.adversarialOrchestrator);
 
-    // Store limbs in collection for dynamic tool routing
+    // Store in collection for intent routing
     this.limbs = [
-      this.webAppForgeLimb,
+      neuralForgeLimb,
+      cloudflareLimb,
       this.hexagramLimb,
+      this.webAppForgeLimb,
       mediaForgeLimb,
       bioIntelligenceLimb,
       gutenbergLimb,
@@ -199,32 +198,12 @@ export class FreeOrchestrator extends EventEmitter {
       aiLimb,
       fileSystemLimb,
       voiceLimb,
-      dashboardLimb,
-      cloudflareLimb
+      dashboardLimb
     ];
 
-    // Initialize ContextBuilder for RAG-enhanced coding
-    this.contextBuilder = new ContextBuilder(vectorDB, config.projectRoot, this.geminiService);
-
-    // Initialize Indexer for background updates
+    // 3. Post-Limb Systems
+    this.contextBuilder = new ContextBuilder(vectorDB, config.projectRoot, config.projectId, this.geminiService);
     this.indexer = new CodebaseIndexer(vectorDB, this.geminiService, config.projectRoot);
-
-    // Initialize Core Services
-    this.architectureDigest = new ArchitectureDigest(config.projectRoot);
-
-    // Initialize Validation Stack
-    this.validationSystem = new ValidationSystem([
-      new NoMockValidator(),
-      new ArchitecturalValidator(this.architectureDigest.getManifest())
-    ]);
-
-    // Initialize Adversarial Orchestrator
-    this.adversarialOrchestrator = new AdversarialOrchestrator(
-      config,
-      this.modelExecutor,
-      this.validationSystem,
-      this.architectureDigest
-    );
 
     // Initialize MonitorAgent (Background Helper) - ENABLED BY DEFAULT
     if (process.env['ENABLE_MONITOR'] !== 'false') {
@@ -239,6 +218,16 @@ export class FreeOrchestrator extends EventEmitter {
       pogDir: expandTilde(config.pogDir),
       adversarialEnabled: !!this.geminiService
     }, 'Orchestrator initialized with Sovereign Intelligence');
+
+    // Initial Env Check
+    this.refreshEnvStatus();
+  }
+
+  private envStatus: EnvStatus[] = [];
+
+  private async refreshEnvStatus(): Promise<void> {
+    this.envStatus = await SystemEnvChecker.checkGlobalSettings();
+    this.broadcastState();
   }
 
 
@@ -258,6 +247,14 @@ export class FreeOrchestrator extends EventEmitter {
 
 
   public getSessionId(): string { return this.sessionId; }
+
+  public updateEndpointStatus(id: string, status: 'ACTIVE' | 'INACTIVE' | 'PARTIAL'): void {
+    this.endpointStatus.set(id, status);
+  }
+
+  public getEndpointStatus(id: string): 'ACTIVE' | 'INACTIVE' | 'PARTIAL' {
+    return this.endpointStatus.get(id) || 'INACTIVE';
+  }
 
   async initialize(): Promise<Result<void>> {
     try {
@@ -410,7 +407,10 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
    * High-level entry point for executing user intents.
    * Leverages ternary routing and adversarial loops for maximum quality.
    */
-  async executeIntent(prompt: string, filePath?: string): Promise<Result<Execution>> {
+  async executeIntent(promptOrOptions: string | { prompt: string; model?: string }, filePath?: string): Promise<Result<Execution>> {
+    const prompt = typeof promptOrOptions === 'string' ? promptOrOptions : promptOrOptions.prompt;
+    const modelOverride = typeof promptOrOptions === 'string' ? undefined : promptOrOptions.model;
+
     const context: ExecutionContext = {
       prompt,
       ...(filePath ? { filePath } : {}),
@@ -516,13 +516,16 @@ User: ${prompt}`,
     let totalResponse = '';
     let lastModel = 'unknown';
 
+    const initialEmbedding = this.geminiService ? await this.geminiService.embed(prompt) : { ok: false as const, error: new Error('Gemini unavailable') };
+    const embeddingValue = isOk(initialEmbedding) ? initialEmbedding.value : undefined;
+
     let i = 0;
     for (const step of executionPlan.steps) {
       i++;
       turnCounter++;
       this.logger.info({ step: i, tool: step.tool }, `Executing step: ${step.reasoning}`);
 
-      const hexagramContext = await this.hexagramManager.formatForPrompt();
+      const hexagramContext = await this.hexagramManager.formatForPrompt(embeddingValue);
       const stepPrompt = `OVERALL GOAL: ${executionPlan.goal}
 CURRENT STEP (${i}/${executionPlan.steps.length}): ${step.reasoning}
 TOOL: ${step.tool}
@@ -534,7 +537,7 @@ ${hexagramContext}
 Perform the current step and output results. If verifying, ensure you run the necessary tools.`;
 
       const executionTools = this.getAllAvailableTools();
-      const turnResult = await this.executeTurn(stepPrompt, context, turnCounter, executionTools, step.tool);
+      const turnResult = await this.executeTurn(stepPrompt, context, turnCounter, executionTools, step.tool, modelOverride);
 
       if (turnResult.status === 'continue') {
         // Step requires more work or review
@@ -561,24 +564,29 @@ Perform the current step and output results. If verifying, ensure you run the ne
     context: ExecutionContext,
     turnCounter: number,
     tools?: Tool[],
-    action?: string
+    action?: string,
+    modelOverride?: string
   ): Promise<AgentTurnResult> {
     if (turnCounter > 1) {
       this.emit('reviewStarted', { iteration: turnCounter });
     }
 
-    // 1. Route to best model
-    const routeResult = await this.router.route(currentMessage, context.filePath);
-    if (!routeResult.ok) {
-      return {
-        status: 'stop',
-        terminateReason: AgentTerminateMode.ERROR,
-        finalResult: null,
-        model: 'unknown'
-      };
+    // 1. Route to best model (or use override)
+    let selectedModel: string;
+    if (modelOverride) {
+      selectedModel = modelOverride;
+    } else {
+      const routeResult = await this.router.route(currentMessage, context.filePath);
+      if (!routeResult.ok) {
+        return {
+          status: 'stop',
+          terminateReason: AgentTerminateMode.ERROR,
+          finalResult: null,
+          model: 'unknown'
+        };
+      }
+      selectedModel = routeResult.value;
     }
-
-    const selectedModel = routeResult.value;
 
     // Augment with context if filePath is present
     let augmentedPrompt = currentMessage;
@@ -897,7 +905,8 @@ Perform the current step and output results. If verifying, ensure you run the ne
         lastProcess: 'PowerShell Extension (14528)',
         status: 'Active',
         lastOutput: '... BAAI general embedding ... Aura-2 Text-to-Speech ...'
-      }
+      },
+      envStatus: this.envStatus
     };
   }
 

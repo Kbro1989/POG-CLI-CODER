@@ -1,30 +1,57 @@
-import { NeuralLimb, Intent, Execution } from './NeuralLimb.js';
-import { Result } from '../../core/models.js';
+import { BaseLimb } from './BaseLimb.js';
+import type { Intent, Execution } from './NeuralLimb.js';
+import type { Result, VibeConfig } from '../../core/models.js';
 import { spawn } from 'child_process';
-import pino from 'pino';
 
-const logger = pino({
-    name: 'YoloLimb',
-    base: { hostname: 'POG-VIBE' }
-});
+/**
+ * YoloLimb - High-Risk Reasoning & Unrestricted Creation
+ * 
+ * Migrated to ToolingSpine for standardized orchestration.
+ */
+export class YoloLimb extends BaseLimb {
+    readonly id = 'yolo_substrate';
+    readonly type = 'creative' as const;
 
-export class YoloLimb implements NeuralLimb {
-    id = 'yolo_substrate';
-    type = 'creative' as const;
-    capabilities = ['high_risk_reasoning', 'unrestricted_creation', 'sidecar_shell'];
-
-    constructor() { }
-
-    async canHandle(intent: Intent): Promise<boolean> {
-        const prompt = intent.prompt.toLowerCase();
-        return prompt.includes('yolo') || prompt.includes('nuclear') || prompt.includes('sidecar shell');
+    constructor(config: VibeConfig) {
+        super(config);
+        this.registerYoloTools();
     }
 
-    async execute(intent: Intent): Promise<Result<Execution>> {
-        logger.info({ intent: intent.prompt }, 'Activating YOLO substrate via gemini-cli');
+    private registerYoloTools(): void {
+        this.registerTools([
+            {
+                name: 'yolo_reasoning',
+                description: 'Execute high-creativity reasoning using the unrestricted YOLO substrate.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        prompt: { type: 'string', description: 'The creative or complex prompt' }
+                    },
+                    required: ['prompt']
+                },
+                handler: async (args: any) => {
+                    const result = await this.executeYoloCommand(args.prompt);
+                    if (result.ok) return { ok: true, value: result.value.output };
+                    return result;
+                }
+            }
+        ]);
+    }
 
+    override async canHandle(intent: Intent): Promise<boolean> {
+        const prompt = intent.prompt.toLowerCase();
+        return prompt.includes('yolo') || prompt.includes('nuclear') || prompt.includes('sidecar shell') ||
+            this.spine.getCapabilities().some(cap => prompt.includes(cap));
+    }
+
+    override async execute(intent: Intent): Promise<Result<Execution>> {
+        this.logger.info({ intent: intent.prompt }, 'Activating YOLO substrate via gemini-cli');
+        return this.executeYoloCommand(intent.prompt);
+    }
+
+    private async executeYoloCommand(prompt: string): Promise<Result<Execution>> {
         return new Promise((resolve) => {
-            const child = spawn('gemini', ['--yolo', intent.prompt], {
+            const child = spawn('gemini', ['--yolo', prompt], {
                 shell: true
             });
 
@@ -44,7 +71,7 @@ export class YoloLimb implements NeuralLimb {
                         }
                     });
                 } else {
-                    logger.error({ code, stderr }, 'YOLO execution failed');
+                    this.logger.error({ code, stderr }, 'YOLO execution failed');
                     resolve({
                         ok: false,
                         error: new Error(`YOLO substrate failed with code ${code}: ${stderr}`)
@@ -53,38 +80,9 @@ export class YoloLimb implements NeuralLimb {
             });
 
             child.on('error', (err) => {
-                logger.error({ err }, 'YOLO spawn error');
+                this.logger.error({ err }, 'YOLO spawn error');
                 resolve({ ok: false, error: err });
             });
         });
-    }
-
-    getTools(): any[] {
-        return [
-            {
-                functionDeclarations: [
-                    {
-                        name: 'yolo_reasoning',
-                        description: 'Execute high-creativity reasoning using the unrestricted YOLO substrate.',
-                        parameters: {
-                            type: 'object',
-                            properties: {
-                                prompt: { type: 'string', description: 'The creative or complex prompt' }
-                            },
-                            required: ['prompt']
-                        }
-                    }
-                ]
-            }
-        ];
-    }
-
-    async handleToolCall(name: string, args: any): Promise<Result<any>> {
-        if (name === 'yolo_reasoning') {
-            const result = await this.execute({ prompt: args.prompt });
-            if (result.ok) return { ok: true, value: result.value.output };
-            return result;
-        }
-        return { ok: false, error: new Error(`Unknown tool: ${name}`) };
     }
 }

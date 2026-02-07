@@ -1,34 +1,69 @@
-/**
- * DashboardLimb - Session-specific QOL Control Plane
- * Generates and serves a "Straight Up & Brilliant" HTML UI.
- */
-
-import { NeuralLimb, Intent, Execution } from './NeuralLimb.js';
-import { Result, VibeConfig } from '../../core/models.js';
+import { BaseLimb } from './BaseLimb.js';
+import type { Intent, Execution } from './NeuralLimb.js';
+import type { Result, VibeConfig } from '../../core/models.js';
 import { PreviewServer } from '../../core/PreviewServer.js';
 import * as fs from 'fs';
 import { join } from 'path';
 
-export class DashboardLimb implements NeuralLimb {
-    id = 'dashboard';
-    type = 'maintenance' as const;
-    capabilities = ['show_dashboard', 'update_dashboard'];
+/**
+ * DashboardLimb - Session-specific QOL Control Plane
+ * Generates and serves a "Straight Up & Brilliant" HTML UI.
+ * 
+ * Migrated to ToolingSpine for standardized orchestration.
+ */
+export class DashboardLimb extends BaseLimb {
+    readonly id = 'dashboard';
+    readonly type = 'maintenance' as const;
 
     private dashboardDir: string;
 
     constructor(
-        private readonly config: VibeConfig,
+        config: VibeConfig,
         private readonly previewServer: PreviewServer
     ) {
+        super(config);
         this.dashboardDir = join(this.config.pogDir, 'session_dashboards', this.config.projectId);
+        this.registerDashboardTools();
     }
 
-    async canHandle(intent: Intent): Promise<boolean> {
+    private registerDashboardTools(): void {
+        this.registerTools([
+            {
+                name: 'show_dashboard',
+                description: 'Activate and open the session dashboard UI.',
+                parameters: {
+                    type: 'object',
+                    properties: {},
+                    required: []
+                },
+                handler: async () => {
+                    const result = await this.activate();
+                    if (result.ok) return { ok: true, value: `Dashboard activated: ${result.value.output}` };
+                    return result;
+                }
+            },
+            {
+                name: 'update_dashboard',
+                description: 'Refresh or update the dashboard assets.',
+                parameters: {
+                    type: 'object',
+                    properties: {},
+                    required: []
+                },
+                handler: async () => {
+                    this.generateAssets();
+                    return { ok: true, value: 'Dashboard assets updated successfully.' };
+                }
+            }
+        ]);
+    }
+
+    override async canHandle(intent: Intent): Promise<boolean> {
         const p = intent.prompt.toLowerCase();
-        return p.includes('dashboard') || p.includes('show interface') || p.includes('ui');
+        return p.includes('dashboard') || p.includes('show interface') || p.includes('ui') || this.spine.getCapabilities().some(cap => p.includes(cap));
     }
 
-    async execute(intent: Intent): Promise<Result<Execution>> {
+    override async execute(intent: Intent): Promise<Result<Execution>> {
         const p = intent.prompt.toLowerCase();
         if (p.includes('show') || p.includes('start') || p.includes('open')) {
             return this.activate();
@@ -115,8 +150,14 @@ export class DashboardLimb implements NeuralLimb {
                     </section>
                     <section class="panel main-panel">
                         <h3><span class="icon">👁️</span> MODEL VIEWER</h3>
-                        <div id="viewer-canvas-container" class="canvas-box">
-                            <div class="placeholder">3D Engine Initializing...</div>
+                        <div id="viewer-canvas-container" class="canvas-box premium-loader">
+                            <div class="cube-loader">
+                                <div class="cube cube1"></div>
+                                <div class="cube cube2"></div>
+                                <div class="cube cube3"></div>
+                                <div class="cube cube4"></div>
+                            </div>
+                            <div class="loader-text">NEURAL ENGINE ACTIVE</div>
                         </div>
                     </section>
                     <section class="panel side-panel">
@@ -205,6 +246,18 @@ export class DashboardLimb implements NeuralLimb {
                         <div id="health-history" class="scroll-box">
                             <h4>System Events</h4>
                             <div id="health-events"></div>
+                        </div>
+                        <div id="env-status-section" class="scroll-box mt-20">
+                            <h4>Active Environment Status</h4>
+                            <div id="env-status-grid" class="env-status-view">
+                                <p class="muted">Detecting global settings...</p>
+                            </div>
+                        </div>
+                        <div id="env-status-section" class="scroll-box mt-20">
+                            <h4>Active Environment Status</h4>
+                            <div id="env-status-grid" class="env-status-view">
+                                <p class="muted">Detecting global settings...</p>
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -335,26 +388,116 @@ footer { display: flex; justify-content: space-between; padding: 15px 20px; marg
 .pinned-file-item { cursor: pointer; transition: background 0.2s; }
 .pinned-file-item:hover { background: rgba(0,242,255,0.1); }
 .pinned-file-item.active { border-left: 2px solid var(--accent-primary); }
+.mt-20 { margin-top: 20px; }
+.env-status-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; padding: 10px 0; }
+.env-tag { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+.env-tag.active { border-color: rgba(0, 242, 255, 0.3); background: rgba(0, 242, 255, 0.05); }
+.env-key { font-size: 0.7rem; color: #aaa; font-family: 'JetBrains Mono', monospace; }
+.env-val { font-size: 0.75rem; color: var(--accent-primary); }
+.env-indicator { width: 8px; height: 8px; border-radius: 50%; background: #444; }
+.env-indicator.online { background: var(--accent-primary); box-shadow: 0 0 5px var(--accent-primary); }
 `;
 
         const js = `
 const wsHost = 'ws://localhost:${this.config.wsPort}';
-let ws;
+const RELAY_URL = "wss://antigravity-bridge-relay.kristain33rs.workers.dev/bridge/1"; // Default Relay
+const APP_ID = "1";
 
-function connect() {
-    ws = new WebSocket(wsHost);
+// Ternary Connection State
+const CS = {
+    DISCONNECTED: -1,
+    CONNECTING: 1,
+    CONNECTED_LOCAL: 0,
+    CONNECTED_RELAY: 2
+};
+let connectionState = CS.DISCONNECTED;
+let ws;
+let retryCount = 0;
+
+function updateConnectionUI(state) {
     const dot = document.getElementById('ws-status');
     const text = document.getElementById('ws-text');
+    
+    dot.className = 'status-dot'; // reset
+    
+    switch(state) {
+        case CS.CONNECTED_LOCAL:
+            dot.classList.add('online');
+            text.innerText = 'Local Neural Link';
+            break;
+        case CS.CONNECTED_RELAY:
+            dot.classList.add('relay');
+            dot.style.backgroundColor = '#f38020'; // Cloudflare Orange
+            text.innerText = 'Cloud Relay Active';
+            break;
+        case CS.CONNECTING:
+            dot.classList.add('connecting');
+            dot.style.backgroundColor = '#ffff00';
+            text.innerText = 'Establishing Link...';
+            break;
+        case CS.DISCONNECTED:
+        default:
+            dot.classList.remove('online');
+            dot.style.backgroundColor = '#ff0000';
+            text.innerText = 'Link Severed';
+            break;
+    }
+}
+
+function connectLocal() {
+    connectionState = CS.CONNECTING;
+    updateConnectionUI(connectionState);
+    
+    ws = new WebSocket(wsHost);
 
     ws.onopen = () => {
-        dot.classList.add('online'); text.innerText = 'Connected';
+        retryCount = 0;
+        connectionState = CS.CONNECTED_LOCAL;
+        updateConnectionUI(connectionState);
         ws.send(JSON.stringify({ type: 'control', command: 'requestState' }));
     };
+
     ws.onclose = () => {
-        dot.classList.remove('online'); text.innerText = 'Disconnected';
-        setTimeout(connect, 3000);
+        if (connectionState === CS.CONNECTED_LOCAL) {
+            console.log("Local connection lost. Retrying...");
+        }
+        connectionState = CS.DISCONNECTED;
+        updateConnectionUI(connectionState);
+        // Exponential backoff for local, then failover to relay? 
+        // For now, robust local retry then maybe relay manual toggle.
+        setTimeout(connectLocal, Math.min(1000 * (2 ** retryCount++), 10000));
     };
+
     ws.onmessage = (event) => handleMessage(JSON.parse(event.data));
+    ws.onerror = (err) => console.error("Local WS Error:", err);
+}
+
+// Function to switch to Cloud Relay (User Triggered)
+function connectRelay() {
+   if (ws) ws.close();
+   connectionState = CS.CONNECTING;
+   updateConnectionUI(connectionState);
+
+   const relayUrlWithRole = RELAY_URL.includes('?') ? \`\${RELAY_URL}&role=agent\` : \`\${RELAY_URL}?role=agent\`;
+   ws = new WebSocket(relayUrlWithRole);
+   
+   ws.onopen = () => {
+       connectionState = CS.CONNECTED_RELAY;
+       updateConnectionUI(connectionState);
+       ws.send(JSON.stringify({ type: 'system', data: \`Agent ID \${APP_ID} Dashboard Online\` }));
+   };
+
+   ws.onclose = () => {
+       connectionState = CS.DISCONNECTED;
+       updateConnectionUI(connectionState);
+   };
+   
+   ws.onmessage = (event) => handleMessage(JSON.parse(event.data));
+}
+
+function connect() {
+    // Default to local
+    connectLocal();
 }
 
 function handleMessage(msg) {
@@ -470,9 +613,25 @@ function updateHealthGauges(state) {
     document.getElementById('mem-pct')?.innerText = memPct.toFixed(0) + '%';
     document.getElementById('disk-pct')?.innerText = diskPct.toFixed(0) + '%';
     
-    // Also update footer
+    // Update footer
     document.getElementById('cpu-load')?.innerText = cpuPct.toFixed(1) + '%';
     document.getElementById('mem-usage')?.innerText = memPct.toFixed(1) + '%';
+
+    // Update Environment Status
+    if (state.envStatus) {
+        const envGrid = document.getElementById('env-status-grid');
+        if (envGrid) {
+            envGrid.innerHTML = state.envStatus.map(s => \`
+                <div class="env-tag \${s.active ? 'active' : ''}">
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <div class="env-indicator \${s.active ? 'online' : ''}"></div>
+                        <span class="env-key">\${s.key}</span>
+                    </div>
+                    <span class="env-val">\${s.value}</span>
+                </div>
+            \`).join('');
+        }
+    }
 }
 
 // Load file preview via WebSocket request

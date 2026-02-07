@@ -157,10 +157,16 @@ export class ModelExecutor {
         }
 
         try {
-            // Map models to Cloudflare equivalents
-            let cfModel = "@cf/meta/llama-3.1-8b-instruct";
-            if (model.includes('qwen') || model.includes('coder')) {
-                cfModel = "@cf/meta/llama-3.1-8b-instruct"; // Best coding fallback on CF
+            // Use the passed model if it looks like a Cloudflare ID (starts with @cf/),
+            // otherwise map models to Cloudflare equivalents
+            let cfModel = model.startsWith('@cf/') ? model : "@cf/meta/llama-3.1-8b-instruct";
+
+            if (!model.startsWith('@cf/')) {
+                if (model.includes('qwen') || model.includes('coder')) {
+                    cfModel = "@cf/meta/llama-3.1-8b-instruct"; // Best coding fallback on CF
+                } else if (model.includes('vision')) {
+                    cfModel = "@cf/llmvic/llama-3-vision-8b-instruct";
+                }
             }
 
             const finalUrl = gatewayUrl.endsWith('/') ? `${gatewayUrl}${cfModel}` : `${gatewayUrl}/${cfModel}`;

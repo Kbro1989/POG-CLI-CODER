@@ -153,3 +153,17 @@ export function drawMessage(role: 'USER' | 'POG' | 'SYSTEM', text: string, width
 }
 
 
+/**
+ * Draws a professional Sovereign Status Report (Table)
+ */
+export function drawSovereignReport(title: string, data: Record<string, string | number>): void {
+    const entries = Object.entries(data);
+    const maxKeyLen = Math.max(...entries.map(([k]) => k.length), 0);
+    const content = entries.map(([k, v], i) => {
+        const key = chalk.cyan(k.padEnd(maxKeyLen));
+        const value = i % 2 === 0 ? chalk.white(v) : chalk.gray(v);
+        return `${chalk.gray('  ● ')}${key} ${chalk.gray('➜')} ${value}`;
+    });
+
+    drawBox(`👑 ${title}`, content);
+}

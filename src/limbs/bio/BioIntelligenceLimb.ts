@@ -1,26 +1,66 @@
-import { NeuralLimb, Intent, Execution } from '../core/NeuralLimb.js';
-import { Result, VibeConfig } from '../../core/models.js';
+import { BaseLimb } from '../core/BaseLimb.js';
+import type { Intent, Execution } from '../core/NeuralLimb.js';
+import type { Result, VibeConfig } from '../../core/models.js';
 import { AIDispatcher } from '../../api/ai/Dispatcher.js';
-import pino from 'pino';
 
-const logger = pino({
-    name: 'BioIntelligenceLimb',
-    base: { hostname: 'POG-VIBE' }
-});
-
-export class BioIntelligenceLimb implements NeuralLimb {
-    id = 'bio_intelligence';
-    type = 'analytical' as const;
-    capabilities = ['hear_acoustic_analysis', 'medgemma_reasoning', 'derm_foundation_analysis', 'pathology_analysis'];
+/**
+ * BioIntelligenceLimb - Analytical Bio-Intelligence
+ * 
+ * Migrated to ToolingSpine for standardized orchestration.
+ */
+export class BioIntelligenceLimb extends BaseLimb {
+    readonly id = 'bio_intelligence';
+    readonly type = 'analytical' as const;
 
     private dispatcher: AIDispatcher;
 
     constructor(config: VibeConfig) {
+        super(config);
         this.dispatcher = new AIDispatcher(config);
-        logger.debug('BioIntelligenceLimb initialized');
+        this.registerBioTools();
     }
 
-    async canHandle(intent: Intent): Promise<boolean> {
+    private registerBioTools(): void {
+        const tools = [
+            {
+                id: 'hear_acoustic_analysis',
+                name: 'hear_acoustic_analysis',
+                description: 'Analyze health-related sounds like coughs or breathing.'
+            },
+            {
+                id: 'medgemma_reasoning',
+                name: 'medgemma_reasoning',
+                description: 'Perform advanced medical reasoning and comprehension.'
+            },
+            {
+                id: 'derm_foundation_analysis',
+                name: 'derm_foundation_analysis',
+                description: 'Analyze medical photographs of human skin for dermatological assessment.'
+            },
+            {
+                id: 'pathology_analysis',
+                name: 'pathology_analysis',
+                description: 'Analyze pathology slides and H&E patches.'
+            }
+        ];
+
+        this.registerTools(tools.map(tool => ({
+            name: tool.name,
+            description: tool.description,
+            parameters: {
+                type: 'object',
+                properties: {
+                    prompt: { type: 'string', description: 'Clinical context or patient case to analyze' }
+                },
+                required: ['prompt']
+            },
+            handler: async (args: any) => {
+                return this.handleBioCall(tool.id, args.prompt);
+            }
+        })));
+    }
+
+    override async canHandle(intent: Intent): Promise<boolean> {
         const prompt = intent.prompt.toLowerCase();
         const keywords = ['medical', 'heart', 'cough', 'sound', 'skin', 'pathology', 'biological', 'clinical', 'diagnosis'];
         const matchesKeyword = keywords.some(k => prompt.includes(k));
@@ -29,10 +69,10 @@ export class BioIntelligenceLimb implements NeuralLimb {
         const specificSubstrates = ['hear', 'medgemma', 'path foundation', 'derm foundation'];
         const matchesSubstrate = specificSubstrates.some(s => prompt.includes(s));
 
-        return matchesKeyword || matchesSubstrate;
+        return matchesKeyword || matchesSubstrate || this.spine.getCapabilities().some(cap => prompt.includes(cap));
     }
 
-    async execute(intent: Intent): Promise<Result<Execution>> {
+    override async execute(intent: Intent): Promise<Result<Execution>> {
         const prompt = intent.prompt.toLowerCase();
         let capabilityId = 'medgemma_reasoning'; // Default medical reasoning
 
@@ -44,7 +84,7 @@ export class BioIntelligenceLimb implements NeuralLimb {
             capabilityId = 'pathology_analysis';
         }
 
-        const result = await this.handleToolCall(capabilityId, intent.prompt);
+        const result = await this.spine.handleCall(capabilityId, { prompt: intent.prompt });
         if (!result.ok) return { ok: false, error: result.error };
 
         return {
@@ -56,62 +96,8 @@ export class BioIntelligenceLimb implements NeuralLimb {
         };
     }
 
-    getTools(): any[] {
-        return [
-            {
-                functionDeclarations: [
-                    {
-                        name: 'hear_acoustic_analysis',
-                        description: 'Analyze health-related sounds like coughs or breathing.',
-                        parameters: {
-                            type: 'object',
-                            properties: {
-                                prompt: { type: 'string', description: 'Description of the acoustic data or clinical context' }
-                            },
-                            required: ['prompt']
-                        }
-                    },
-                    {
-                        name: 'medgemma_reasoning',
-                        description: 'Perform advanced medical reasoning and comprehension.',
-                        parameters: {
-                            type: 'object',
-                            properties: {
-                                prompt: { type: 'string', description: 'The medical query or patient case to analyze' }
-                            },
-                            required: ['prompt']
-                        }
-                    },
-                    {
-                        name: 'derm_foundation_analysis',
-                        description: 'Analyze medical photographs of human skin for dermatological assessment.',
-                        parameters: {
-                            type: 'object',
-                            properties: {
-                                prompt: { type: 'string', description: 'Description of the skin condition or clinical imagery' }
-                            },
-                            required: ['prompt']
-                        }
-                    },
-                    {
-                        name: 'pathology_analysis',
-                        description: 'Analyze pathology slides and H&E patches.',
-                        parameters: {
-                            type: 'object',
-                            properties: {
-                                prompt: { type: 'string', description: 'Clinical context for the pathology analysis' }
-                            },
-                            required: ['prompt']
-                        }
-                    }
-                ]
-            }
-        ];
-    }
-
-    async handleToolCall(name: string, args: any): Promise<Result<any>> {
-        logger.info({ capabilityId: name, args }, 'Executing bio-intelligence tool call');
-        const payload = typeof args === 'string' ? args : args.prompt;
+    private async handleBioCall(name: string, payload: string): Promise<Result<any>> {
+        this.logger.info({ capabilityId: name, payload }, 'Executing bio-intelligence tool call');
 
         const response = await this.dispatcher.dispatch({
             capabilityId: name,

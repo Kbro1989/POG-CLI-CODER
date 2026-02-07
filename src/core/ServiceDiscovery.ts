@@ -1,8 +1,9 @@
-import { GoogleGenAI } from '@google/genai';
 import * as fs from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { VibeConfig } from './models.js';
+import { GeminiServices } from '../services/GeminiServices.js';
+import { CloudflareServices, CloudflareConfig } from '../services/CloudflareServices.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,7 +15,7 @@ export interface ServiceStatus {
     readonly status: 'ACTIVE' | 'INACTIVE' | 'ERROR';
     readonly enabled: boolean;
     readonly details?: string;
-    readonly type: 'API' | 'EXTENSION' | 'MCP';
+    readonly type: 'API' | 'EXTENSION' | 'MCP' | 'WORKER';
 }
 
 export class ServiceDiscovery {
@@ -37,12 +38,16 @@ export class ServiceDiscovery {
         // 4. Audit Knowledge Limbs (Phase 20)
         results.push(this.withEnabled(await this.checkKnowledgeLimbs()));
 
+        // 5. Audit Endpoints (Sovereign Substrate)
+        results.push(this.withEnabled(await this.checkVSCodeExtension()));
+        results.push(this.withEnabled(await this.checkCloudflareWorker()));
+
         return results;
     }
 
     private isServiceAuthorized(id: string): boolean {
         const lowerId = id.toLowerCase();
-        return this.config.enabledServices.some(s => s.toLowerCase() === lowerId);
+        return (this.config.enabledServices ?? []).some(s => s.toLowerCase() === lowerId);
     }
 
     private withEnabled(status: Omit<ServiceStatus, 'enabled'>): ServiceStatus {
@@ -58,13 +63,13 @@ export class ServiceDiscovery {
         }
 
         try {
-            const genAI = new GoogleGenAI({ apiKey });
-            // Minor ping just to verify key/connectivity using the native models interface
-            await genAI.models.generateContent({
-                model: 'gemini-2.0-flash',
-                contents: [{ role: 'user', parts: [{ text: 'ping' }] }]
-            });
-            return { id: 'gemini', name: 'Gemini 2.0 API', status: 'ACTIVE', type: 'API' };
+            const gemini = new GeminiServices({ apiKey });
+            // Minor ping just to verify key/connectivity
+            const result = await gemini.generateContent('ping');
+            if (result.ok) {
+                return { id: 'gemini', name: 'Gemini 2.0 API', status: 'ACTIVE', type: 'API' };
+            }
+            return { id: 'gemini', name: 'Gemini 2.0 API', status: 'ERROR', type: 'API', details: result.error.message };
         } catch (e) {
             return { id: 'gemini', name: 'Gemini 2.0 API', status: 'ERROR', type: 'API', details: (e as Error).message };
         }
@@ -161,6 +166,98 @@ export class ServiceDiscovery {
             status: 'ACTIVE',
             type: 'EXTENSION',
             details: 'Substrate: READY (Local)'
+        };
+    }
+
+    private async checkVSCodeExtension(): Promise<Omit<ServiceStatus, 'enabled'>> {
+        const wsPort = this.config.wsPort || 8765;
+
+        // Test WebSocket bridge availability by checking if the server is listening
+        try {
+            // Check if the WebSocket server is accepting connections
+            const { createConnection } = await import('net');
+            const isListening = await new Promise<boolean>((resolve) => {
+                const socket = createConnection({ port: wsPort, host: 'localhost' }, () => {
+                    socket.end();
+                    resolve(true);
+                });
+                socket.on('error', () => resolve(false));
+                socket.setTimeout(1000, () => {
+                    socket.destroy();
+                    resolve(false);
+                });
+            });
+
+            return {
+                id: 'extension',
+                name: 'VS Code Bridge',
+                status: isListening ? 'ACTIVE' : 'INACTIVE',
+                type: 'EXTENSION',
+                details: isListening ? `WebSocket: ws://localhost:${wsPort} (READY)` : `Port ${wsPort} not listening`
+            };
+        } catch {
+            return {
+                id: 'extension',
+                name: 'VS Code Bridge',
+                status: 'INACTIVE',
+                type: 'EXTENSION',
+                details: 'Connection test failed'
+            };
+        }
+    }
+
+    private async checkCloudflareWorker(): Promise<Omit<ServiceStatus, 'enabled'>> {
+        const workerUrl = process.env['CLOUDFLARE_WORKER_URL'];
+
+        // If worker URL is set, ping it to verify it's operational
+        if (workerUrl) {
+            try {
+                const res = await fetch(workerUrl, { method: 'GET' });
+                if (res.ok) {
+                    const data = await res.json() as { service?: string; status?: string };
+                    return {
+                        id: 'worker',
+                        name: 'POG Vibe Worker',
+                        status: 'ACTIVE',
+                        type: 'WORKER',
+                        details: `Substrate: ${data.service || 'Online'} (${data.status || 'Verified'})`
+                    };
+                }
+                return {
+                    id: 'worker',
+                    name: 'POG Vibe Worker',
+                    status: 'ERROR',
+                    type: 'WORKER',
+                    details: `HTTP ${res.status}: ${res.statusText}`
+                };
+            } catch (err) {
+                return {
+                    id: 'worker',
+                    name: 'POG Vibe Worker',
+                    status: 'ERROR',
+                    type: 'WORKER',
+                    details: `Unreachable: ${(err as Error).message}`
+                };
+            }
+        }
+
+        // Fallback: Check API credentials if no URL is set
+        const cf = new CloudflareServices({
+            accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || this.config.cloudflareAccountId) as string | undefined,
+            apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || this.config.cloudflareApiToken) as string | undefined
+        } as CloudflareConfig);
+
+        const audit = await cf.auditAbilities();
+        const accountId = cf.getAccountId();
+
+        return {
+            id: 'worker',
+            name: 'POG Vibe Worker',
+            status: audit.ok ? 'ACTIVE' : (accountId ? 'ERROR' : 'INACTIVE'),
+            type: 'WORKER',
+            details: audit.ok
+                ? `Account: ${audit.value.accountId} (API Verified)`
+                : (accountId ? `Token Error: ${audit.error.message}` : 'Missing worker substrate')
         };
     }
 }

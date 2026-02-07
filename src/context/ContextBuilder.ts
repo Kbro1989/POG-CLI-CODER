@@ -28,6 +28,7 @@ export class ContextBuilder {
     constructor(
         private vectorDB: VectorDB,
         private projectRoot: string,
+        private projectId: string,
         private gemini?: GeminiService
     ) {
         logger.debug({ vectorDB: !!this.vectorDB, gemini: !!this.gemini }, 'ContextBuilder initialized');
@@ -67,6 +68,23 @@ export class ContextBuilder {
         logger.info({ newRoot }, 'ContextBuilder root updated');
     }
 
+    async queryLessons(prompt: string): Promise<any[]> {
+        if (!this.gemini) return [];
+
+        try {
+            const embeddingResult = await this.gemini.embed(prompt);
+            if (embeddingResult.ok) {
+                const similar = await this.vectorDB.searchSimilar(embeddingResult.value, 15, 'lessons');
+                if (similar.ok) {
+                    return similar.value.map(l => l.metadata);
+                }
+            }
+        } catch (err) {
+            logger.warn({ err }, 'Failed to query lessons from VectorDB');
+        }
+        return [];
+    }
+
     /**
      * Build comprehensive context for a file
      */
@@ -83,31 +101,18 @@ export class ContextBuilder {
             .slice(0, 15); // Expanded to 15 files
 
         // 3. Find semantically related files via VectorDB
-        // Note: This requires embeddings to work properly
-        // 3. Find semantically related files via VectorDB
         const related: string[] = [];
 
         if (this.gemini) {
             try {
-                // Use the file content itself as the query if prompt/query is not available 
-                // Wait, logic flaw: buildContext is called with filePath, not a prompt.
-                // We want to find *text* related to the file? Or is this method supposed to be `retrieveContext(prompt)`?
-                // The method is `buildContext(filePath: string)`.
-                // So the query should be the file content or summary?
-                // Actually embedding the whole file content might be heavy for search.
-                // Let's use the filename or first 1000 chars as query for now.
-                const query = content.substring(0, 1000); // Use start of file as proxy
-
+                const query = content.substring(0, 1000);
                 const embeddingResult = await this.gemini.embed(query);
                 if (embeddingResult.ok) {
-                    const similar = await this.vectorDB.searchSimilar(embeddingResult.value, 25); // Expanded to 25 results
+                    const similar = await this.vectorDB.searchSimilar(embeddingResult.value, 10, this.projectId);
                     if (similar.ok) {
                         const similarPaths = similar.value
-                            .map(l => {
-                                const meta = l.metadata as Record<string, unknown> | undefined;
-                                return meta?.['path'];
-                            })
-                            .filter((p): p is string => typeof p === 'string');
+                            .map(l => (l.metadata as any)?.path)
+                            .filter((p): p is string => !!p);
                         related.push(...similarPaths);
                     }
                 }
@@ -122,6 +127,49 @@ export class ContextBuilder {
             imports,
             sameDirectory: sameDir.map(f => relative(this.projectRoot, f))
         };
+    }
+
+    /**
+     * SENSE HELPER: Ghost of Architecture
+     * Queries the manifest for structural laws relevant to the current domain.
+     */
+    getArchitectureAlignment(prompt: string, manifest: any): string[] {
+        const alignments: string[] = [];
+        const domainModel = manifest.domainModel || {};
+
+        for (const [domain, config] of Object.entries(domainModel)) {
+            const typedConfig = config as { file: string; properties: string[] };
+            if (prompt.toLowerCase().includes(domain.toLowerCase())) {
+                alignments.push(`Domain Alignment: ${domain} (Target: ${typedConfig.file})`);
+                typedConfig.properties.forEach(p => alignments.push(`Constraint: Must utilize ${p}`));
+            }
+        }
+        return alignments;
+    }
+
+    /**
+     * SENSE HELPER: Semantic Proximity Scout
+     * Queries VectorDB for "Golden Templates" representing Peak Implementation.
+     */
+    async getGoldenTemplates(prompt: string): Promise<string[]> {
+        if (!this.gemini) return [];
+
+        try {
+            const embeddingResult = await this.gemini.embed(`BEST PRACTICE IMPLEMENTATION FOR: ${prompt}`);
+            if (embeddingResult.ok) {
+                const similar = await this.vectorDB.searchSimilar(embeddingResult.value, 3, this.projectId);
+                if (similar.ok) {
+                    return similar.value.map(l => {
+                        const meta = l.metadata as any;
+                        const score = (l as any).score ? (l as any).score.toFixed(2) : '1.00';
+                        return `Template match: ${meta.path || 'unknown'} (Score: ${score})`;
+                    });
+                }
+            }
+        } catch (err) {
+            logger.warn({ err }, 'Golden Template search failed');
+        }
+        return [];
     }
 
     /**
@@ -333,7 +381,12 @@ export class ContextBuilder {
 
         if (context.related && context.related.length > 0) {
             parts.push(`\nSemantically related context:`);
-            context.related.forEach(file => appendFile(file, 'SEMANTIC MATCH'));
+            context.related.forEach(file => {
+                // If it's a cross-project match, we might want to label it differently
+                // Note: FileContext currently only has paths, not projectIds. 
+                // We'd need to update FileContext to include this data if we want precise per-file labels here.
+                appendFile(file, 'SEMANTIC MATCH');
+            });
         }
 
         return parts.join('\n');

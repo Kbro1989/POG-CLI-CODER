@@ -21,7 +21,7 @@ export const scaffoldProjectTool = {
             packageManager: { enum: ['npm', 'yarn', 'pnpm'] }
         },
         required: ['name', 'stack']
-    },
+    } as const,
     handler: async (args: any) => {
         try {
             // Dynamically load templates
@@ -35,7 +35,7 @@ export const scaffoldProjectTool = {
                 return `Unknown stack ${args.stack}. Available: ${Object.keys(templates).join(', ')}`;
             }
 
-            const pm = args.packageManager || 'npm';
+            const pm = (args as any).packageManager || 'npm';
 
             // Create directory
             await execAsync(`mkdir ${args.name}`);
@@ -63,7 +63,7 @@ export const setupDatabaseTool = {
             type: { enum: ['sqlite', 'supabase'] },
             schema: { type: 'object' }
         }
-    },
+    } as const,
     handler: async (args: any) => {
         if (args.type === 'sqlite') {
             await execAsync('npm install better-sqlite3');
@@ -83,7 +83,7 @@ export const startPreviewTool = {
         properties: {
             port: { type: 'number' }
         }
-    },
+    } as const,
     handler: async (args: any) => {
         // This would spawn a detached process
         return `http://localhost:${args.port || 5173}`;

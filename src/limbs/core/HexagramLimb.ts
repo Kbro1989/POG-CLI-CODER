@@ -1,30 +1,71 @@
-import { NeuralLimb, Intent, Execution } from './NeuralLimb.js';
+import { BaseLimb } from './BaseLimb.js';
+import type { Intent, Execution } from './NeuralLimb.js';
 import { HexagramManager } from '../../core/HexagramManager.js';
-import { Result } from '../../core/models.js';
-import pino from 'pino';
+import type { Result, VibeConfig } from '../../core/models.js';
 
-const logger = pino({
-    name: 'HexagramLimb',
-    base: { hostname: 'POG-VIBE' }
-});
-
-export class HexagramLimb implements NeuralLimb {
-    id = 'hexagram_memory';
-    type = 'memory' as const;
-    capabilities = ['manage_long_term_context', 'pin_information', 'binary_esoteric_recall'];
+/**
+ * HexagramLimb - Context-aware Memory Management
+ * 
+ * Migrated to ToolingSpine for standardized orchestration.
+ */
+export class HexagramLimb extends BaseLimb {
+    readonly id = 'hexagram_memory';
+    readonly type = 'memory' as const;
 
     constructor(
+        config: VibeConfig,
         private readonly manager: HexagramManager
-    ) { }
-
-    async canHandle(intent: Intent): Promise<boolean> {
-        const keywords = ['pin to hexagram', 'unpin from hexagram', 'check hexagram', 'hexagram slot', 'card holder'];
-        return keywords.some(k => intent.prompt.toLowerCase().includes(k)) ||
-            (intent.tools?.some((t: any) => t.function.name.includes('hexagram')) ?? false);
+    ) {
+        super(config);
+        this.registerHexagramTools();
     }
 
-    async execute(intent: Intent): Promise<Result<Execution>> {
-        logger.info({ intent: intent.prompt }, 'Hexagram Limb activated');
+    private registerHexagramTools(): void {
+        this.registerTools([
+            {
+                name: 'pin_to_hexagram',
+                description: 'Pin a high-priority context card to a specific hexagram slot (Line 1-6).',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        lineIndex: { type: 'number', description: 'The line index (1: Foundation, 6: UI Culmination)' },
+                        title: { type: 'string', description: 'Brief title for the context card' },
+                        content: { type: 'string', description: 'Detailed context content' },
+                        state: {
+                            type: 'number',
+                            enum: [0, 1, 2, 3],
+                            description: 'Line state (0: Old Yang/Moving, 1: Young Yin, 2: Young Yang, 3: Old Yin/Moving)'
+                        }
+                    },
+                    required: ['lineIndex', 'title', 'content']
+                },
+                handler: async (args: any) => {
+                    return this.manager.pinCard(args.lineIndex, args.title, args.content, args.state);
+                }
+            },
+            {
+                name: 'consult_hexagram',
+                description: 'Retrieve the current state of all 6 hexagram card holders.',
+                parameters: {
+                    type: 'object',
+                    properties: {}
+                },
+                handler: async () => {
+                    const context = await this.manager.formatForPrompt();
+                    return { ok: true, value: context };
+                }
+            }
+        ]);
+    }
+
+    override async canHandle(intent: Intent): Promise<boolean> {
+        const keywords = ['pin to hexagram', 'unpin from hexagram', 'check hexagram', 'hexagram slot', 'card holder'];
+        return keywords.some(k => intent.prompt.toLowerCase().includes(k)) ||
+            this.spine.getCapabilities().some(cap => intent.prompt.toLowerCase().includes(cap));
+    }
+
+    override async execute(intent: Intent): Promise<Result<Execution>> {
+        this.logger.info({ intent: intent.prompt }, 'Hexagram Limb activated');
 
         const prompt = intent.prompt.toLowerCase();
 
@@ -35,7 +76,7 @@ export class HexagramLimb implements NeuralLimb {
             const lineIndex = parseInt(pinMatch[2] || '1', 10);
             const content = prompt.split(':').pop()?.trim() || "No content provided";
 
-            const result = await this.handleToolCall('pin_to_hexagram', { lineIndex, title, content, state: 2 });
+            const result = await this.spine.handleCall('pin_to_hexagram', { lineIndex, title, content, state: 2 });
             if (result.ok) {
                 return { ok: true, value: { output: `Context pinned to Line ${lineIndex}.`, data: result.value } };
             }
@@ -43,10 +84,24 @@ export class HexagramLimb implements NeuralLimb {
 
         // NL Parsing: "Consult hexagram", "Check state"
         if (prompt.includes('consult') || prompt.includes('check hexagram') || prompt.includes('status')) {
-            const result = await this.handleToolCall('consult_hexagram', {});
-            if (result.ok) {
-                return { ok: true, value: { output: result.value, data: { formatted: result.value } } };
-            }
+            const rawContext = await this.manager.formatForPrompt();
+            const interpretation = this.manager.getInterpretation();
+
+            // Note: We avoid direct dependency on terminal utils in limbs, 
+            // but we can return structured data that the CLI knows how to handle.
+            // For now, we enhance the string output with some "Sovereign" character.
+
+            return {
+                ok: true,
+                value: {
+                    output: `👑 SOVEREIGN ARCHETYPE: ${interpretation.name}\n${rawContext}`,
+                    data: {
+                        formatted: rawContext,
+                        archetype: interpretation.name,
+                        strategy: interpretation.strategy
+                    }
+                }
+            };
         }
 
         return {
@@ -56,53 +111,5 @@ export class HexagramLimb implements NeuralLimb {
                 data: { status: 'active' }
             }
         };
-    }
-
-    // Explicit tool definitions for the Orchestrator to register
-    getTools(): { functionDeclarations: any[] }[] {
-        return [
-            {
-                functionDeclarations: [
-                    {
-                        name: 'pin_to_hexagram',
-                        description: 'Pin a high-priority context card to a specific hexagram slot (Line 1-6).',
-                        parameters: {
-                            type: 'object',
-                            properties: {
-                                lineIndex: { type: 'number', description: 'The line index (1: Foundation, 6: UI Culmination)' },
-                                title: { type: 'string', description: 'Brief title for the context card' },
-                                content: { type: 'string', description: 'Detailed context content' },
-                                state: {
-                                    type: 'number',
-                                    enum: [0, 1, 2, 3],
-                                    description: 'Line state (0: Old Yang/Moving, 1: Young Yin, 2: Young Yang, 3: Old Yin/Moving)'
-                                }
-                            },
-                            required: ['lineIndex', 'title', 'content']
-                        }
-                    },
-                    {
-                        name: 'consult_hexagram',
-                        description: 'Retrieve the current state of all 6 hexagram card holders.',
-                        parameters: {
-                            type: 'object',
-                            properties: {}
-                        }
-                    }
-                ]
-            }
-        ];
-    }
-
-    async handleToolCall(name: string, args: any): Promise<Result<any>> {
-        switch (name) {
-            case 'pin_to_hexagram':
-                return this.manager.pinCard(args.lineIndex, args.title, args.content, args.state);
-            case 'consult_hexagram':
-                const context = await this.manager.formatForPrompt();
-                return { ok: true, value: context };
-            default:
-                return { ok: false, error: new Error(`Unknown tool: ${name} `) };
-        }
     }
 }
