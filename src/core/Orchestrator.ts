@@ -606,7 +606,9 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
       // Skip if strictly avoided (optional strictness, currently just deprioritized)
       // if (limb.avoidHexagrams.includes(currentHex.binary)) continue; 
 
-      if (await limb.canHandle({ prompt: fullPrompt })) {
+      const decision = await limb.canHandle({ prompt: fullPrompt });
+      if (decision >= 0) {
+
         const result = await limb.execute({ prompt: fullPrompt });
         if (result.ok) {
           this.recordSuccessMetadata(limb.id, prompt, Date.now() - context.startTime, filePath);

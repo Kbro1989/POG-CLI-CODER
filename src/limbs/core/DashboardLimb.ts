@@ -1,5 +1,5 @@
 import { BaseLimb } from './BaseLimb.js';
-import type { Intent, Execution } from './NeuralLimb.js';
+import type { Intent, Execution, TernaryDecision } from './NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { PreviewServer } from '../../core/PreviewServer.js';
 import * as fs from 'fs';
@@ -44,9 +44,16 @@ export class DashboardLimb extends BaseLimb {
         ]);
     }
 
-    override async canHandle(intent: Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = intent.prompt.toLowerCase();
-        return p.includes('dashboard') || p.includes('show interface') || p.includes('ui');
+
+        // +1: Explicit dashboard keywords = optimal
+        if (p.includes('dashboard') || p.includes('show interface')) return 1;
+
+        // 0: General UI keywords = maybe
+        if (p.includes('ui') || p.includes('interface')) return 0;
+
+        return -1;
     }
 
     override async execute(intent: Intent): Promise<Result<Execution>> {

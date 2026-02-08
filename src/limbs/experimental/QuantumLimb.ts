@@ -1,5 +1,5 @@
 import { BaseLimb } from '../core/BaseLimb.js';
-import { Intent, Execution } from '../core/NeuralLimb.js';
+import { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import type { ModelExecutor } from '../../core/ModelExecutor.js';
 
@@ -22,12 +22,19 @@ export class QuantumLimb extends BaseLimb {
         super(config, executor);
     }
 
-    override async canHandle(intent: Intent): Promise<boolean> {
-        // Trigger on explicit 'quantum' keyword or high-complexity tasks requesting 'superposition'
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = intent.prompt.toLowerCase();
-        return p.includes('quantum') || p.includes('superposition') ||
-            (intent.context?.complexity !== undefined && intent.context.complexity > 0.9);
+
+        // +1: Explicit quantum keywords = optimal
+        if (p.includes('quantum') || p.includes('superposition')) return 1;
+
+        // Ternary complexity thresholds
+        const complexity = intent.context?.complexity ?? 0.5;
+        if (complexity > 0.9) return 1;   // Very high complexity = escalate
+        if (complexity > 0.7) return 0;   // High complexity = maybe
+        return -1;                         // Normal complexity = skip
     }
+
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
         if (!this.executor) {

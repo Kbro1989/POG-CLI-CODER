@@ -1,5 +1,5 @@
 import { BaseLimb } from '../core/BaseLimb.js';
-import type { Intent, Execution } from '../core/NeuralLimb.js';
+import type { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import * as fs from 'fs'; // For namespace access if needed
@@ -362,12 +362,22 @@ Return as JSON array of objects.`;
         };
     }
 
-    override async canHandle(intent: Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const prompt = intent.prompt.toLowerCase();
-        const keywords = ['gutenberg', 'book', 'ingest', 'download', 'corpus', 'literature', 'author style'];
-        return keywords.some(k => prompt.includes(k)) ||
-            this.spine.getCapabilities().some(cap => prompt.includes(cap));
+
+        // +1: Explicit gutenberg/literature keywords = optimal
+        const keywords = ['gutenberg', 'literature', 'author style', 'ingest book'];
+        if (keywords.some(k => prompt.includes(k))) return 1;
+
+        // 0: General book/corpus keywords = maybe
+        if (prompt.includes('book') || prompt.includes('corpus') || prompt.includes('download')) return 0;
+
+        // 0: Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => prompt.includes(cap))) return 0;
+
+        return -1;
     }
+
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
         const prompt = intent.prompt.toLowerCase();

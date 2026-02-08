@@ -1,5 +1,5 @@
 import { BaseLimb } from '../core/BaseLimb.js';
-import type { Intent, Execution } from '../core/NeuralLimb.js';
+import type { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig, ModelResponse } from '../../core/models.js';
 import { CloudflareServices } from '../../services/CloudflareServices.js';
 
@@ -242,17 +242,24 @@ export class CloudflareLimb extends BaseLimb {
         ]);
     }
 
-    override async canHandle(intent: Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
         // Ternary Availability Check
         const health = this.getHealth();
-        if (health.state === 'CRITICAL_FAILURE' || !this.services.getAccountId()) return false;
+        if (health.state === 'CRITICAL_FAILURE' || !this.services.getAccountId()) return -1;
 
         const p = this.getUserIntent(intent).toLowerCase();
 
-        // Only match explicit Cloudflare/CF requests, not generic app generation
-        const cfKeywords = ['cloudflare', 'cf_', 'workers ai', 'r2 bucket', 'r2 storage'];
-        return cfKeywords.some(kw => p.includes(kw));
+        // +1: Explicit Cloudflare/CF requests = optimal
+        const cfEscalation = ['cloudflare', 'cf_', 'workers ai'];
+        if (cfEscalation.some(kw => p.includes(kw))) return 1;
+
+        // 0: General storage keywords = maybe
+        const storageKeywords = ['r2 bucket', 'r2 storage', 'kv storage'];
+        if (storageKeywords.some(kw => p.includes(kw))) return 0;
+
+        return -1;
     }
+
 
     /**
      * Execute handles direct intents by listing available tools

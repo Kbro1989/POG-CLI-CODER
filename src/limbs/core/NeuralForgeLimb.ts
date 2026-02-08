@@ -1,5 +1,5 @@
 import { BaseLimb } from './BaseLimb.js';
-import type { Intent, Execution } from './NeuralLimb.js';
+import type { Intent, Execution, TernaryDecision } from './NeuralLimb.js';
 import { VibeConfig, Result } from '../../core/models.js';
 import { AdversarialOrchestrator } from '../../core/AdversarialOrchestrator.js';
 
@@ -150,11 +150,18 @@ GENERATE IMPLEMENTATION NOW:
 `;
     }
 
-    override async canHandle(intent: import('./NeuralLimb.js').Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = intent.prompt.toLowerCase();
+
+        // +1: Explicit forge match = optimal
         const forgeMatch = /sql\s+forge|docs\s+forge|refactor\s+forge/i.test(p);
+        if (forgeMatch) return 1;
+
+        // 0: Common patterns = maybe
         const patterns = ['migration', 'database schema', 'technical deep-dive', 'code smell', 'refactor', 'api reference'];
-        return forgeMatch || patterns.some(pattern => p.includes(pattern));
+        if (patterns.some(pattern => p.includes(pattern))) return 0;
+
+        return -1;
     }
     override async execute(intent: Intent): Promise<Result<Execution>> {
         const p = intent.prompt.toLowerCase();

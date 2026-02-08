@@ -1,4 +1,4 @@
-import { NeuralLimb, Intent, Execution } from '../../limbs/core/NeuralLimb.js';
+import { NeuralLimb, Intent, Execution, TernaryDecision } from '../../limbs/core/NeuralLimb.js';
 import { Result, VibeConfig } from '../../core/models.js';
 import { ModelExecutor } from '../../core/ModelExecutor.js';
 import { FreeModelRouter } from '../../core/Router.js';
@@ -33,24 +33,28 @@ export class AILimb implements NeuralLimb {
         logger.debug('AILimb initialized with ternary routing integration');
     }
 
-    async canHandle(intent: Intent): Promise<boolean> {
+    async canHandle(intent: Intent): Promise<TernaryDecision> {
         if (!this.config.enabledServices.includes('AI') && !this.config.enabledServices.includes('ai')) {
-            return false;
+            return -1;
         }
 
         const p = intent.prompt.toLowerCase();
 
-        // Support for Meta-queries
+        // +1: Support for Meta-queries = optimal
         const metaKeywords = ['how many', 'list all', 'what is new', 'what\'s new', 'capabilities', 'supported providers', 'supported tasks'];
-        if (metaKeywords.some(k => p.includes(k))) return true;
+        if (metaKeywords.some(k => p.includes(k))) return 1;
 
         // Check if any registry ID or description keywords are in the prompt
-        return Object.values(CapabilityRegistry).some(cap => {
+        const match = Object.values(CapabilityRegistry).some(cap => {
             const idMatch = p.includes(cap.id.replace(/_/g, ' '));
             const nameMatch = p.includes(cap.name.toLowerCase());
             return idMatch || nameMatch;
         });
+
+        // 0: Registry matches = maybe
+        return match ? 0 : -1;
     }
+
 
     async execute(intent: Intent): Promise<Result<Execution>> {
         logger.info({ prompt: intent.prompt }, 'Executing AI specialized task');

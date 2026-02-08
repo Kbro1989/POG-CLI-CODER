@@ -1,4 +1,4 @@
-import type { NeuralLimb, Intent, Execution } from './NeuralLimb.js';
+import type { NeuralLimb, Intent, Execution, TernaryDecision } from './NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { ToolingSpine, type LimbTool } from '../../core/ToolingSpine.js';
 import type { ModelExecutor } from '../../core/ModelExecutor.js';
@@ -56,15 +56,24 @@ export abstract class BaseLimb implements NeuralLimb {
     }
 
     /**
-     * Default canHandle implementation: checks if any tool name or limb id is in the prompt.
-     * Derived classes should override for more sophisticated intent detection.
+     * Default canHandle implementation using Ternary Decision logic.
+     * Returns: -1 (skip), 0 (maybe), +1 (optimal match)
      */
-    async canHandle(intent: Intent): Promise<boolean> {
+    async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = this.getUserIntent(intent).toLowerCase();
-        if (p.includes(this.id.toLowerCase())) return true;
 
-        return this.spine.getCapabilities().some(cap => p.includes(cap.toLowerCase()));
+        // +1: Direct limb ID match = optimal
+        if (p.includes(this.id.toLowerCase())) return 1;
+
+        // Count capability matches
+        const matches = this.spine.getCapabilities()
+            .filter(cap => p.includes(cap.toLowerCase())).length;
+
+        if (matches >= 2) return 1;   // Strong match = escalate
+        if (matches === 1) return 0;  // Partial match = balanced
+        return -1;                     // No match = de-escalate
     }
+
 
     /**
      * Default execute implementation: attempts a Cognitive Response if no tool is matched.

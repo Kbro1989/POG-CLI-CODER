@@ -6,7 +6,7 @@
  */
 
 import { BaseLimb } from '../core/BaseLimb.js';
-import type { Intent, Execution } from '../core/NeuralLimb.js';
+import type { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { ModelExecutor } from '../../core/ModelExecutor.js';
 import { AdversarialOrchestrator } from '../../core/AdversarialOrchestrator.js';
@@ -113,29 +113,28 @@ export class WebAppForgeLimb extends BaseLimb {
         })));
     }
 
-    override async canHandle(intent: Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = this.getUserIntent(intent).toLowerCase();
 
         // Stricter triggers to avoid greeting or system-prompt overlaps
-        const triggers = ['create', 'scaffold', 'generate', 'initialize']; // Removed 'new', 'make', 'build' as they are too common
-        const targets = ['webapp', 'website', 'project', 'starter', 'viewer', 'dashboard']; // Removed 'app', 'ui', 'interface'
+        const triggers = ['create', 'scaffold', 'generate', 'initialize'];
+        const targets = ['webapp', 'website', 'project', 'starter', 'viewer', 'dashboard'];
 
-        // Require both a structural trigger AND a project target
         const hasTrigger = triggers.some(t => p.includes(t));
         const hasTarget = targets.some(ta => p.includes(ta));
-
-        // Ignore if it looks like a persona instruction or system prompt
         const isPersonaInstruction = p.includes('persona') || p.includes('sovereign laws') || p.includes('act as');
-
-        // Ensure it's not a simple code question
         const isSimpleCode = /\b(function|class|const|let|var|if|return)\b/.test(p);
-
-        // Also avoid conversational starting words
         const isGreeting = /^(hi|hello|hey|greetings|how are you|good (morning|afternoon|evening))\b/i.test(p);
 
-        return (hasTrigger && hasTarget && !isSimpleCode && !isGreeting && !isPersonaInstruction) ||
-            this.spine.getCapabilities().some(cap => p.includes(cap));
+        // +1: Strong match (Structural trigger + Target)
+        if (hasTrigger && hasTarget && !isSimpleCode && !isGreeting && !isPersonaInstruction) return 1;
+
+        // 0: Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => p.includes(cap))) return 0;
+
+        return -1;
     }
+
 
     private async handleDigestComponent(args: any): Promise<Result<string>> {
         const { projectDir, componentName, description } = args;

@@ -1,5 +1,5 @@
 import { BaseLimb } from '../core/BaseLimb.js';
-import type { Intent, Execution } from '../core/NeuralLimb.js';
+import type { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { AIDispatcher } from '../../api/ai/Dispatcher.js';
 
@@ -60,17 +60,23 @@ export class BioIntelligenceLimb extends BaseLimb {
         })));
     }
 
-    override async canHandle(intent: Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const prompt = intent.prompt.toLowerCase();
-        const keywords = ['medical', 'heart', 'cough', 'sound', 'skin', 'pathology', 'biological', 'clinical', 'diagnosis'];
-        const matchesKeyword = keywords.some(k => prompt.includes(k));
 
-        // Specific esoteric substrates
+        // +1: Specific medical substrates = optimal
         const specificSubstrates = ['hear', 'medgemma', 'path foundation', 'derm foundation'];
-        const matchesSubstrate = specificSubstrates.some(s => prompt.includes(s));
+        if (specificSubstrates.some(s => prompt.includes(s))) return 1;
 
-        return matchesKeyword || matchesSubstrate || this.spine.getCapabilities().some(cap => prompt.includes(cap));
+        // 0: General medical keywords = maybe
+        const keywords = ['medical', 'heart', 'cough', 'skin', 'pathology', 'biological', 'clinical', 'diagnosis'];
+        if (keywords.some(k => prompt.includes(k))) return 0;
+
+        // 0: Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => prompt.includes(cap))) return 0;
+
+        return -1;
     }
+
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
         const prompt = intent.prompt.toLowerCase();

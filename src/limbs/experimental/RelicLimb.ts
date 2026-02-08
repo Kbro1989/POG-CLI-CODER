@@ -1,5 +1,5 @@
 import { BaseLimb } from '../core/BaseLimb.js';
-import { Intent, Execution } from '../core/NeuralLimb.js';
+import { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import type { ModelExecutor } from '../../core/ModelExecutor.js';
 import { hashFilename, JagArchive } from './rsc/JagArchive.js';
@@ -44,11 +44,21 @@ export class RelicLimb extends BaseLimb {
         }
     }
 
-    override async canHandle(intent: Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = intent.prompt.toLowerCase();
-        return p.includes('relic') || p.includes('rsc') || p.includes('legacy') || p.includes('read dat') ||
-            (intent.context?.action !== undefined && intent.context.action.startsWith('relic_'));
+
+        // +1: Explicit relic/archaeology keywords or direct action
+        if (p.includes('relic') || p.includes('rsc archaeology') ||
+            (intent.context?.action !== undefined && intent.context.action.startsWith('relic_'))) {
+            return 1;
+        }
+
+        // 0: Related legacy/cache keywords = maybe
+        if (p.includes('legacy') || p.includes('read dat') || p.includes('.jag')) return 0;
+
+        return -1;  // No match = skip
     }
+
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
         // Dispatcher for Ported Methods

@@ -261,7 +261,15 @@ export class ControlPlaneLimb extends BaseLimb {
         ]);
     }
 
-    override async canHandle(intent: import('../core/NeuralLimb.js').Intent): Promise<boolean> {
-        return this.spine.getCapabilities().some(cap => intent.prompt.toLowerCase().includes(cap));
+    override async canHandle(intent: import('../core/NeuralLimb.js').Intent): Promise<import('../core/NeuralLimb.js').TernaryDecision> {
+        const p = intent.prompt.toLowerCase();
+
+        // +1: Direct mention of control plane = optimal
+        if (p.includes('control plane') || p.includes('orchestrator logs')) return 1;
+
+        // 0: Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => p.includes(cap))) return 0;
+
+        return -1;
     }
 }

@@ -62,12 +62,21 @@ export class MediaForgeLimb extends BaseLimb {
     }
 
     // Override canHandle for backward compatibility and broad detection
-    override async canHandle(intent: import('../core/NeuralLimb.js').Intent): Promise<boolean> {
-        if (!this.config.enabledServices.includes('MEDIA_FORGE')) return false;
+    override async canHandle(intent: import('../core/NeuralLimb.js').Intent): Promise<import('../core/NeuralLimb.js').TernaryDecision> {
+        if (!this.config.enabledServices.includes('MEDIA_FORGE')) return -1;
 
         const prompt = intent.prompt.toLowerCase();
-        const keywords = ['generate', 'create', 'forge', 'image', 'video', 'music', 'sound', 'audio', 'visual', 'rsmv', 'model'];
-        return keywords.some(k => prompt.includes(k));
+
+        // +1: Explicit creative keywords = optimal
+        const highEscalation = ['forge', 'rsmv', 'model', 'visual'];
+        if (highEscalation.some(k => prompt.includes(k))) return 1;
+
+        // 0: General media keywords = maybe
+        const keywords = ['generate', 'create', 'image', 'video', 'music', 'sound', 'audio'];
+        if (keywords.some(k => prompt.includes(k))) return 0;
+
+        return -1;
     }
+
 }
 

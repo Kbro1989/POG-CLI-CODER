@@ -1,5 +1,5 @@
 import { BaseLimb } from './BaseLimb.js';
-import type { Intent, Execution } from './NeuralLimb.js';
+import type { Intent, Execution, TernaryDecision } from './NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { spawn } from 'child_process';
 
@@ -38,10 +38,16 @@ export class YoloLimb extends BaseLimb {
         ]);
     }
 
-    override async canHandle(intent: Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const prompt = intent.prompt.toLowerCase();
-        return prompt.includes('yolo') || prompt.includes('nuclear') || prompt.includes('sidecar shell') ||
-            this.spine.getCapabilities().some(cap => prompt.includes(cap));
+
+        // +1: Explicit YOLO / Nuclear / Shell keywords = optimal
+        if (prompt.includes('yolo') || prompt.includes('nuclear') || prompt.includes('sidecar shell')) return 1;
+
+        // 0: Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => prompt.includes(cap))) return 0;
+
+        return -1;
     }
 
     override async execute(intent: Intent): Promise<Result<Execution>> {

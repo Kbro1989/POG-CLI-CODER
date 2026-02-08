@@ -1,8 +1,8 @@
 /**
  * NeuralLimb Interface - The contract for all specialized limbs
  */
-import { Result, Intent, Execution } from '../../core/models.js';
-export type { Result, Intent, Execution };
+import { Result, Intent, Execution, TernaryDecision } from '../../core/models.js';
+export type { Result, Intent, Execution, TernaryDecision };
 
 export interface NeuralLimb {
     id: string;
@@ -16,9 +16,10 @@ export interface NeuralLimb {
     avoidHexagrams?: string[];
 
     /**
-     * Check if this limb can handle the given intent
+     * Check if this limb can handle the given intent.
+     * Returns TernaryDecision: -1 (skip), 0 (maybe), +1 (optimal)
      */
-    canHandle(intent: Intent): Promise<boolean>;
+    canHandle(intent: Intent): Promise<TernaryDecision>;
 
     /**
      * Execute the limb's primary function (High-level orchestration)

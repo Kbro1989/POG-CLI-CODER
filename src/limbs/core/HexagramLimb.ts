@@ -1,5 +1,5 @@
 import { BaseLimb } from './BaseLimb.js';
-import type { Intent, Execution } from './NeuralLimb.js';
+import type { Intent, Execution, TernaryDecision } from './NeuralLimb.js';
 import { HexagramManager } from '../../core/HexagramManager.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 
@@ -58,10 +58,17 @@ export class HexagramLimb extends BaseLimb {
         ]);
     }
 
-    override async canHandle(intent: Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
+        const p = intent.prompt.toLowerCase();
+
+        // +1: Explicit hexagram keywords = optimal
         const keywords = ['pin to hexagram', 'unpin from hexagram', 'check hexagram', 'hexagram slot', 'card holder'];
-        return keywords.some(k => intent.prompt.toLowerCase().includes(k)) ||
-            this.spine.getCapabilities().some(cap => intent.prompt.toLowerCase().includes(cap));
+        if (keywords.some(k => p.includes(k))) return 1;
+
+        // 0: Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => p.includes(cap))) return 0;
+
+        return -1;
     }
 
     override async execute(intent: Intent): Promise<Result<Execution>> {

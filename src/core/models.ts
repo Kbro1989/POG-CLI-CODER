@@ -41,6 +41,15 @@ export const enum CircuitState {
   HalfOpen = 'HALF_OPEN'
 }
 
+/**
+ * Ternary Decision Type - The foundation of POG-VIBE routing philosophy.
+ * -1: De-escalate / Cannot handle / Skip
+ *  0: Balanced / Neutral confidence / Maybe
+ * +1: Escalate / Optimal handler / Yes
+ */
+export type TernaryDecision = -1 | 0 | 1;
+
+
 export interface ModelPerformance {
   readonly model: string;
   readonly taskType: TaskType;
