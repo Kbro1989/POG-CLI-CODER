@@ -1,4 +1,0 @@
-src/core/ServiceDiscovery.ts(186,43): error TS2379: Argument of type '{ accountId: string | undefined; apiToken: string | undefined; }' is not assignable to parameter of type 'CloudflareConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
-  Types of property 'accountId' are incompatible.
-    Type 'string | undefined' is not assignable to type 'string'.
-      Type 'undefined' is not assignable to type 'string'.

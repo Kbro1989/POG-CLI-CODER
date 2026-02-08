@@ -1,6 +1,0 @@
-﻿C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:187:47: Unsafe assignment of an `any` value. [Error/@typescript-eslint/no-unsafe-assignment]
-C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:441:20: Missing return type on function. [Error/@typescript-eslint/explicit-function-return-type]
-C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:469:20: Missing return type on function. [Error/@typescript-eslint/explicit-function-return-type]
-C:\Users\Destiny\Desktop\Ollama_Code_Editor_Quant\src\core\Orchestrator.ts:640:22: Unexpected any. Specify a different type. [Error/@typescript-eslint/no-explicit-any]
-
-4 problems
