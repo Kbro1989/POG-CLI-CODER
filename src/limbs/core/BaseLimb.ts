@@ -92,7 +92,7 @@ Use your specialized context to provide a brilliant, straight-up response or gui
 
 User Intent: ${this.getUserIntent(intent)}`;
 
-            const response = await this.executor.callModel('gemini:gemini-1.5-flash', prompt);
+            const response = await this.executor.callModel('gemini:gemini-2.0-flash', prompt);
             if (response.ok) {
                 return {
                     ok: true,
@@ -133,7 +133,11 @@ User Intent: ${this.getUserIntent(intent)}`;
             id: this.id,
             type: this.type,
             capabilities: this.capabilities,
-            toolCount: this.spine.getGeminiDeclarations().length
+            toolCount: this.spine.getGeminiDeclarations().length,
+            tools: this.spine.getGeminiDeclarations().map(t => ({
+                name: t.name,
+                description: t.description
+            }))
         };
     }
 

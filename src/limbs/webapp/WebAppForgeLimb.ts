@@ -61,6 +61,7 @@ export class WebAppForgeLimb extends BaseLimb {
         // Load templates
         const potentialPaths = [
             join(this.config.projectRoot, 'src/templates/stacks.json'),
+            'C:\\Users\\Destiny\\Desktop\\ai-archetect\\templates\\templates.json',
             join(this.config.pogDir, 'stacks.json'),
             join(process.cwd(), 'src/templates/stacks.json')
         ];
@@ -356,8 +357,12 @@ npm run dev
       "stack": "one of the available stacks",
       "name": "project-name-kebab-case",
       "features": ["auth", "database", "etc"],
-      "file_count": 0
-    }`;
+      "file_count": 0,
+      "decision_reasoning": "Ternary logic for stack selection"
+    }
+    
+    PHILOSOPHY: Nothing is a constant. If the user mentions Cloudflare, prioritize Cloudflare templates.
+    If they need high-fidelity UI, prioritize 'react-vite-sovereign'.`;
 
         try {
             // Optimize: Use single-shot callModel for planning to avoid parallel 429s in adversarial loop

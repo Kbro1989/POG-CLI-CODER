@@ -20,13 +20,32 @@ export class QuantumLimb extends BaseLimb {
         executor?: ModelExecutor
     ) {
         super(config, executor);
+        this.registerTools([
+            {
+                name: 'quantum_superposition',
+                description: 'Run an intent across multiple specialized models in parallel and collapse into a synthesis.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        prompt: { type: 'string', description: 'The prompt to analyze in superposition' }
+                    },
+                    required: ['prompt']
+                },
+                handler: (args) => this.executeSuperposition(args.prompt)
+            }
+        ]);
+    }
+
+    private async executeSuperposition(prompt: string): Promise<any> {
+        const res = await this.execute({ prompt });
+        return res.ok ? res.value : { output: `Superposition failed: ${res.error.message}`, data: { error: true } };
     }
 
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
-        const p = intent.prompt.toLowerCase();
+        const userIntent = this.getUserIntent(intent).toLowerCase();
 
         // +1: Explicit quantum keywords = optimal
-        if (p.includes('quantum') || p.includes('superposition')) return 1;
+        if (userIntent.includes('quantum') || userIntent.includes('superposition')) return 1;
 
         // Ternary complexity thresholds
         const complexity = intent.context?.complexity ?? 0.5;
@@ -41,37 +60,62 @@ export class QuantumLimb extends BaseLimb {
             return { ok: false, error: new Error('QuantumLimb requires a ModelExecutor for superposition.') };
         }
 
-        const models = ['gemini-2.0-flash-exp', 'qwen2.5-coder', 'deepseek-coder-v2'];
         const startTime = Date.now();
+        const models = [
+            { id: 'qwen2.5-coder', role: 'Architect (Structural Planning)' },
+            { id: 'deepseek-coder-v2', role: 'Implementer (Precise Code Generation)' },
+            { id: 'gemini-2.0-flash', role: 'Critic (Synthesis & Validation)' }
+        ];
 
-        // 1. Superposition: Fire promps to all models in parallel
-        const promises = models.map(async (model) => {
+        this.logger.info({ state: 'superposition_start', models: models.length }, `Igniting Superposition across ${models.length} specialized intelligences...`);
+
+        // 1. Superposition: Run parallel specialized queries
+        const promises = models.map(async (m) => {
+            const rolePrompt = `Role: ${m.role}\nTask: ${intent.prompt}\n\nProvide your specialized contribution:`;
             try {
-                // Use the executor (which handles routing/keys) to run the prompt
-                // Note: We'd need a way to force a specific model in the executor, or we simulate it here.
-                // For now, we assume the executor can take a model override in metadata, or we use direct calls if exposed.
-                // Since ModelExecutor abstracts this, we might need to broaden its API or use a specialized detailed call.
-                // Falling back to a conceptual "Synthesis" where we ask the PRIMARY model to simulate the others if we can't route directly.
-
-                // ideally: return this.executor.execute(model, intent.prompt);
-                // practical v1: Just use the primary model but with a "Persona" of the target.
-                return { model, response: `[Simulated Output from ${model}]: Analysis of ${intent.prompt.substring(0, 20)}...` };
-            } catch (e) {
-                return { model, error: e };
+                const result = await this.executor!.callModel(m.id, rolePrompt);
+                if (result.ok) {
+                    return { id: m.id, role: m.role, text: result.value.response, success: true };
+                }
+                return { id: m.id, role: m.role, text: `Error: ${result.error.message}`, success: false };
+            } catch (e: any) {
+                return { id: m.id, role: m.role, text: `Critical Failure: ${e.message}`, success: false };
             }
         });
 
-        // 2. Collapse: Wait for all (or logical quorum)
-        const results = await Promise.all(promises);
+        const fragments = await Promise.all(promises);
 
-        // 3. Synthesis: Merge results into one coherent truth
-        const synthesis = results.map(r => (r as any).response || (r as any).error).join('\n---\n');
+        // 2. Collapse: Synthesis via the Critic (Gemini)
+        const synthesisPrompt = `
+        You are the QUANTUM CRITIC. You have just overseen a parallel execution of three specialized models.
+        
+        INPUT PROMPT: ${intent.prompt}
+        
+        CONTRIBUTIONS:
+        ${fragments.map(f => `--- MODEL: ${f.id} (${f.role}) ---\n${f.text}`).join('\n\n')}
+        
+        TASK:
+        Collapse these wave functions into a single "High-Fidelity Truth". 
+        Condense the Architect's structure, the Implementer's logic, and reconcile any contradictions.
+        Output ONLY the final synthesized solution.
+        `.trim();
+
+        this.logger.info({ state: 'synthesis_start' }, 'Collapsing wave function into Synthesis...');
+        const finalSynthesis = await this.executor.callModel('gemini-2.0-flash', synthesisPrompt);
+
+        if (!finalSynthesis.ok) {
+            return { ok: false, error: finalSynthesis.error };
+        }
 
         return {
             ok: true,
             value: {
-                output: `=== QUANTUM SUPERPOSITION RESULT ===\n${synthesis}\n\n>> WAVE FUNCTION COLLAPSED in ${Date.now() - startTime}ms`,
-                data: { state: 'collapsed', input: intent.prompt, models }
+                output: `=== QUANTUM SUPERPOSITION RESULT ===\n\n${finalSynthesis.value.response}\n\n>> WAVE FUNCTION COLLAPSED in ${Date.now() - startTime}ms`,
+                data: {
+                    state: 'collapsed',
+                    fragments: fragments.map(f => ({ model: f.id, success: f.success })),
+                    latency: Date.now() - startTime
+                }
             }
         };
     }

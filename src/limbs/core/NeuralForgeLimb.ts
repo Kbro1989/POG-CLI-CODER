@@ -151,31 +151,27 @@ GENERATE IMPLEMENTATION NOW:
     }
 
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
-        const p = intent.prompt.toLowerCase();
+        const userIntent = this.getUserIntent(intent).toLowerCase();
 
         // +1: Explicit forge match = optimal
-        const forgeMatch = /sql\s+forge|docs\s+forge|refactor\s+forge/i.test(p);
+        const forgeMatch = /sql\s+forge|docs\s+forge|refactor\s+forge/i.test(userIntent);
         if (forgeMatch) return 1;
 
         // 0: Common patterns = maybe
         const patterns = ['migration', 'database schema', 'technical deep-dive', 'code smell', 'refactor', 'api reference'];
-        if (patterns.some(pattern => p.includes(pattern))) return 0;
+        if (patterns.some(pattern => userIntent.includes(pattern))) return 0;
 
         return -1;
     }
     override async execute(intent: Intent): Promise<Result<Execution>> {
-        const p = intent.prompt.toLowerCase();
-        const matchedCap = this.spine.getCapabilities().find(cap => p.includes(cap));
+        const userIntent = this.getUserIntent(intent).toLowerCase();
+        const matchedCap = this.spine.getCapabilities().find(cap => userIntent.includes(cap));
 
         if (matchedCap) {
             return this.spine.handleCall(matchedCap, { forgeType: 'SQL', prompt: intent.prompt }) as any; // Default to SQL for now if auto-matched
         }
 
-        return {
-            ok: true,
-            value: {
-                output: `Neural Forge Substrate active. Specialized forges: SQL, Docs, Refactor available.`
-            }
-        };
+        // Fallback to Sovereign Cognitive Response
+        return super.execute(intent);
     }
 }

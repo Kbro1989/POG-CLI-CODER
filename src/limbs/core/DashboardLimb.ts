@@ -120,8 +120,10 @@ export class DashboardLimb extends BaseLimb {
             </div>
             <nav class="tab-nav">
                 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
-                <button class="tab-btn" data-tab="ai">Pipeline</button>
+                <button class="tab-btn" data-tab="ai">AI Pipeline</button>
+                <button class="tab-btn" data-tab="limbs">Limb Matrix</button>
                 <button class="tab-btn" data-tab="terminal">Terminal</button>
+                <button class="tab-btn" data-tab="health">Health</button>
                 <button class="tab-btn" data-tab="books" id="tab-books">Books</button>
                 <button class="tab-btn" data-tab="storyboard" id="tab-storyboard">Storyboard</button>
                 <button class="tab-btn" data-tab="media">Forge</button>
@@ -135,6 +137,7 @@ export class DashboardLimb extends BaseLimb {
         </header>
 
         <main class="viewport">
+            <!-- DASHBOARD TAB -->
             <div id="dashboard" class="tab-content active">
                 <div class="grid-layout">
                     <section class="panel side-panel">
@@ -146,6 +149,11 @@ export class DashboardLimb extends BaseLimb {
                         <div id="viewer-canvas-container" class="canvas-box premium-loader">
                             <div class="cube-loader"><div class="cube cube1"></div><div class="cube cube2"></div><div class="cube cube3"></div><div class="cube cube4"></div></div>
                         </div>
+                        <div id="memory-pulse" class="memory-pulse-container">
+                            <div class="memory-label">MEMORY PULSE</div>
+                            <div id="active-memories-list" class="memory-bubbles"></div>
+                            <div id="active-hexagram-info" class="hexagram-badge">Unknown Archetype</div>
+                        </div>
                     </section>
                     <section class="panel side-panel">
                         <h3><span class="icon">🧠</span> RECENT INTENTS</h3>
@@ -154,6 +162,108 @@ export class DashboardLimb extends BaseLimb {
                 </div>
             </div>
 
+            <!-- AI PIPELINE TAB -->
+            <div id="ai" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">🤖</span> AI CAPABILITIES & CONTEXT</h3>
+                        <div class="pipeline-grid">
+                            <div class="pipeline-section">
+                                <h4>PINNED CONTEXT (SOLDIERED)</h4>
+                                <div id="pinned-files-list" class="scroll-box mini-list">
+                                    <p class="muted">No files pinned.</p>
+                                </div>
+                                <div id="context-preview" class="context-preview-box">
+                                    <h4 id="preview-title">File Preview</h4>
+                                    <pre id="preview-content" class="preview-code">Select a pinned file to preview...</pre>
+                                </div>
+                            </div>
+                            <div class="pipeline-section">
+                                <h4>MODEL GALLERY (CATEGORIZED)</h4>
+                                <div id="model-gallery" class="scroll-box gallery-view">
+                                    <p class="muted">Loading model inventory...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- LIMB MATRIX TAB -->
+            <div id="limbs" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">🧬</span> INTERACTIVE LIMB MATRIX</h3>
+                        <div id="limb-matrix" class="limb-grid scroll-box">
+                            <p class="muted">Introspecting limb substrate...</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- TERMINAL TAB -->
+            <div id="terminal" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">💻</span> SYSTEM TERMINAL</h3>
+                        <div id="terminal-view" class="scroll-box terminal-style">
+                            <div id="terminal-header" class="terminal-meta">Process: PowerShell Extension | Status: <span id="term-status-val">Active</span></div>
+                            <div id="terminal-body" class="terminal-output">
+                                <pre id="terminal-content">Initializing cognitive terminal link...</pre>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- HEALTH TAB -->
+            <div id="health" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">📊</span> SYSTEM HEALTH</h3>
+                        <div class="health-grid">
+                            <div class="health-gauge">
+                                <div class="gauge-label">CPU LOAD</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="cpu-gauge" class="gauge-fg cpu" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="cpu-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">MEMORY</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="mem-gauge" class="gauge-fg mem" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="mem-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">DISK I/O</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="disk-gauge" class="gauge-fg disk" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="disk-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="health-history" class="scroll-box mt-20">
+                            <h4>Service Stability Registry</h4>
+                            <div id="cluster-health" class="mini-list health-events">
+                                <p class="muted">Detecting limb status...</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- BOOKS TAB -->
             <div id="books" class="tab-content">
                 <div class="grid-layout">
                     <section class="panel side-panel">
@@ -182,6 +292,7 @@ export class DashboardLimb extends BaseLimb {
                 </div>
             </div>
 
+            <!-- STORYBOARD TAB -->
             <div id="storyboard" class="tab-content">
                 <div class="grid-layout">
                     <section class="panel side-panel">
@@ -209,6 +320,7 @@ export class DashboardLimb extends BaseLimb {
                 </div>
             </div>
 
+            <!-- MEDIA FORGE TAB -->
             <div id="media" class="tab-content">
                 <div class="grid-layout single-col">
                     <section class="panel forge-panel">
@@ -225,9 +337,36 @@ export class DashboardLimb extends BaseLimb {
                 </div>
             </div>
 
-            <div id="terminal" class="tab-content"><section class="panel full-panel"><h3><span class="icon">💻</span> TERMINAL</h3><div id="terminal-view" class="scroll-box terminal-style"><pre id="terminal-content"></pre></div></section></div>
-            <div id="settings" class="tab-content"><section class="panel settings-panel"><h3><span class="icon">⚙️</span> CONFIG</h3><div class="settings-grid"><div class="setting-item"><label>AUDIO FEEDBACK</label><label class="switch"><input type="checkbox" id="tts-enabled" onchange="toggleTTS(this.checked)"><span class="slider round"></span></label></div></div></section></div>
+            <!-- CONFIG TAB -->
+            <div id="settings" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel settings-panel">
+                        <h3><span class="icon">⚙️</span> CORE CONFIG</h3>
+                        <div class="settings-grid" id="settings-grid">
+                            ${this.config.enabledServices.map(s => `
+                                <div class="setting-item">
+                                    <label>${s.toUpperCase()}</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('${s}', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+                </div>
+            </div>
         </main>
+
+        <footer>
+            <div class="model-health">
+                <div class="model-tag gemini">Gemini: <span id="gemini-status">IDLE</span></div>
+                <div class="model-tag ollama">Ollama: <span id="ollama-status">IDLE</span></div>
+            </div>
+            <div class="terminal-stats">
+                 CPU: <span id="cpu-load-footer">--</span> | MEM: <span id="mem-usage-footer">--</span>
+            </div>
+        </footer>
     </div>
     <script src="main.js"></script>
 </body>
@@ -248,18 +387,23 @@ body { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main
 header { display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--border-radius); margin-bottom: 15px; }
 .tab-nav { display: flex; gap: 8px; }
 .tab-btn { background: transparent; border: 1px solid rgba(255,255,255,0.05); color: var(--text-muted); padding: 6px 14px; border-radius: 18px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
-.tab-btn.active { background: rgba(0, 242, 255, 0.1); color: var(--accent-primary); border-color: var(--accent-primary); }
-.viewport { flex: 1; min-height: 0; }
+.tab-btn.active { background: rgba(0, 242, 255, 0.1); color: var(--accent-primary); border-color: var(--accent-primary); box-shadow: 0 0 10px rgba(0,242,255,0.2); }
+.viewport { flex: 1; min-height: 0; position: relative; }
 .tab-content { display: none; height: 100%; animation: fadeIn 0.4s ease; }
 .tab-content.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.99); } to { opacity: 1; transform: scale(1); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 .grid-layout { display: grid; grid-template-columns: 320px 1fr 320px; gap: 15px; height: 100%; }
+.grid-layout.single-col { grid-template-columns: 1fr; }
 .panel { background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--border-radius); display: flex; flex-direction: column; padding: 12px; overflow: hidden; }
-h3 { margin: 0 0 12px 0; font-size: 0.75rem; color: var(--accent-primary); letter-spacing: 1px; }
+h3 { margin: 0 0 12px 0; font-size: 0.75rem; color: var(--accent-primary); letter-spacing: 1px; text-transform: uppercase; }
 .scroll-box { flex: 1; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; scrollbar-width: thin; }
-.model-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; transition: 0.2s; cursor: pointer; }
+.list-view { display: flex; flex-direction: column; gap: 5px; }
+.model-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; transition: 0.2s; cursor: pointer; position: relative; overflow: hidden; }
 .model-card:hover { border-color: var(--accent-primary); background: rgba(0, 242, 255, 0.03); }
-.action-btn { background: rgba(0, 242, 255, 0.08); border: 1px solid var(--accent-primary); color: #fff; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; border: 1px solid var(--accent-primary); }
+.model-card.local { border-left: 3px solid var(--accent-primary); }
+.model-card.cloud { border-left: 3px solid var(--accent-secondary); }
+.model-card.cloudflare { border-left: 3px solid #f38020; }
+.action-btn { background: rgba(0, 242, 255, 0.08); border: 1px solid var(--accent-primary); color: #fff; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
 .action-btn:hover { background: var(--accent-primary); color: #000; }
 .full-width { width: 100%; }
 .reader-view { padding: 30px; font-family: 'Inter', serif; line-height: 1.8; font-size: 1.1rem; color: #bbb; white-space: pre-wrap; }
@@ -268,8 +412,65 @@ h3 { margin: 0 0 12px 0; font-size: 0.75rem; color: var(--accent-primary); lette
 .beat-card { background: rgba(255,255,255,0.03); border-left: 4px solid var(--accent-primary); padding: 20px; border-radius: 0 8px 8px 0; }
 .beat-card h4 { margin: 0 0 10px 0; color: var(--accent-primary); }
 .visual-prompt { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; font-style: italic; color: var(--accent-secondary); border: 1px dashed rgba(255,0,234,0.3); margin-top: 10px; }
-.mic-btn { background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; transition: 0.3s; }
+.mic-btn { background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; transition: 0.3s; margin-right: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
 .mic-btn.active { border-color: red; color: red; box-shadow: 0 0 15px rgba(255,0,0,0.3); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; display: inline-block; margin-right: 5px; }
+.status-dot.online { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
+.status-dot.offline { background: #ff4444; box-shadow: 0 0 10px #ff4444; }
+.muted { color: var(--text-muted); text-align: center; margin-top: 20px; font-style: italic; }
+
+/* HEALTH GAUGES */
+.health-grid { display: flex; justify-content: space-around; align-items: center; padding: 20px 0; gap: 20px; }
+.health-gauge { display: flex; flex-direction: column; align-items: center; }
+.gauge-label { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 8px; }
+.gauge-ring { position: relative; width: 100px; height: 100px; }
+.gauge-ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.gauge-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 8; }
+.gauge-fg { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 0.5s ease; }
+.gauge-fg.cpu { stroke: var(--accent-primary); }
+.gauge-fg.mem { stroke: var(--accent-secondary); }
+.gauge-fg.disk { stroke: #f38020; }
+.gauge-value { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2rem; font-weight: 800; }
+
+/* PIPELINE TAB */
+.pipeline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 100%; }
+.pipeline-section { display: flex; flex-direction: column; }
+.gallery-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.context-preview-box { margin-top: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; }
+.preview-code { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #888; white-space: pre-wrap; max-height: 200px; overflow-y: auto; margin: 0; }
+
+/* SETTINGS TAB */
+.settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; }
+.switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--accent-primary); }
+input:checked + .slider:before { transform: translateX(16px); }
+
+/* LIMB MATRIX */
+.limb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; padding: 10px; }
+.limb-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; transition: 0.3s; }
+.limb-card:hover { border-color: var(--accent-primary); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,242,255,0.1); }
+.limb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.limb-id { font-weight: 800; color: #fff; font-size: 0.9rem; }
+.limb-type { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: rgba(0,242,255,0.1); color: var(--accent-primary); border: 1px solid var(--accent-primary); }
+.limb-desc { font-size: 0.75rem; color: #aaa; margin-bottom: 12px; line-height: 1.4; }
+.limb-tools { display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid rgba(255,255,255,0.05); pt: 10px; margin-top: 10px; }
+.tool-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ccc; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
+.tool-btn:hover { background: var(--accent-primary); color: #000; border-color: var(--accent-primary); }
+.tool-btn:active { transform: scale(0.95); }
+
+.model-tag span { color: var(--accent-primary); font-weight: bold; }
+
+/* MEMORY PULSE */
+.memory-pulse-container { margin-top: 15px; padding: 12px; border-top: 1px solid rgba(255,255,255,0.05); position: relative; }
+.memory-label { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 8px; font-weight: 800; }
+.memory-bubbles { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.memory-bubble { font-size: 0.7rem; background: rgba(0,242,255,0.05); border: 1px solid rgba(0,242,255,0.15); color: #88eeff; padding: 4px 10px; border-radius: 12px; animation: pulseGlow 2s infinite alternate; }
+@keyframes pulseGlow { from { box-shadow: 0 0 5px rgba(0,242,255,0.1); border-color: rgba(0,242,255,0.1); } to { box-shadow: 0 0 12px rgba(0,242,255,0.3); border-color: var(--accent-primary); } }
+.hexagram-badge { font-size: 0.75rem; color: var(--accent-secondary); font-weight: 800; border: 1px solid var(--accent-secondary); padding: 4px 8px; border-radius: 4px; display: inline-block; background: rgba(255,0,234,0.05); }
 `;
 
         const js = `
@@ -281,11 +482,15 @@ let narrating = false;
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.onclick = () => {
+        const targetId = btn.dataset.tab;
+        const targetEl = document.getElementById(targetId);
+        if (!targetEl) return;
+
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
-        document.getElementById(btn.dataset.tab).classList.add('active');
-        if (btn.dataset.tab === 'books') requestBooks();
+        targetEl.classList.add('active');
+        if (targetId === 'books') requestBooks();
     };
 });
 
@@ -298,6 +503,7 @@ function filterBooks(q) {
 
 function renderBooks(books) {
     const list = document.getElementById('bookshelf-list');
+    if (!list) return;
     list.innerHTML = books.map(b => \`
         <div class="model-card" onclick="readBook(\${b.id})">
             <strong>\${b.title}</strong><br>
@@ -312,13 +518,17 @@ function readBook(id) {
 
 function triggerStoryboardFromBook() {
     if (!currentBook) return;
-    document.getElementById('selected-style-name').innerText = currentBook.author;
-    document.getElementById('selected-style-name').dataset.bookId = currentBook.id;
+    const styleName = document.getElementById('selected-style-name');
+    if (styleName) {
+        styleName.innerText = currentBook.author;
+        styleName.dataset.bookId = currentBook.id;
+    }
     document.querySelector('[data-tab="storyboard"]').click();
 }
 
 function forgeStoryboard() {
-    const bookId = parseInt(document.getElementById('selected-style-name').dataset.bookId);
+    const styleName = document.getElementById('selected-style-name');
+    const bookId = styleName ? parseInt(styleName.dataset.bookId) : null;
     const premise = document.getElementById('story-premise').value;
     if (!bookId || !premise) return alert("Select a book and enter a premise!");
     
@@ -326,9 +536,23 @@ function forgeStoryboard() {
     if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'control', command: 'forge_storyboard', data: { bookId, premise } }));
 }
 
+function promptAudiobookImport() {
+    const fileName = prompt("Enter audio filename in D:\\\\pog-gutenberg\\\\audio\\\\:");
+    if (fileName && ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'control', command: 'transcribeAudiobook', data: { fileName } }));
+        addLog(\`Initiated transcription for: \${fileName}\`, "stdout");
+    }
+}
+
 function connect() {
-    ws = new WebSocket(\`ws://\${window.location.host}\`);
-    ws.onopen = () => addLog("Neural Link OK", "stdout");
+    ws = new WebSocket(\`ws://\${window.location.hostname}:8765\`);
+    ws.onopen = () => {
+        addLog("Neural Link OK", "stdout");
+        const dot = document.getElementById('ws-status');
+        if (dot) dot.classList.add('online');
+        document.getElementById('ws-text').innerText = 'Online';
+        ws.send(JSON.stringify({ type: 'control', command: 'requestState' }));
+    };
     ws.onmessage = (e) => {
         const msg = JSON.parse(e.data);
         if (msg.type === 'books') { allBooks = msg.data; renderBooks(allBooks); }
@@ -339,13 +563,172 @@ function connect() {
             if (msg.data.book.styleProfile) renderStyle(msg.data.book.styleProfile);
         }
         else if (msg.type === 'storyboard') { renderStoryboard(msg.data.storyboard); }
-        else if (msg.type === 'intentExecuted') { addLog(msg.data.output, "stdout"); if (msg.data.data && msg.data.data.type === 'transcription_job') addLearningLog(\`Learning from transcription: \${msg.data.data.fileName}\`); }
+        else if (msg.type === 'intentExecuted') { addLog(msg.data.output, "stdout"); addIntent(msg.data); }
+        else if (msg.type === 'state') {
+            updateStateUI(msg.data);
+        }
     };
-    ws.onclose = () => setTimeout(connect, 2000);
+    ws.onclose = () => {
+        const dot = document.getElementById('ws-status');
+        if (dot) dot.classList.remove('online');
+        document.getElementById('ws-text').innerText = 'Disconnected';
+        setTimeout(connect, 2000);
+    };
+}
+
+function updateStateUI(state) {
+    if (state.envStatus) renderLimbHealth(state.envStatus);
+    if (state.limbs) renderLimbHealth(state.limbs); // Limbs are also part of status
+    if (state.systemHealth) updateHealthGauges(state.systemHealth);
+    if (state.modelInventory) renderModelGallery(state.modelInventory);
+    if (state.pinnedFiles) updatePinnedFiles(state.pinnedFiles);
+    if (state.enabledServices) updateSettingsGrid(state.enabledServices);
+    if (state.limbs) renderLimbMatrix(state.limbs);
+    if (state.activeHexagram) updateHexagramUI(state.activeHexagram);
+    if (state.activeMemories) updateMemoryPulse(state.activeMemories);
+    
+    // Update footer statuses
+    if (document.getElementById('gemini-status')) {
+        const gem = state.envStatus?.find(e => e.service === 'gemini');
+        document.getElementById('gemini-status').innerText = gem ? gem.status : 'IDLE';
+    }
+}
+
+function updateHealthGauges(metrics) {
+    const circumference = 2 * Math.PI * 45;
+    
+    const cpu = metrics.cpu || 0;
+    const mem = metrics.mem || 0;
+    const disk = metrics.disk || 0;
+
+    const cpuGauge = document.getElementById('cpu-gauge');
+    if (cpuGauge) cpuGauge.setAttribute('stroke-dasharray', \`\${(cpu / 100) * circumference} \${circumference}\`);
+    document.getElementById('cpu-pct').innerText = cpu.toFixed(0) + '%';
+    document.getElementById('cpu-load-footer').innerText = cpu.toFixed(0) + '%';
+
+    const memGauge = document.getElementById('mem-gauge');
+    if (memGauge) memGauge.setAttribute('stroke-dasharray', \`\${(mem / 100) * circumference} \${circumference}\`);
+    document.getElementById('mem-pct').innerText = mem.toFixed(0) + '%';
+    document.getElementById('mem-usage-footer').innerText = mem.toFixed(0) + '%';
+
+    const diskGauge = document.getElementById('disk-gauge');
+    if (diskGauge) diskGauge.setAttribute('stroke-dasharray', \`\${(disk / 100) * circumference} \${circumference}\`);
+    document.getElementById('disk-pct').innerText = disk.toFixed(0) + '%';
+}
+
+function renderLimbHealth(limbs) {
+    const container = document.getElementById('cluster-health');
+    if (!container) return;
+    container.innerHTML = limbs.map(l => {
+        const id = l.id || l.service;
+        const status = l.status || (l.state === 'READY' ? 'OK' : 'ERROR');
+        return \`
+            <div class="model-card">
+                <div style="display:flex;justify-content:space-between">
+                    <strong>\${id.toUpperCase()}</strong>
+                    <span style="color:\${status === 'OK' || status === 'READY' ? '#00ff00' : '#ff4444'}">\${status}</span>
+                </div>
+            </div>
+        \`;
+    }).join('');
+}
+
+function renderModelGallery(models) {
+    const container = document.getElementById('model-gallery');
+    if (!container) return;
+    container.innerHTML = models.map(m => \`
+        <div class="model-card \${m.type}">
+            <strong>\${m.name}</strong><br>
+            <small style="color:var(--accent-primary)">\${m.type.toUpperCase()}</small>
+            <div style="font-size:0.6rem;color:#888;margin-top:5px">\${m.capabilities.join(', ')}</div>
+        </div>
+    \`).join('');
+}
+
+function updatePinnedFiles(files) {
+    const list = document.getElementById('pinned-files-list');
+    if (!list) return;
+    list.innerHTML = files.map(f => \`
+        <div class="model-card" onclick="loadFilePreview('\${f}')">
+            <span>\${f.split(/[\\\\/]/).pop()}</span>
+        </div>
+    \`).join('') || '<p class="muted">No files pinned.</p>';
+}
+
+function updateSettingsGrid(services) {
+    const grid = document.getElementById('settings-grid');
+    if (!grid) return;
+    // We only update if length changes or we can map them, 
+    // but for precision we re-render to ensure toggles stay in sync with config.
+    grid.innerHTML = services.map(s => \`
+        <div class="setting-item">
+            <label>\${s.toUpperCase()}</label>
+            <label class="switch">
+                <input type="checkbox" checked onchange="toggleService('\${s}', this.checked)">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    \`).join('');
+}
+
+function renderLimbMatrix(limbs) {
+    const container = document.getElementById('limb-matrix');
+    if (!container) return;
+    container.innerHTML = limbs.map(l => {
+        const tools = l.tools || [];
+        return \`
+            <div class="limb-card">
+                <div class="limb-header">
+                    <span class="limb-id">\${l.id.toUpperCase()}</span>
+                    <span class="limb-type">\${l.type}</span>
+                </div>
+                <div class="limb-desc">\${l.capabilities.slice(0, 3).join(', ')}...</div>
+                <div class="limb-tools">
+                    \${tools.map(t => \`
+                        <button class="tool-btn" title="\${t.description}" onclick="invokeTool('\${l.id}', '\${t.name}')">
+                            \${t.name}
+                        </button>
+                    \`).join('')}
+                </div>
+            </div>
+        \`;
+    }).join('');
+}
+
+function invokeTool(limbId, toolName) {
+    addLog(\`Invoking tool: \${toolName} on \${limbId}...\`, "stdout");
+    if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'control', command: 'invoke_limb_tool', data: { limbId, toolName } }));
+    }
+}
+
+function toggleService(service, enabled) {
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'control', command: 'toggleService', data: { service, enabled } }));
+}
+
+function updateHexagramUI(hex) {
+    const el = document.getElementById('active-hexagram-info');
+    if (el) {
+        el.innerText = \`HEX: \${hex.name} (\${hex.binary})\`;
+        el.title = hex.strategy;
+    }
+}
+
+function updateMemoryPulse(memories) {
+    const container = document.getElementById('active-memories-list');
+    if (!container) return;
+    if (memories.length === 0) {
+        container.innerHTML = '<span style="color:#444;font-size:0.7rem">No historical context matched.</span>';
+        return;
+    }
+    container.innerHTML = memories.map(m => \`
+        <div class="memory-bubble" title="\${m.text}">\${m.type || 'Lesson'}: \${m.text.substring(0, 30)}...</div>
+    \`).join('');
 }
 
 function renderStoryboard(beats) {
     const container = document.getElementById('storyboard-gallery');
+    if (!container) return;
     container.innerHTML = beats.map(b => \`
         <div class="beat-card">
             <h4>\${b.title || 'Scene Beat'}</h4>
@@ -353,33 +736,63 @@ function renderStoryboard(beats) {
             <div class="visual-prompt">Forge Prompt: \${b.visual || b.prompt || 'Atmospheric scene'}</div>
         </div>
     \`).join('');
-    addLearningLog("Saved storyboard to VectorDB learning buffer.");
 }
 
 function renderStyle(s) {
-    document.getElementById('book-style-profile').innerHTML = Object.entries(s).map(([k,v]) => \`<div><strong>\${k}:</strong> \${v}</div>\`).join('');
+    const el = document.getElementById('book-style-profile');
+    if (el) el.innerHTML = Object.entries(s).map(([k,v]) => \`<div><strong>\${k}:</strong> \${v}</div>\`).join('');
 }
 
 function addLog(t, s) {
     const l = document.getElementById('log-container');
+    if (!l) return;
     const d = document.createElement('div');
     d.innerHTML = \`<span style="color:#444">\${new Date().toLocaleTimeString()}</span> \${t}\`;
     l.prepend(d);
 }
 
-function addLearningLog(t) {
-    const l = document.getElementById('learning-logs');
-    const d = document.createElement('div'); d.className = 'model-card';
-    d.innerHTML = \`<small>NEW LESSON</small><br>\${t}\`; 
-    l.prepend(d);
+function addIntent(data) {
+    const list = document.getElementById('intent-list');
+    if (!list) return;
+    const item = document.createElement('div');
+    item.className = 'model-card';
+    item.innerHTML = \`<strong>Q:</strong> \${data.query}<br><small>Model: \${data.selectedModel}</small>\`;
+    list.prepend(item);
 }
 
-function toggleNarration() { narrating = !narrating; document.getElementById('narrate-btn').classList.toggle('active', narrating); if (!narrating) window.speechSynthesis.cancel(); else speakText(document.getElementById('reader-content').innerText); }
-function speakText(t) { if (!ttsEnabled && !narrating) return; const u = new SpeechSynthesisUtterance(t.substring(0, 500)); window.speechSynthesis.speak(u); }
+function toggleNarration() { 
+    narrating = !narrating; 
+    const btn = document.getElementById('narrate-btn');
+    if (btn) btn.classList.toggle('active', narrating);
+    if (!narrating) window.speechSynthesis.cancel(); 
+    else speakText(document.getElementById('reader-content').innerText); 
+}
+
+function speakText(t) { 
+    if (!ttsEnabled && !narrating) return; 
+    const u = new SpeechSynthesisUtterance(t.substring(0, 500)); 
+    window.speechSynthesis.speak(u); 
+}
+
 function toggleTTS(e) { ttsEnabled = e; }
-function switchWorkspace(p) { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'control', command: 'switchWorkspace', data: { path: p } })); }
-function closeReader() { document.getElementById('reader-content').innerHTML = '<div class="reader-placeholder">Select a book.</div>'; currentBook = null; }
-function forgeMedia() { const p = document.getElementById('media-prompt').value; const t = document.getElementById('media-target').value; if (ws) ws.send(JSON.stringify({ type: 'control', command: 'media_forge_request', data: { prompt: p, targetType: t } })); }
+
+function switchWorkspace(p) { 
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'control', command: 'switchWorkspace', data: { path: p } })); 
+}
+
+function closeReader() { 
+    const el = document.getElementById('reader-content');
+    if (el) el.innerHTML = '<div class="reader-placeholder">Select a book.</div>'; 
+    currentBook = null; 
+}
+
+function forgeMedia() { 
+    const promptEl = document.getElementById('media-prompt');
+    const targetEl = document.getElementById('media-target');
+    const p = promptEl ? promptEl.value : ''; 
+    const t = targetEl ? targetEl.value : 'image'; 
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'control', command: 'media_forge_request', data: { prompt: p, targetType: t } })); 
+}
 
 connect();
 `;

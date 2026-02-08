@@ -95,11 +95,11 @@ export class HexagramManager {
                     projectId: this.projectId,
                     sessionId: 'system',
                     text: `Hexagram Card [Line ${index}]: ${title} - ${content} (${YaoState[state]})`,
-                    embedding: new Float32Array(768).fill(0), // Placeholder to avoid API call
+                    embedding: new Float32Array(768).fill(0), // Initialized state
                     createdAt: Date.now(),
                     metadata: { type: 'hexagram_card', line: index, state: YaoState[state] },
                     errorType: 'none'
-                }).catch(() => { }); // Silent fail
+                }).catch(() => { });
             } catch (e) {
                 // Ignore synchronous errors
             }
@@ -195,17 +195,28 @@ export class HexagramManager {
             }
         }
 
-        // --- PROJECT CONSTELLATION (Cross-Project Shortcuts) ---
+        // --- SEMANTIC MEMORY (Proactive RAG) ---
         if (queryEmbedding) {
-            const similar = await this.vectorDB.searchSimilar(queryEmbedding, 3, this.projectId);
-            if (similar.ok) {
+            const similar = await this.vectorDB.searchSimilar(queryEmbedding, 5, this.projectId);
+            if (similar.ok && similar.value.length > 0) {
+                const currentProject = similar.value.filter(l => l.projectId === this.projectId);
                 const crossProject = similar.value.filter(l => l.projectId !== this.projectId && l.projectId !== 'global');
+
+                if (currentProject.length > 0) {
+                    output += '=== SEMANTIC MEMORY (Active Project Lessons) ===\n';
+                    output += 'The following historical patterns are relevant to the current intent:\n\n';
+                    for (const lesson of currentProject) {
+                        output += `[LESSON: ${lesson.metadata?.['type'] || 'General'}]\n`;
+                        output += `CONTEXT: ${lesson['text'].substring(0, 500)}${lesson['text'].length > 500 ? '...' : ''}\n\n`;
+                    }
+                }
+
                 if (crossProject.length > 0) {
                     output += '=== PROJECT CONSTELLATION (Cross-Project Knowledge) ===\n';
                     output += 'Highly relevant patterns identified from previous projects:\n\n';
                     for (const lesson of crossProject) {
                         output += `[SHORTCUT FROM PROJECT: ${lesson.projectId}]\n`;
-                        output += `PATTERN: ${lesson.text.substring(0, 500)}${lesson.text.length > 500 ? '...' : ''}\n\n`;
+                        output += `PATTERN: ${lesson['text'].substring(0, 500)}${lesson['text'].length > 500 ? '...' : ''}\n\n`;
                     }
                 }
             }

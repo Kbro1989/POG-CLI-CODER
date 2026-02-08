@@ -19,8 +19,9 @@
             </div>
             <nav class="tab-nav">
                 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
-                <button class="tab-btn" data-tab="ai">Pipeline</button>
+                <button class="tab-btn" data-tab="ai">AI Pipeline</button>
                 <button class="tab-btn" data-tab="terminal">Terminal</button>
+                <button class="tab-btn" data-tab="health">Health</button>
                 <button class="tab-btn" data-tab="books" id="tab-books">Books</button>
                 <button class="tab-btn" data-tab="storyboard" id="tab-storyboard">Storyboard</button>
                 <button class="tab-btn" data-tab="media">Forge</button>
@@ -34,6 +35,7 @@
         </header>
 
         <main class="viewport">
+            <!-- DASHBOARD TAB -->
             <div id="dashboard" class="tab-content active">
                 <div class="grid-layout">
                     <section class="panel side-panel">
@@ -53,6 +55,96 @@
                 </div>
             </div>
 
+            <!-- AI PIPELINE TAB -->
+            <div id="ai" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">🤖</span> AI CAPABILITIES & CONTEXT</h3>
+                        <div class="pipeline-grid">
+                            <div class="pipeline-section">
+                                <h4>PINNED CONTEXT (SOLDIERED)</h4>
+                                <div id="pinned-files-list" class="scroll-box mini-list">
+                                    <p class="muted">No files pinned.</p>
+                                </div>
+                                <div id="context-preview" class="context-preview-box">
+                                    <h4 id="preview-title">File Preview</h4>
+                                    <pre id="preview-content" class="preview-code">Select a pinned file to preview...</pre>
+                                </div>
+                            </div>
+                            <div class="pipeline-section">
+                                <h4>MODEL GALLERY (CATEGORIZED)</h4>
+                                <div id="model-gallery" class="scroll-box gallery-view">
+                                    <p class="muted">Loading model inventory...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- TERMINAL TAB -->
+            <div id="terminal" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">💻</span> SYSTEM TERMINAL</h3>
+                        <div id="terminal-view" class="scroll-box terminal-style">
+                            <div id="terminal-header" class="terminal-meta">Process: PowerShell Extension | Status: <span id="term-status-val">Active</span></div>
+                            <div id="terminal-body" class="terminal-output">
+                                <pre id="terminal-content">Initializing cognitive terminal link...</pre>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- HEALTH TAB -->
+            <div id="health" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">📊</span> SYSTEM HEALTH</h3>
+                        <div class="health-grid">
+                            <div class="health-gauge">
+                                <div class="gauge-label">CPU LOAD</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="cpu-gauge" class="gauge-fg cpu" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="cpu-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">MEMORY</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="mem-gauge" class="gauge-fg mem" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="mem-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">DISK I/O</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="disk-gauge" class="gauge-fg disk" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="disk-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="health-history" class="scroll-box mt-20">
+                            <h4>Service Stability Registry</h4>
+                            <div id="cluster-health" class="mini-list health-events">
+                                <p class="muted">Detecting limb status...</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- BOOKS TAB -->
             <div id="books" class="tab-content">
                 <div class="grid-layout">
                     <section class="panel side-panel">
@@ -81,6 +173,7 @@
                 </div>
             </div>
 
+            <!-- STORYBOARD TAB -->
             <div id="storyboard" class="tab-content">
                 <div class="grid-layout">
                     <section class="panel side-panel">
@@ -108,6 +201,7 @@
                 </div>
             </div>
 
+            <!-- MEDIA FORGE TAB -->
             <div id="media" class="tab-content">
                 <div class="grid-layout single-col">
                     <section class="panel forge-panel">
@@ -124,9 +218,124 @@
                 </div>
             </div>
 
-            <div id="terminal" class="tab-content"><section class="panel full-panel"><h3><span class="icon">💻</span> TERMINAL</h3><div id="terminal-view" class="scroll-box terminal-style"><pre id="terminal-content"></pre></div></section></div>
-            <div id="settings" class="tab-content"><section class="panel settings-panel"><h3><span class="icon">⚙️</span> CONFIG</h3><div class="settings-grid"><div class="setting-item"><label>AUDIO FEEDBACK</label><label class="switch"><input type="checkbox" id="tts-enabled" onchange="toggleTTS(this.checked)"><span class="slider round"></span></label></div></div></section></div>
+            <!-- CONFIG TAB -->
+            <div id="settings" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel settings-panel">
+                        <h3><span class="icon">⚙️</span> CORE CONFIG</h3>
+                        <div class="settings-grid" id="settings-grid">
+                            
+                                <div class="setting-item">
+                                    <label>OLLAMA</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('ollama', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>MCP_GITKRAKEN</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('mcp_gitkraken', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>HEALTHCARE</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('healthcare', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>DOCUMENTAI</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('documentai', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>VISION</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('vision', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>MEDIAFORGE</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('mediaforge', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>GUTENBERG</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('gutenberg', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>DASHBOARD</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('dashboard', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>HELP</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('help', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>VS</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('vs', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>VIBE</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('vibe', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>GEMINI</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('gemini', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                        </div>
+                    </section>
+                </div>
+            </div>
         </main>
+
+        <footer>
+            <div class="model-health">
+                <div class="model-tag gemini">Gemini: <span id="gemini-status">IDLE</span></div>
+                <div class="model-tag ollama">Ollama: <span id="ollama-status">IDLE</span></div>
+            </div>
+            <div class="terminal-stats">
+                 CPU: <span id="cpu-load-footer">--</span> | MEM: <span id="mem-usage-footer">--</span>
+            </div>
+        </footer>
     </div>
     <script src="main.js"></script>
 </body>

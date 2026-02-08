@@ -262,19 +262,27 @@ export class CloudflareLimb extends BaseLimb {
 
 
     /**
-     * Execute handles direct intents by listing available tools
+     * Execute handles direct intents by listing available tools or falling back to cognitive response
      */
-    override async execute(_intent: Intent): Promise<Result<Execution>> {
-        const tools = this.getTools();
-        const toolNames = tools.map((t: any) => t.function?.name || t.name).join(', ');
+    override async execute(intent: Intent): Promise<Result<Execution>> {
+        const userIntent = this.getUserIntent(intent).toLowerCase();
 
-        return {
-            ok: true,
-            value: {
-                output: `Cloudflare AI Limb is ready. Available tools: ${toolNames}\n\nTo use, specify a tool like: "use cf_generate_image to create..."`,
-                data: { availableTools: toolNames }
-            }
-        };
+        // If the user is just asking for status/tools
+        if (userIntent.includes('status') || userIntent.includes('available tools') || userIntent.includes('capabilities')) {
+            const tools = this.getTools();
+            const toolNames = tools.map((t: any) => t.function?.name || t.name).join(', ');
+
+            return {
+                ok: true,
+                value: {
+                    output: `Cloudflare AI Limb is ready. Available tools: ${toolNames}\n\nTo use, specify a tool like: "use cf_generate_image to create..."`,
+                    data: { availableTools: toolNames }
+                }
+            };
+        }
+
+        // Otherwise fallback to Sovereign Cognitive Response
+        return super.execute(intent);
     }
 
     async generateEmbeddings(texts: string[]): Promise<Result<number[][]>> {

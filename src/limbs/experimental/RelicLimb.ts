@@ -42,6 +42,54 @@ export class RelicLimb extends BaseLimb {
         for (const name of KNOWN_RSC_FILENAMES) {
             this.hashLookup.set(hashFilename(name), name);
         }
+
+        this.registerTools([
+            {
+                name: 'relic_excavate_cache',
+                description: 'Detect and list RSC archives in local or cloud storage.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        cacheId: { type: 'number', description: 'Priority cache target' }
+                    }
+                },
+                handler: async (args) => {
+                    const res = await this.excavate_cache(args);
+                    return { ok: true, value: res };
+                }
+            },
+            {
+                name: 'relic_read_record',
+                description: 'Read a specific file from the excavated RSC cache.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        path: { type: 'string', description: 'Relative path to the record' },
+                        base64: { type: 'boolean', description: 'Return as base64' }
+                    },
+                    required: ['path']
+                },
+                handler: async (args) => {
+                    const res = await this.read_record(args);
+                    return { ok: true, value: res };
+                }
+            },
+            {
+                name: 'relic_explore_museum',
+                description: 'Search the museum for binary archives and innovations.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        category: { type: 'string', description: 'Archive category (config, models, maps, etc)' },
+                        limit: { type: 'number', description: 'Max items to return' }
+                    }
+                },
+                handler: async (args) => {
+                    const res = await this.explore_museum(args);
+                    return { ok: true, value: res };
+                }
+            }
+        ]);
     }
 
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
@@ -69,6 +117,21 @@ export class RelicLimb extends BaseLimb {
         // In POG-Ultimate this checked permissions. Here we assume authorization via Orchestrator.
 
         try {
+            // First try formal tool handling (Phase 14 refinement)
+            if (action) {
+                const res = await this.handleToolCall(action, params);
+                if (res.ok) {
+                    return {
+                        ok: true,
+                        value: {
+                            output: typeof res.value.message === 'string' ? res.value.message : JSON.stringify(res.value),
+                            data: res.value
+                        }
+                    };
+                }
+            }
+
+            // Fallback to legacy dispatcher if tool not found or no action
             let result: any;
 
             if (action === 'relic_excavate_cache' || params.op === 'excavate') {

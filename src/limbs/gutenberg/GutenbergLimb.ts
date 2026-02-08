@@ -363,43 +363,44 @@ Return as JSON array of objects.`;
     }
 
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
-        const prompt = intent.prompt.toLowerCase();
+        const userIntent = this.getUserIntent(intent).toLowerCase();
 
         // +1: Explicit gutenberg/literature keywords = optimal
         const keywords = ['gutenberg', 'literature', 'author style', 'ingest book'];
-        if (keywords.some(k => prompt.includes(k))) return 1;
+        if (keywords.some(k => userIntent.includes(k))) return 1;
 
         // 0: General book/corpus keywords = maybe
-        if (prompt.includes('book') || prompt.includes('corpus') || prompt.includes('download')) return 0;
+        if (userIntent.includes('book') || userIntent.includes('corpus') || userIntent.includes('download')) return 0;
 
         // 0: Capability matches = maybe
-        if (this.spine.getCapabilities().some(cap => prompt.includes(cap))) return 0;
+        if (this.spine.getCapabilities().some(cap => userIntent.includes(cap))) return 0;
 
         return -1;
     }
 
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
-        const prompt = intent.prompt.toLowerCase();
+        const userIntent = this.getUserIntent(intent).toLowerCase();
 
         // Determine action and route through spine
-        if (prompt.includes('search') || prompt.includes('find') || prompt.includes('retrieve') || prompt.includes('get') || prompt.includes('fetch')) {
-            const params = this.parseSearchParams(prompt);
+        if (userIntent.includes('search') || userIntent.includes('find') || userIntent.includes('retrieve') || userIntent.includes('get') || userIntent.includes('fetch')) {
+            const params = this.parseSearchParams(userIntent);
             const result = await this.spine.handleCall('gutenberg_search', params);
             if (result.ok) return { ok: true, value: result.value };
             return { ok: false, error: result.error };
-        } else if (prompt.includes('ingest') || prompt.includes('download')) {
-            const params = this.parseSearchParams(prompt);
+        } else if (userIntent.includes('ingest') || userIntent.includes('download')) {
+            const params = this.parseSearchParams(userIntent);
             const result = await this.spine.handleCall('gutenberg_ingest', params);
             if (result.ok) return { ok: true, value: result.value };
             return { ok: false, error: result.error };
-        } else if (prompt.includes('styles') || prompt.includes('authors')) {
+        } else if (userIntent.includes('styles') || userIntent.includes('authors')) {
             const result = await this.spine.handleCall('gutenberg_styles', {});
             if (result.ok) return { ok: true, value: result.value };
             return { ok: false, error: result.error };
         }
 
-        return { ok: false, error: new Error('Unknown Gutenberg action. Use: search, ingest, or styles') };
+        // Fallback to Sovereign Cognitive Response instead of failing
+        return super.execute(intent);
     }
 
     private async handleListStyles(): Promise<Result<any>> {

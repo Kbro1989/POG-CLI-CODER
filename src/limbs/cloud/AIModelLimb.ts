@@ -86,9 +86,9 @@ export class AIModelLimb extends BaseLimb {
     }
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
-        const p = intent.prompt.toLowerCase();
+        const userIntent = this.getUserIntent(intent).toLowerCase();
 
-        if (p.includes('health') || p.includes('models')) {
+        if (userIntent.includes('health') || userIntent.includes('models')) {
             const health = await this.getModelHealth();
             if (health.ok) return { ok: true, value: { output: `[CLUSTER_HEALTH]\n${JSON.stringify(health.value, null, 2)}` } };
         }
