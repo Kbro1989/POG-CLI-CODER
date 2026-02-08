@@ -70,13 +70,18 @@ export class GutenbergLimb extends BaseLimb {
         super(config);
         this.vectorDB = vectorDB;
         this.gemini = gemini;
-        const GUTENBERG_D_DRIVE = 'D:\\pog-gutenberg';
-        const hasGutenbergD = existsSync(GUTENBERG_D_DRIVE);
 
         const sovereignRoot = this.config.sovereignRoot;
         const pogDir = this.config.pogDir || join(process.cwd(), '.pog-coder-vibe');
 
-        this.GUTENBERG_CACHE = hasGutenbergD ? GUTENBERG_D_DRIVE : (sovereignRoot ? join(sovereignRoot, 'gutenberg-cache') : join(pogDir, 'gutenberg-cache'));
+        // Priority 1: Explicitly configured gutenbergPath
+        // Priority 2: Hardcoded D:\ drive (legacy/default)
+        // Priority 3: Sovereign Root
+        // Priority 4: Standard POG directory
+        this.GUTENBERG_CACHE = this.config.gutenbergPath ||
+            (existsSync('D:\\pog-gutenberg') ? 'D:\\pog-gutenberg' :
+                (sovereignRoot ? join(sovereignRoot, 'gutenberg-cache') :
+                    join(pogDir, 'gutenberg-cache')));
 
         if (!existsSync(this.GUTENBERG_CACHE)) {
             mkdirSync(this.GUTENBERG_CACHE, { recursive: true });

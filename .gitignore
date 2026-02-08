@@ -42,3 +42,14 @@ Thumbs.db
 # - src/templates/ (required for scaffolding)
 # - cli/ (required for application)
 # - docs/ (documentation)
+
+# Explicitly ignored logs (overrides *.txt tracking logic where applicable)
+test_results*.txt
+tsc_errors*.txt
+typecheck_*.txt
+build_errors*.txt
+lint_*.txt
+*_output.txt
+*_log.txt
+deploy_log.txt
+deploy_log_utf8.txt

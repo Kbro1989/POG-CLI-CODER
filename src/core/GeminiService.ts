@@ -16,10 +16,14 @@ export interface GeminiConfig {
     modelName?: string;
 }
 
+export type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE';
+
 export class GeminiService {
     private genAI: GoogleGenAI;
     private keyVault?: KeyVault;
     private config: GeminiConfig;
+    private healthState: ServiceHealthState = 'READY';
+    private lastBackoffUntil: number = 0;
 
     constructor(config: GeminiConfig | string, keyVault?: KeyVault) {
         if (typeof config === 'string') {
@@ -37,6 +41,27 @@ export class GeminiService {
             ...(this.config.customHeaders ? { customHeaders: this.config.customHeaders } : {}),
             ...(this.config.apiEndpoint ? { apiEndpoint: this.config.apiEndpoint } : {})
         } as any); // Type cast for extended SDK options
+
+        // Register health provider
+        import('./HealthRegistry.js').then(m => {
+            m.HealthRegistry.getInstance().registerProvider('gemini', () => this.getHealth());
+        });
+    }
+
+    /**
+     * Report current service health and availability
+     */
+    public getHealth(): { state: ServiceHealthState; cooldownSeconds: number } {
+        const now = Date.now();
+        if (this.healthState === 'RATE_LIMITED' && now < this.lastBackoffUntil) {
+            return { state: 'RATE_LIMITED', cooldownSeconds: Math.ceil((this.lastBackoffUntil - now) / 1000) };
+        }
+
+        if (this.healthState === 'RATE_LIMITED' && now >= this.lastBackoffUntil) {
+            this.healthState = 'READY';
+        }
+
+        return { state: this.healthState, cooldownSeconds: 0 };
     }
 
     async generateContent(
@@ -44,6 +69,11 @@ export class GeminiService {
         modelOverride?: string,
         tools?: Tool[]
     ): Promise<Result<ModelResponse>> {
+        const health = this.getHealth();
+        if (health.state === 'RATE_LIMITED') {
+            return { ok: false, error: new Error(`Gemini API is rate limited. Cooldown: ${health.cooldownSeconds}s`) };
+        }
+
         const startTime = Date.now();
         const modelName = modelOverride || this.config.modelName || 'gemini-2.0-flash';
 
@@ -72,6 +102,7 @@ export class GeminiService {
             if (this.keyVault) {
                 this.keyVault.resetFailCount();
             }
+            this.healthState = 'READY';
 
             const modelResponse: ModelResponse = {
                 model: modelName,
@@ -101,12 +132,24 @@ export class GeminiService {
                 }
             }
 
+            if (isRateLimit) {
+                this.healthState = 'RATE_LIMITED';
+                // Extract retry-after if possible, else 60s default for Gemini
+                this.lastBackoffUntil = Date.now() + 60000;
+                logger.error({ model: modelName, cooldown: 60 }, 'Gemini rate limit hit - entering cooldown');
+            } else if (isAuthError) {
+                this.healthState = 'CRITICAL_FAILURE';
+            }
+
             logger.error({ error, model: modelName }, 'Gemini generation failed');
             return { ok: false, error: error as Error };
         }
     }
 
     async generateContentStream(prompt: string, modelOverride?: string): Promise<Result<AsyncGenerator<string, void, unknown>>> {
+        const health = this.getHealth();
+        if (health.state !== 'READY') return { ok: false, error: new Error('Gemini not ready') };
+
         const modelName = modelOverride || this.config.modelName || 'gemini-2.0-flash';
         try {
             const stream = await this.genAI.models.generateContentStream({

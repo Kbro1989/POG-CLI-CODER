@@ -53,9 +53,12 @@ export class SystemEnvChecker {
             }
         }
 
-        // 3. Check for Gemini/Ollama CLI Readiness via Path Lookup
+        // 3. Check for Gemini/Ollama/Wrangler/GCloud CLI Readiness via Path Lookup
         const geminiReady = this.commandExists('gemini');
         const ollamaReady = this.commandExists('ollama');
+        const wranglerReady = this.commandExists('wrangler');
+        const gcloudReady = this.commandExists('gcloud');
+        const sshReady = this.commandExists('ssh');
 
         status.push({
             key: 'GEMINI_CLI_READY',
@@ -68,6 +71,27 @@ export class SystemEnvChecker {
             key: 'OLLAMA_CLI_READY',
             value: ollamaReady,
             active: ollamaReady,
+            source: 'path'
+        });
+
+        status.push({
+            key: 'WRANGLER_CLI_READY',
+            value: wranglerReady,
+            active: wranglerReady,
+            source: 'path'
+        });
+
+        status.push({
+            key: 'GCLOUD_CLI_READY',
+            value: gcloudReady,
+            active: gcloudReady,
+            source: 'path'
+        });
+
+        status.push({
+            key: 'SSH_READY',
+            value: sshReady,
+            active: sshReady,
             source: 'path'
         });
 

@@ -28,7 +28,7 @@ async function main() {
 
         if (result.ok) {
             console.log('✅ SUCCESS!\n');
-            console.log('Response preview:', result.value.substring(0, 200) + '...\n');
+            console.log('Response preview:', result.value.output.substring(0, 200) + '...\n');
         } else {
             console.log('❌ FAILED:', result.error);
         }

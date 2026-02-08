@@ -31,7 +31,9 @@ import {
   isOk,
   isErr,
   type ModelResponse,
-  type Execution
+  type Execution,
+  type ExecutionContext, // Imported
+  type ExecutionPlan     // Imported
 } from './models.js';
 import { FreeModelRouter } from './Router.js';
 import { ASTWatcher } from '../watcher/ASTWatcher.js';
@@ -58,13 +60,21 @@ import { NoMockValidator } from './validation/NoMockValidator.js';
 import { ArchitecturalValidator } from './validation/ArchitecturalValidator.js';
 import { AdversarialOrchestrator } from './AdversarialOrchestrator.js';
 import { ArchitectureDigest } from './ArchitectureDigest.js';
+import { IntentVerifier } from './verification/IntentVerifier.js';
 import { PreviewServer, PreviewMetadata } from './PreviewServer.js';
 import { HexagramManager } from './HexagramManager.js';
 import { HexagramLimb } from '../limbs/core/HexagramLimb.js';
 import { MonitorAgent } from '../monitor/MonitorAgent.js';
 import { AILimb } from '../api/ai/AILimb.js';
 import { CloudflareLimb } from '../limbs/cloud/CloudflareLimb.js';
+import { GoogleServices } from '../services/GoogleServices.js';
+import { CloudflareServices } from '../services/CloudflareServices.js';
 import { NeuralForgeLimb } from '../limbs/core/NeuralForgeLimb.js';
+import { SovereignShellLimb } from '../limbs/system/SovereignShellLimb.js';
+import { SubstrateLimb } from '../limbs/system/SubstrateLimb.js';
+import { FileLimb } from '../limbs/system/FileLimb.js';
+import { EntityLimb } from '../limbs/system/EntityLimb.js';
+import { AIModelLimb } from '../limbs/cloud/AIModelLimb.js';
 import { ModelInventory } from './ModelInventory.js';
 import { SystemEnvChecker, EnvStatus } from '../utils/SystemEnvChecker.js';
 
@@ -77,26 +87,7 @@ function expandTilde(path: string): string {
   return path;
 }
 
-interface ExecutionStep {
-  readonly tool: string;
-  readonly args: string[];
-  readonly reasoning: string;
-  readonly rollback?: string;
-}
-
-interface ExecutionPlan {
-  readonly goal: string;
-  readonly steps: ReadonlyArray<ExecutionStep>;
-}
-
-interface ExecutionContext {
-  readonly prompt: string;
-  readonly filePath?: string;
-  readonly sessionId: string;
-  readonly startTime: number;
-  plan?: ExecutionPlan;
-  currentStepId?: number;
-}
+// Local definitions removed in favor of models.ts exports
 
 export interface OrchestratorEvents {
   intentExecuted: (data: IntentHistory) => void;
@@ -131,9 +122,13 @@ export class FreeOrchestrator extends EventEmitter {
   private readonly architectureDigest: ArchitectureDigest;
   private readonly monitorAgent?: MonitorAgent;
   private readonly limbs: NeuralLimb[] = [];
+  private readonly sovereignShellLimb: SovereignShellLimb;
+  private readonly substrateLimb: SubstrateLimb;
   private lastSentFileHashes: Map<string, string> = new Map();
   private forceFullContext = true;
   private readonly endpointStatus: Map<string, 'ACTIVE' | 'INACTIVE' | 'PARTIAL'> = new Map();
+  private readonly intentVerifier: IntentVerifier;
+
 
 
   constructor(
@@ -157,11 +152,28 @@ export class FreeOrchestrator extends EventEmitter {
     this.router = new FreeModelRouter(config, this.geminiService);
     this.modelExecutor = new ModelExecutor(config, this.geminiService, this.router);
 
+    // 1b. GCloud & Cloudflare Base Services
+    const googleServices = new GoogleServices({
+      apiKey: process.env['GOOGLE_API_KEY'] || '',
+      projectId: process.env['GOOGLE_PROJECT_ID'] || config.projectId
+    });
+    const cfAuth = {
+      accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || config.cloudflareAccountId || '') as string,
+      apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || config.cloudflareApiToken || '') as string
+    };
+    const cloudflareServices = new CloudflareServices(cfAuth);
+
     this.architectureDigest = new ArchitectureDigest(config.projectRoot);
     this.validationSystem = new ValidationSystem([
       new NoMockValidator(),
       new ArchitecturalValidator(this.architectureDigest.getManifest())
     ]);
+
+    this.intentVerifier = new IntentVerifier(
+      this.modelExecutor,
+      this.hexagramManager
+    );
+
 
     this.adversarialOrchestrator = new AdversarialOrchestrator(
       config,
@@ -184,11 +196,20 @@ export class FreeOrchestrator extends EventEmitter {
     const dashboardLimb = new DashboardLimb(config, this.previewServer);
     const cloudflareLimb = new CloudflareLimb(config);
     const neuralForgeLimb = new NeuralForgeLimb(config, this.adversarialOrchestrator);
+    const sovereignShellLimb = new SovereignShellLimb(config);
+    const aiModelLimb = new AIModelLimb(config);
+    const fileLimb = new FileLimb(config);
+    const entityLimb = new EntityLimb(config);
+    this.substrateLimb = new SubstrateLimb(config, googleServices, cloudflareServices);
 
     // Store in collection for intent routing
     this.limbs = [
+      aiModelLimb,
+      fileLimb,
+      entityLimb,
       neuralForgeLimb,
       cloudflareLimb,
+      this.substrateLimb,
       this.hexagramLimb,
       this.webAppForgeLimb,
       mediaForgeLimb,
@@ -198,8 +219,11 @@ export class FreeOrchestrator extends EventEmitter {
       aiLimb,
       fileSystemLimb,
       voiceLimb,
-      dashboardLimb
+      dashboardLimb,
+      sovereignShellLimb
     ];
+
+    this.sovereignShellLimb = sovereignShellLimb;
 
     // 3. Post-Limb Systems
     this.contextBuilder = new ContextBuilder(vectorDB, config.projectRoot, config.projectId, this.geminiService);
@@ -400,22 +424,21 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
   }
 
   /**
-   * Execute user intent with "Research -> Plan -> Execute -> Review" loop
-   */
-  /**
-   * Execute user intent with Advanced Agent Loop (Google Gemini CLI Pattern)  /**
-   * High-level entry point for executing user intents.
-   * Leverages ternary routing and adversarial loops for maximum quality.
-   */
-  async executeIntent(promptOrOptions: string | { prompt: string; model?: string }, filePath?: string): Promise<Result<Execution>> {
+ * Execute user intent with "Research -> Plan -> Execute -> Review" loop
+ * High-level entry point for executing user intents.
+ * Leverages ternary routing and adversarial loops for maximum quality.
+ */
+  async executeIntent(promptOrOptions: string | { prompt: string; model?: string; force?: boolean }, filePath?: string): Promise<Result<Execution>> {
     const prompt = typeof promptOrOptions === 'string' ? promptOrOptions : promptOrOptions.prompt;
     const modelOverride = typeof promptOrOptions === 'string' ? undefined : promptOrOptions.model;
+    const force = typeof promptOrOptions === 'string' ? false : promptOrOptions.force;
 
     const context: ExecutionContext = {
       prompt,
       ...(filePath ? { filePath } : {}),
       sessionId: this.sessionId,
-      startTime: Date.now()
+      startTime: Date.now(),
+      ...(force ? { force } : {})
     };
 
     // Inject Immutable System Prompt
@@ -426,6 +449,27 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
     this.forceFullContext = true;
 
     this.logger.info({ prompt: prompt.substring(0, 100) }, 'Executing intent (Advanced Loop)');
+
+    // 0. Check Neural Limbs (Specialized Agents) - PRIORITY OVER CONVERSATIONAL
+    for (const limb of this.limbs) {
+      if (await limb.canHandle({ prompt: fullPrompt })) {
+        const result = await limb.execute({ prompt: fullPrompt });
+        if (result.ok) {
+          this.recordSuccessMetadata(limb.id, prompt, Date.now() - context.startTime, filePath);
+
+          // Special case for WebAppForge preview events
+          if (limb.id === 'webapp_forge' && result.value.data?.previewUrl) {
+            const previewMetadata = (await this.previewServer.getActivePreviews()).find(p => p.url === result.value.data.previewUrl);
+            if (previewMetadata) {
+              this.emit('previewStarted', previewMetadata);
+            }
+          }
+
+          return { ok: true, value: result.value };
+        }
+        return { ok: false, error: result.error };
+      }
+    }
 
     const taskType = TaskClassifier.classify(prompt);
 
@@ -446,28 +490,6 @@ User: ${prompt}`,
         return { ok: true, value: { output: result.value.response } };
       }
       return { ok: false, error: result.error };
-    }
-
-
-    // 0. Check Neural Limbs (Specialized Agents)
-    for (const limb of this.limbs) {
-      if (await limb.canHandle({ prompt: fullPrompt })) {
-        const result = await limb.execute({ prompt: fullPrompt });
-        if (result.ok) {
-          this.recordSuccessMetadata(limb.id, prompt, Date.now() - context.startTime, filePath);
-
-          // Special case for WebAppForge preview events
-          if (limb.id === 'webapp_forge' && result.value.data?.previewUrl) {
-            const previewMetadata = (await this.previewServer.getActivePreviews()).find(p => p.url === result.value.data.previewUrl);
-            if (previewMetadata) {
-              this.emit('previewStarted', previewMetadata);
-            }
-          }
-
-          return { ok: true, value: result.value };
-        }
-        return { ok: false, error: result.error };
-      }
     }
 
     let turnCounter = 0;
@@ -525,14 +547,14 @@ User: ${prompt}`,
       turnCounter++;
       this.logger.info({ step: i, tool: step.tool }, `Executing step: ${step.reasoning}`);
 
-      const hexagramContext = await this.hexagramManager.formatForPrompt(embeddingValue);
+      const stepHexagram = await this.hexagramManager.formatForPrompt(embeddingValue);
       const stepPrompt = `OVERALL GOAL: ${executionPlan.goal}
 CURRENT STEP (${i}/${executionPlan.steps.length}): ${step.reasoning}
 TOOL: ${step.tool}
 ARGS: ${JSON.stringify(step.args)}
 HISTORY: ${totalResponse.substring(0, 500)}...
 
-${hexagramContext}
+${stepHexagram}
 
 Perform the current step and output results. If verifying, ensure you run the necessary tools.`;
 
@@ -549,6 +571,16 @@ Perform the current step and output results. If verifying, ensure you run the ne
           this.logger.error({ stepId: i, reason: turnResult.terminateReason }, 'Step execution failed');
           return { ok: false, error: new Error(`Step ${i} failed: ${turnResult.terminateReason}`) };
         }
+      }
+
+      // SOVEREIGN VERIFICATION STEP
+      // Audit the turn result against the original intent
+      const audit = await this.intentVerifier.verify(prompt, turnResult, context);
+      if (!audit.isAligned) {
+        this.logger.warn({ score: audit.score, correction: audit.correction }, 'Sovereign Drift Detected');
+        // We log it heavily but don't stop execution unless critical (implementation choice for now)
+        // To make it stricter, we could inject the correction into the next turn
+        totalResponse += `\n[SOVEREIGN WARNING]: Your last action drifted from intent. Score: ${audit.score}. Correction: ${audit.correction}\n`;
       }
 
       if (turnResult.model) lastModel = turnResult.model;
@@ -571,12 +603,25 @@ Perform the current step and output results. If verifying, ensure you run the ne
       this.emit('reviewStarted', { iteration: turnCounter });
     }
 
+    // 0. Proactive Intervention phase (Monitor Interference)
+    if (!context.force) {
+      const interference = await this.checkMonitorInterference(context.plan);
+      if (interference) return interference;
+    }
+
+    // A. Sensory Interception phase (Proactive Enrichment)
+    const sensoryData = await this.substrateLimb.interceptSensoryTask(currentMessage, context);
+    if (sensoryData) {
+      currentMessage = `${currentMessage}\n\nPre-processed Sensory Data:\n${sensoryData}`;
+      this.logger.info('Prompt enriched with proactive sensory data');
+    }
+
     // 1. Route to best model (or use override)
     let selectedModel: string;
     if (modelOverride) {
       selectedModel = modelOverride;
     } else {
-      const routeResult = await this.router.route(currentMessage, context.filePath);
+      const routeResult = await this.router.route(currentMessage);
       if (!routeResult.ok) {
         return {
           status: 'stop',
@@ -605,6 +650,30 @@ Perform the current step and output results. If verifying, ensure you run the ne
       this.forceFullContext = false; // After first send, everything is delta
     }
 
+    // Unified Resilience Level Check (Sovereign Substrate Awareness)
+    const registry = (await import('./HealthRegistry.js')).HealthRegistry.getInstance();
+    const serviceMap: Record<string, string> = { 'gemini': 'gemini', '@cf/': 'cloudflare' };
+    let serviceId: string | undefined;
+
+    for (const [pattern, id] of Object.entries(serviceMap)) {
+      if (selectedModel.includes(pattern)) {
+        serviceId = id;
+        break;
+      }
+    }
+
+    if (serviceId) {
+      const health = registry.getHealth(serviceId);
+      if (health.state === 'RATE_LIMITED') {
+        this.logger.warn({ model: selectedModel, cooldown: health.cooldownSeconds, service: serviceId }, 'Router selected rate-limited model - forcing reroute via local priority');
+
+        // Re-route with explicit localized pressure
+        const reroute = await this.router.route(currentMessage + ' (FORCED_LOCAL: Cloud service is restricted)');
+        if (reroute.ok && reroute.value !== selectedModel) {
+          selectedModel = reroute.value;
+        }
+      }
+    }
 
     this.emit('modelCalled', { model: selectedModel, prompt: augmentedPrompt });
 
@@ -624,8 +693,39 @@ Perform the current step and output results. If verifying, ensure you run the ne
     }
 
     if (!callResult.ok) {
+      this.logger.error({ error: callResult.error.message, model: selectedModel }, 'Primary model call failed - checking for Sovereign Shell fallback');
+
       this.router.recordFailure(selectedModel);
       this.recordFailureMetadata(selectedModel, augmentedPrompt, callResult.error.message, context.filePath);
+
+      // Sovereign Shell Fallback Logic
+      if (selectedModel.includes('gemini')) {
+        this.logger.warn('Gemini API restricted - falling back to global gemini CLI');
+        const shellResult = await this.executeSovereignFallback('gemini_cli_exec', augmentedPrompt);
+        if (shellResult.ok) {
+          return {
+            status: 'stop', // CLI usually handles the full task or specific edit
+            terminateReason: AgentTerminateMode.GOAL,
+            finalResult: shellResult.value,
+            model: 'sovereign-shell-gemini'
+          };
+        }
+      }
+
+      // Cloudflare Fallback
+      if (selectedModel.includes('@cf/')) {
+        this.logger.warn('Cloudflare API restricted - falling back to global wrangler CLI');
+        const shellResult = await this.executeSovereignFallback('wrangler_global_exec', augmentedPrompt);
+        if (shellResult.ok) {
+          return {
+            status: 'stop',
+            terminateReason: AgentTerminateMode.GOAL,
+            finalResult: shellResult.value,
+            model: 'sovereign-shell-wrangler'
+          };
+        }
+      }
+
       this.emit('executionError', { error: callResult.error, context });
       return {
         status: 'stop',
@@ -638,15 +738,22 @@ Perform the current step and output results. If verifying, ensure you run the ne
     this.router.recordSuccess(selectedModel);
 
     // 3. Process Logic (Handle Formal Function Calls and Sandbox Commands)
-    const processResult = await this.processFunctionCalls(callResult.value);
+    const processResult = await this.processFunctionCalls(callResult.value, context.plan);
     return { ...processResult, model: selectedModel };
+  }
+
+  /**
+   * Executes a terminal-based fallback using the SovereignShellLimb.
+   */
+  private async executeSovereignFallback(toolName: string, prompt: string): Promise<Result<string>> {
+    return await this.sovereignShellLimb.handleToolCall(toolName, { args: prompt });
   }
 
   /**
    * Maps text-based command extraction to formal Function Calls
    * Wraps Sandbox.execute logic
    */
-  private async processFunctionCalls(modelResponse: ModelResponse): Promise<AgentTurnResult> {
+  private async processFunctionCalls(modelResponse: ModelResponse, plan?: any): Promise<AgentTurnResult> {
     const { response, functionCalls } = modelResponse;
     const commands = this.sandbox.extractCommands(response);
 
@@ -666,8 +773,8 @@ Perform the current step and output results. If verifying, ensure you run the ne
     if (functionCalls && functionCalls.length > 0) {
       this.logger.info({ count: functionCalls.length }, 'Formal Tool Calls Detected');
       for (const call of functionCalls) {
-        // Interference Check (Phase 22)
-        const interference = await this.checkMonitorInterference();
+        // Interference Check (Phase 22: Proactive Health)
+        const interference = await this.checkMonitorInterference(plan);
         if (interference) return interference;
 
         let result: Result<any> = { ok: false, error: new Error(`No handler for tool: ${call.name}`) };
@@ -720,8 +827,8 @@ Perform the current step and output results. If verifying, ensure you run the ne
     if (commands.length > 0) {
       this.logger.info({ count: commands.length }, 'Tool Calls (Sandbox) Detected');
       for (const cmd of commands) {
-        // Interference Check (Phase 22)
-        const interference = await this.checkMonitorInterference();
+        // Interference Check (Phase 22: Proactive Health)
+        const interference = await this.checkMonitorInterference(plan);
         if (interference) return interference;
 
         const execResult = await this.sandbox.execute(cmd);
@@ -763,18 +870,28 @@ Perform the current step and output results. If verifying, ensure you run the ne
   /**
    * Checks background health and interrupts if critical errors are found.
    */
-  private async checkMonitorInterference(): Promise<AgentTurnResult | null> {
+  private async checkMonitorInterference(plan?: any): Promise<AgentTurnResult | null> {
     if (!this.monitorAgent) return null;
 
-    const errors = (this.monitorAgent as any).tscMonitor?.getCurrentErrors() || [];
-    const criticalErrors = errors.filter((e: any) => e.severity === 'error' || e.severity === 'critical');
+    const result = await this.monitorAgent.diagnoseState(plan);
+    if (result.decision === 1) return null; // Proceed (Healthy or Planned Drift)
 
-    if (criticalErrors.length > 0) {
-      this.logger.warn({ errorCount: criticalErrors.length }, 'MONITOR INTERFERENCE: Critical TSC errors detected during execution');
+    if (result.decision === -1) {
+      this.logger.warn({ reasoning: result.reasoning }, 'MONITOR INTERFERENCE: Critical failure detected');
       return {
         status: 'stop',
         terminateReason: AgentTerminateMode.ERROR,
-        finalResult: `INTERRUPT: Background Monitor detected ${criticalErrors.length} critical TypeScript error(s). Execution aborted to prevent compound failures. Please fix the following:\n${criticalErrors.slice(0, 5).map((e: any) => `- ${e.file}:${e.line} [${e.code}] ${e.message}`).join('\n')}`
+        finalResult: `INTERRUPT: ${result.reasoning}`
+      };
+    }
+
+    if (result.decision === 0) {
+      this.logger.info({ reasoning: result.reasoning }, 'MONITOR INTERVENTION: Proactive Patch needed');
+      // Background handleAutoHeal will catch this via the event listener, 
+      // but we return a 'continue' result that essentially "waits" or suggests a retry.
+      return {
+        status: 'continue',
+        nextMessage: `SYSTEM INTERVENTION: ${result.reasoning}\nWaiting for auto-patch to complete...`
       };
     }
 

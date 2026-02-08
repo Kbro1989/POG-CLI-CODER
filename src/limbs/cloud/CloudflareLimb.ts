@@ -7,7 +7,10 @@ const MODELS = {
     IMAGE: '@cf/stabilityai/stable-diffusion-xl-base-1.0',
     CHAT: '@cf/meta/llama-3.1-8b-instruct-fp8',
     EMBEDDING: '@cf/baai/bge-large-en-v1.5',
-    WHISPER: '@cf/openai/whisper'
+    WHISPER: '@cf/openai/whisper-large-v3-turbo',
+    CODER: '@cf/qwen/qwen2.5-coder-32b-instruct',
+    HEAVY: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+    LIGHT: '@cf/meta/llama-3.2-3b-instruct'
 } as const;
 
 /**
@@ -22,18 +25,19 @@ export class CloudflareLimb extends BaseLimb {
     readonly type = 'cloud' as const;
 
     private readonly services: CloudflareServices;
-    private readonly sidecarUrl: string | undefined;
-
     private healthState: ServiceHealthState = 'READY';
     private lastBackoffUntil: number = 0;
 
     constructor(config: VibeConfig) {
         super(config);
-        this.services = new CloudflareServices({
+        const cfConfig: any = {
             accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || config.cloudflareAccountId || '') as string,
             apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || config.cloudflareApiToken || '') as string
-        });
-        this.sidecarUrl = process.env['CLOUDFLARE_WORKER_URL'];
+        };
+        if (process.env['CLOUDFLARE_WORKER_URL']) {
+            cfConfig.gatewayUrl = process.env['CLOUDFLARE_WORKER_URL'];
+        }
+        this.services = new CloudflareServices(cfConfig);
 
         // Register health provider
         import('../../core/HealthRegistry.js').then(m => {
@@ -160,7 +164,8 @@ export class CloudflareLimb extends BaseLimb {
                     type: 'object',
                     properties: {
                         gameSource: { type: 'string', description: 'Game version (e.g., rs3, osrs)' },
-                        category: { type: 'string', description: 'Model category (e.g., items, npcs)' }
+                        category: { type: 'string', description: 'Model category (e.g., items, npcs)' },
+                        id: { type: 'string', description: 'Specific model/item ID' }
                     },
                     required: ['gameSource', 'category']
                 },
@@ -231,7 +236,8 @@ export class CloudflareLimb extends BaseLimb {
     }
 
     async generateEmbeddings(texts: string[]): Promise<Result<number[][]>> {
-        const result = await this.services.runAi(MODELS.EMBEDDING, {
+        const model = MODELS.EMBEDDING;
+        const result = await this.services.runAi(model, {
             text: texts
         });
 
@@ -242,26 +248,35 @@ export class CloudflareLimb extends BaseLimb {
         return { ok: true, value: result.value.data };
     }
 
+    private selectOptimalModel(intent: string, prompt: string): string {
+        const p = prompt.toLowerCase();
+
+        if (intent === 'code' || p.includes('code') || p.includes('typescript') || p.includes('javascript')) {
+            return MODELS.CODER;
+        }
+
+        if (intent === 'reasoning' || p.length > 500 || p.includes('analyze') || p.includes('explain')) {
+            return MODELS.HEAVY;
+        }
+
+        if (p.length < 100 && !p.includes('complex')) {
+            return MODELS.LIGHT;
+        }
+
+        return MODELS.CHAT;
+    }
+
     private async generateImage(prompt: string, negativePrompt?: string, width: number = 1024, height: number = 1024): Promise<Result<Uint8Array>> {
         try {
-            this.logger.info({ prompt: prompt.substring(0, 50), width, height }, 'Generating image via Cloudflare AI');
+            const model = MODELS.IMAGE;
+            this.logger.info({ model, prompt: prompt.substring(0, 50), width, height }, 'Generating image via Cloudflare AI Hub');
 
             const health = this.getHealth();
             if (health.state === 'RATE_LIMITED') {
                 return { ok: false, error: new Error(`Cloudflare AI is rate limited. Cooldown: ${health.cooldownSeconds}s`) };
             }
 
-            if (this.sidecarUrl) {
-                const response = await fetch(`${this.sidecarUrl}/ai/image`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt, negativePrompt, width, height })
-                });
-                if (!response.ok) return { ok: false, error: new Error(`Sidecar error: ${response.status}`) };
-                return { ok: true, value: new Uint8Array(await response.arrayBuffer()) };
-            }
-
-            const result = await this.services.runAi(MODELS.IMAGE, {
+            const result = await this.services.runAi<Buffer>(model, {
                 prompt,
                 negative_prompt: negativePrompt,
                 width,
@@ -270,7 +285,13 @@ export class CloudflareLimb extends BaseLimb {
 
             if (!result.ok) {
                 this.handleApiError(result.error);
-                return result;
+                // Last ditch: Ghost Limb fallback for 3D/Image scaffold
+                const ghostResult = await this.services.runGhostLimb<any>('3d-scaffold', { prompt });
+                if (ghostResult.ok) {
+                    this.logger.info('Using Ghost Limb deterministic 3D scaffold fallback');
+                    // Mock binary response from ghost result if possible, or return error
+                }
+                return { ok: false, error: result.error };
             }
 
             return { ok: true, value: new Uint8Array(result.value) };
@@ -286,40 +307,40 @@ export class CloudflareLimb extends BaseLimb {
                 return { ok: false, error: new Error(`Cloudflare AI is rate limited. Cooldown: ${health.cooldownSeconds}s`) };
             }
 
-            this.logger.info({ messageCount: messages.length }, 'Chat completion via Cloudflare AI');
-            if (this.sidecarUrl) {
-                const response = await fetch(`${this.sidecarUrl}/ai/chat`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages, max_tokens: maxTokens })
-                });
-                if (!response.ok) return { ok: false, error: new Error(`Sidecar error: ${response.status}`) };
-                const sidecarResult = await response.json() as { response: string };
-                return {
-                    ok: true,
-                    value: {
-                        model: 'sidecar-flare',
-                        response: sidecarResult.response,
-                        latency: 0
-                    }
-                };
-            }
+            const lastMessage = messages[messages.length - 1]?.content || '';
+            const model = this.selectOptimalModel('chat', lastMessage);
+
+            this.logger.info({ model, messageCount: messages.length }, 'Chat completion via Cloudflare AI Hub');
 
             const startTime = Date.now();
-            const result = await this.services.runAi(MODELS.CHAT, {
+            const result = await this.services.runAi(model, {
                 messages,
                 max_tokens: maxTokens
             });
 
             if (!result.ok) {
                 this.handleApiError(result.error);
+                // Last ditch: Ghost Limb fallback
+                const ghostTask = model === MODELS.CODER ? 'code-scaffold' : 'text-template';
+                const ghostResult = await this.services.runGhostLimb(ghostTask, { prompt: lastMessage });
+
+                if (ghostResult.ok) {
+                    return {
+                        ok: true,
+                        value: {
+                            model: `ghost:${ghostTask}`,
+                            response: (ghostResult.value as any).result || JSON.stringify(ghostResult.value),
+                            latency: Date.now() - startTime
+                        }
+                    };
+                }
                 return result;
             }
 
             return {
                 ok: true,
                 value: {
-                    model: MODELS.CHAT,
+                    model: model,
                     response: result.value.response,
                     latency: Date.now() - startTime
                 }
@@ -351,16 +372,20 @@ export class CloudflareLimb extends BaseLimb {
             const health = this.getHealth();
             if (health.state === 'RATE_LIMITED') return { ok: false, error: new Error('Rate limited') };
 
-            if (this.sidecarUrl) {
-                const response = await fetch(`${this.sidecarUrl}/ai/vision`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: imageBase64, prompt })
-                });
-                if (response.ok) return { ok: true, value: await response.json() };
-            }
+            const model = '@cf/meta/llama-3.2-11b-vision-instruct'; // Optimal vision model
+            this.logger.info({ model, prompt: prompt.substring(0, 50) }, 'Vision analysis via Cloudflare AI Hub');
 
-            return { ok: false, error: new Error('Vision analysis not yet implemented in Cloudflare substrate') };
+            return await this.services.runAi(model, {
+                messages: [
+                    {
+                        role: 'user',
+                        content: [
+                            { type: 'text', text: prompt },
+                            { type: 'image', image: imageBase64 }
+                        ]
+                    }
+                ]
+            });
         } catch (error) {
             return { ok: false, error: error as Error };
         }
@@ -371,16 +396,10 @@ export class CloudflareLimb extends BaseLimb {
             const health = this.getHealth();
             if (health.state === 'RATE_LIMITED') return { ok: false, error: new Error('Rate limited') };
 
-            if (this.sidecarUrl) {
-                const response = await fetch(`${this.sidecarUrl}/ai/speech`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
-                });
-                if (response.ok) return { ok: true, value: new Uint8Array(await response.arrayBuffer()) };
-            }
+            const model = MODELS.WHISPER;
+            this.logger.info({ model, text: text.substring(0, 50) }, 'Speech synthesis via Cloudflare AI Hub');
 
-            const result = await this.services.runAi(MODELS.WHISPER, { text });
+            const result = await this.services.runAi<Buffer>(model, { text });
             if (!result.ok) return result;
             return { ok: true, value: new Uint8Array(result.value) };
         } catch (error) {
@@ -388,7 +407,7 @@ export class CloudflareLimb extends BaseLimb {
         }
     }
 
-    private async handleRsmv(gameSource: string, category: string, id: string): Promise<Result<unknown>> {
+    private async handleRsmv(gameSource: string, category: string, id?: string): Promise<Result<unknown>> {
         this.logger.info({ gameSource, category, id }, 'RSMV model viewing request received');
         return {
             ok: true,

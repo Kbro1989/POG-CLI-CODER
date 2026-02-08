@@ -503,6 +503,51 @@
       "success": true,
       "timestamp": 1770487102987,
       "isFree": true
+    },
+    {
+      "model": "conversational",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 5502,
+      "success": true,
+      "timestamp": 1770498764065,
+      "isFree": true
+    },
+    {
+      "model": "webapp_forge",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 121087,
+      "success": true,
+      "timestamp": 1770498917049,
+      "isFree": true
+    },
+    {
+      "model": "webapp_forge",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 121507,
+      "success": true,
+      "timestamp": 1770510997327,
+      "isFree": true
+    },
+    {
+      "model": "webapp_forge",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 90772,
+      "success": true,
+      "timestamp": 1770511332571,
+      "isFree": true
+    },
+    {
+      "model": "webapp_forge",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 115922,
+      "success": true,
+      "timestamp": 1770511625755,
+      "isFree": true
     }
   ],
   "version": "1.2.0"

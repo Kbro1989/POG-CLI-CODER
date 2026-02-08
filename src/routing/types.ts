@@ -8,17 +8,17 @@
 // Types are defined locally - no external imports needed for RoutingDecision
 
 /**
- * The output of a routing decision. Specifies which model tier to use and why.
+ * The output of a routing decision. Specifies which model identifier to use and why.
  */
 export interface RoutingDecision {
-    /** The model tier or specific model identifier (e.g., 'local', 'edge', 'cloud', or 'qwen2.5:3b') */
+    /** The specific model name (e.g., 'gemini-2.0-flash', 'qwen2.5-coder:7b') */
     model: string;
 
     /**
      * Metadata about the routing decision for telemetry and debugging.
      */
     metadata: {
-        /** Source of the routing decision (e.g., 'composite/classifier', 'override', 'fallback') */
+        /** Source of the routing decision (e.g., 'override', 'analytical', 'default') */
         source: string;
 
         /** Time taken to make the routing decision in milliseconds */
@@ -26,6 +26,9 @@ export interface RoutingDecision {
 
         /** Human-readable reasoning for why this model was selected */
         reasoning: string;
+
+        /** Optional path taken through the ternary tree */
+        path?: number[];
 
         /** Optional error message if the decision was made due to a failure */
         error?: string;
@@ -39,14 +42,38 @@ export interface RoutingContext {
     /** The user's prompt/request */
     prompt: string;
 
-    /** Conversation history for context-aware routing (generic for flexibility) */
-    history?: unknown[];
+    /** Task weights derived from classification */
+    weightedTasks?: Record<string, number>;
 
-    /** Optional abort signal to cancel routing if needed */
+    /** Primary file extension for context */
+    extension?: string;
+
+    /** Ternary complexity score (-1, 0, 1) */
+    complexity?: number;
+
+    /** Cloudflare and Ollama model health grid */
+    availableModels?: any[];
+
+    /** Architecture alignment patterns */
+    architectureAlignment?: string[];
+
+    /** Golden templates identified for the task */
+    goldenTemplates?: string[];
+
+    /** Historical performance logs */
+    historicalPerformance?: any[];
+
+    /** Past lessons/regrets identified */
+    lessons?: any[];
+
+    /** Conversation history for context-aware routing */
+    history?: any[];
+
+    /** Optional abort signal */
     signal?: AbortSignal;
 
-    /** Additional metadata that may influence routing (e.g., file count, complexity hints) */
-    metadata?: Record<string, unknown>;
+    /** Additional metadata */
+    metadata?: Record<string, any>;
 }
 
 /**

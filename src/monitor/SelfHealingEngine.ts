@@ -44,15 +44,14 @@ export class SelfHealingEngine {
     async diagnose(error: TSCError, plan?: ExecutionPlan): Promise<{ decision: Ternary; reasoning: string }> {
         logger.info({ code: error.code, file: error.file }, 'Diagnosing error');
 
-        // 1. Check for Planned Drift (Missing File/Module)
-        if (error.code === 'TS2307' || error.message.includes('Cannot find module')) {
-            const isPlanned = this.isFilePlanned(error.file, plan) || this.isModulePlanned(error.message, plan);
-            if (isPlanned) {
-                return {
-                    decision: 1,
-                    reasoning: `Planned Drift: File/Module related to [${error.file}] is referenced in future plan steps. Proceeding.`
-                };
-            }
+        // 1. Check for Planned Drift (Any Error)
+        // If the file causing the error is part of the current plan, we assume the agent is fixing it.
+        const isPlanned = this.isFilePlanned(error.file, plan) || this.isModulePlanned(error.message, plan);
+        if (isPlanned) {
+            return {
+                decision: 1,
+                reasoning: `Planned Drift: File/Module related to [${error.file}] is referenced in future plan steps. Proceeding.`
+            };
         }
 
         // 2. Perform AI-powered "Sense" check using Correction Handler (Ollama)

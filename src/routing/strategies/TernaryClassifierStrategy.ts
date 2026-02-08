@@ -1,18 +1,10 @@
-/**
- * @license
- * POG-CODER-VIBE
- * Ternary Classification Strategy (PLACEHOLDER FOR FUTURE IMPLEMENTATION)
- * Will use lightweight LLM for Local/Edge/Cloud routing classification
- */
-
 import type { RoutingContext, RoutingDecision, RoutingStrategy } from '../types.js';
 import type { Logger } from 'pino';
 import pino from 'pino';
 
 /**
- * A routing strategy that uses heuristics to classify requests into ternary tiers.
- * Currently uses simple prompt analysis - can be upgraded to LLM-based classification later.
- * Returns null if classification is uncertain (lets other strategies handle).
+ * A routing strategy that classifies requests into ternary tiers based on task weights.
+ * Returning specific models mapped from tiers.
  */
 export class TernaryClassifierStrategy implements RoutingStrategy {
     readonly name = 'ternary-classifier';
@@ -24,113 +16,69 @@ export class TernaryClassifierStrategy implements RoutingStrategy {
 
     async route(context: RoutingContext): Promise<RoutingDecision | null> {
         const startTime = performance.now();
+        const { prompt, weightedTasks = {}, availableModels = [] } = context;
 
         try {
-            // Heuristic classification based on prompt analysis
-            const classification = this.classifyPrompt(context.prompt);
+            const classification = this.classifyPrompt(prompt, weightedTasks);
+            const targetModel = this.selectModelFromTier(classification.tier, availableModels);
+
+            if (!targetModel) return null;
 
             const latencyMs = Math.round(performance.now() - startTime);
-
-            this.logger.info(
-                {
-                    tier: classification.tier,
-                    confidence: classification.confidence,
-                    latencyMs,
-                },
-                'Request classified'
-            );
-
             return {
-                model: classification.tier,
+                model: targetModel,
                 metadata: {
                     source: 'ternary-classifier',
                     latencyMs,
-                    reasoning: classification.reasoning,
+                    reasoning: `${classification.reasoning} -> Selected: ${targetModel}`,
                 },
             };
         } catch (error) {
             this.logger.warn({ error }, 'Classification failed');
-            return null; // Let next strategy handle
+            return null;
         }
     }
 
-    private classifyPrompt(prompt: string): {
+    private selectModelFromTier(tier: string, available: any[]): string | null {
+        const tierFilter = (m: any) => {
+            if (tier === 'cloud') return m.type === 'cloud-free' || m.type === 'cloudflare';
+            if (tier === 'edge') return m.name.includes('llama-3.1-8b') || m.name.includes('yi-coder') || m.type === 'cloudflare';
+            return m.type === 'local';
+        };
+
+        const candidates = available
+            .filter(m => m.health?.isAvailable && (m.health?.circuitLevel ?? 0) >= 0)
+            .filter(tierFilter);
+
+        return [...candidates].sort((a, b) => b.priority - a.priority)[0]?.name || null;
+    }
+
+    private classifyPrompt(prompt: string, weights: Record<string, number>): {
         tier: string;
         reasoning: string;
-        confidence: number;
     } {
         const lowerPrompt = prompt.toLowerCase();
 
-        // Complex indicators (Cloud)
-        const complexIndicators = [
-            'design',
-            'architecture',
-            'refactor',
-            'optimize',
-            'debug',
-            'analyze',
-            'explain how',
-            'explain why',
-            'best practice',
-        ];
-
-        // Medium indicators (Edge)
-        const mediumIndicators = [
-            'modify',
-            'update',
-            'change',
-            'add',
-            'implement',
-            'create',
-            'write',
-        ];
-
-        // Simple indicators (Local)
-        const simpleIndicators = ['list', 'show', 'read', 'view', 'get', 'find'];
-
-        // Check for complex patterns first
-        const hasComplexity = complexIndicators.some((ind) =>
-            lowerPrompt.includes(ind)
-        );
-        if (hasComplexity) {
-            return {
-                tier: 'cloud',
-                reasoning:
-                    'Detected strategic/complex keywords suggesting cloud-tier reasoning',
-                confidence: 0.8,
-            };
+        // 1. Sensory/Utility detection
+        if (/\b(screenshot|image|ocr|translate|vision|analyze)\b/.test(lowerPrompt)) {
+            return { tier: 'edge', reasoning: 'Sensory intent detected' };
         }
 
-        // Check for medium complexity
-        const hasMediumComplexity = mediumIndicators.some((ind) =>
-            lowerPrompt.includes(ind)
-        );
-        if (hasMediumComplexity) {
-            return {
-                tier: 'edge',
-                reasoning:
-                    'Detected modification keywords suggesting edge-tier hybrid approach',
-                confidence: 0.7,
-            };
+        // 2. High-Complexity detection
+        if ((weights['architecture'] || 0) > 0.4 || (weights['api-orchestration'] || 0) > 0.5) {
+            return { tier: 'cloud', reasoning: 'High complexity architecture/orchestration' };
         }
 
-        // Check for simple operations
-        const isSimple = simpleIndicators.some((ind) => lowerPrompt.includes(ind));
-        if (isSimple) {
-            return {
-                tier: 'local',
-                reasoning:
-                    'Detected simple read-only operation suitable for local execution',
-                confidence: 0.85,
-            };
+        // 3. Low-Complexity detection
+        if (/\b(list|read|view|find)\b/.test(lowerPrompt) && (weights['generate'] || 0) < 0.3) {
+            return { tier: 'local', reasoning: 'Low-complexity informational task' };
         }
 
-        // Default to local for unknown patterns (safest choice)
-        return {
-            tier: 'local',
-            reasoning:
-                'No strong classification indicators - defaulting to local for safety',
-            confidence: 0.5,
-        };
+        // 4. Generative weights
+        const genWeight = weights['generate'] || 0;
+        if (genWeight > 0.8) return { tier: 'cloud', reasoning: 'High generative weight' };
+        if (genWeight > 0.4) return { tier: 'edge', reasoning: 'Moderate generative weight' };
+
+        return { tier: 'local', reasoning: 'Defaulting to local efficiency' };
     }
 }

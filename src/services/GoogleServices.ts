@@ -39,7 +39,7 @@ export class GoogleServices {
     /**
      * Placeholder: Analyze image using Google Vision API (or simulated)
      */
-    async analyzeImage(buffer: Buffer): Promise<Result<any>> {
+    async analyzeImage(_buffer: Buffer): Promise<Result<any>> {
         // Implementation pending full Cloud Vision integration
         return { ok: true, value: { fullTextAnnotation: { text: "Simulated OCR Text" } } };
     }
@@ -54,7 +54,7 @@ export class GoogleServices {
     /**
      * Placeholder: Analyze entities using Google Natural Language API
      */
-    async analyzeEntities(text: string): Promise<Result<any>> {
+    async analyzeEntities(_text: string): Promise<Result<any>> {
         return { ok: true, value: { entities: [] } };
     }
 

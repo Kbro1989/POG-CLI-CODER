@@ -13,7 +13,10 @@ import pino from 'pino';
 import { TSCMonitor, TSCError } from './TSCMonitor.js';
 import { ASTWatcher } from '../watcher/ASTWatcher.js';
 import { ModelExecutor } from '../core/ModelExecutor.js';
-import type { VibeConfig } from '../core/models.js';
+import { HealthRegistry } from '../core/HealthRegistry.js';
+import { SystemEnvChecker } from '../utils/SystemEnvChecker.js';
+import { SelfHealingEngine, ExecutionPlan } from './SelfHealingEngine.js';
+import type { VibeConfig, Ternary } from '../core/models.js';
 
 const logger = pino({
     name: 'MonitorAgent',
@@ -38,6 +41,7 @@ export interface MonitorReport {
 export class MonitorAgent extends EventEmitter {
     private tscMonitor: TSCMonitor;
     private astWatcher: ASTWatcher;
+    private selfHealingEngine: SelfHealingEngine;
     private isRunning: boolean = false;
     private healthCheckInterval?: NodeJS.Timeout;
 
@@ -53,6 +57,7 @@ export class MonitorAgent extends EventEmitter {
         this.SNAPSHOT_MODEL = config.snapshotModel || process.env['VIBE_SNAPSHOT_MODEL'] || 'qwen2.5-coder:7b-instruct-q4_K_M';
         this.tscMonitor = new TSCMonitor(config.projectRoot);
         this.astWatcher = new ASTWatcher(config);
+        this.selfHealingEngine = new SelfHealingEngine(config.projectRoot, executor, this.SNAPSHOT_MODEL);
     }
 
     override on<K extends keyof MonitorAgentEvents>(
@@ -168,14 +173,76 @@ Respond with ONLY: tsc, build, or ignore`;
     }
 
     private async performHealthCheck(): Promise<void> {
+        // 1. Check TSC Errors
         const currentErrors = this.tscMonitor.getCurrentErrors();
+        if (currentErrors.length > 0) {
+            logger.debug({ errorCount: currentErrors.length }, 'Health check: TSC issues present');
+        }
 
-        if (currentErrors.length === 0) {
+        // 2. Check Service Health via Registry
+        const registry = HealthRegistry.getInstance();
+        const services = ['gemini', 'cloudflare', 'sovereign-shell'];
+
+        for (const serviceId of services) {
+            const health = registry.getHealth(serviceId);
+            if (health.state !== 'READY') {
+                const report: MonitorReport = {
+                    timestamp: Date.now(),
+                    severity: health.state === 'CRITICAL_FAILURE' ? 'critical' : 'high',
+                    category: 'build-failure',
+                    description: `Sovereign Substrate Alert: Service [${serviceId}] is ${health.state}`,
+                    affectedFiles: [],
+                    suggestedAction: health.cooldownSeconds > 0
+                        ? `Wait for cooldown (${health.cooldownSeconds}s) or use local fallback`
+                        : 'Check API credentials or PATH configuration'
+                };
+                this.emit('issueDetected', report);
+            }
+        }
+
+        // 3. Check CLI Tool Readiness
+        const envStatus = await SystemEnvChecker.checkGlobalSettings();
+        const missingCLIs = envStatus.filter(s => s.source === 'path' && !s.active);
+
+        if (missingCLIs.length > 0) {
+            const report: MonitorReport = {
+                timestamp: Date.now(),
+                severity: 'medium',
+                category: 'build-failure',
+                description: `Missing Fallback Tools: ${missingCLIs.map(s => s.key).join(', ')}`,
+                affectedFiles: [],
+                suggestedAction: 'Install missing CLI tools or verify they are in your system PATH'
+            };
+            this.emit('issueDetected', report);
+        }
+
+        if (currentErrors.length === 0 && missingCLIs.length === 0) {
             this.emit('healthCheckPassed');
             logger.debug('Health check: All systems green');
-        } else {
-            logger.debug({ errorCount: currentErrors.length }, 'Health check: Issues present');
         }
+    }
+
+    /**
+     * Proactively diagnose the current substrate state.
+     * Returns a ternary decision: -1 (Critical), 0 (Patch), 1 (Continue)
+     */
+    async diagnoseState(plan?: ExecutionPlan): Promise<{ decision: Ternary; reasoning: string }> {
+        const errors = this.tscMonitor.getCurrentErrors();
+        if (errors.length === 0) {
+            return { decision: 1, reasoning: 'Substrate healthy. Zero TSC errors detected.' };
+        }
+
+        // Diagnosing the first error found (usually the primary blocker)
+        return await this.selfHealingEngine.diagnose(errors[0]!, plan);
+    }
+
+    /**
+     * Internal interference check for the Orchestrator loop.
+     */
+    async checkInterference(plan?: ExecutionPlan): Promise<{ decision: Ternary; reasoning: string } | null> {
+        const result = await this.diagnoseState(plan);
+        if (result.decision === 1) return null; // No interference
+        return result;
     }
 
     stop(): void {

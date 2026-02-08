@@ -1,21 +1,103 @@
 
 const wsHost = 'ws://localhost:8765';
-let ws;
+const RELAY_URL = "wss://antigravity-bridge-relay.kristain33rs.workers.dev/bridge/1"; // Default Relay
+const APP_ID = "1";
 
-function connect() {
-    ws = new WebSocket(wsHost);
+// Ternary Connection State
+const CS = {
+    DISCONNECTED: -1,
+    CONNECTING: 1,
+    CONNECTED_LOCAL: 0,
+    CONNECTED_RELAY: 2
+};
+let connectionState = CS.DISCONNECTED;
+let ws;
+let retryCount = 0;
+
+function updateConnectionUI(state) {
     const dot = document.getElementById('ws-status');
     const text = document.getElementById('ws-text');
+    
+    dot.className = 'status-dot'; // reset
+    
+    switch(state) {
+        case CS.CONNECTED_LOCAL:
+            dot.classList.add('online');
+            text.innerText = 'Local Neural Link';
+            break;
+        case CS.CONNECTED_RELAY:
+            dot.classList.add('relay');
+            dot.style.backgroundColor = '#f38020'; // Cloudflare Orange
+            text.innerText = 'Cloud Relay Active';
+            break;
+        case CS.CONNECTING:
+            dot.classList.add('connecting');
+            dot.style.backgroundColor = '#ffff00';
+            text.innerText = 'Establishing Link...';
+            break;
+        case CS.DISCONNECTED:
+        default:
+            dot.classList.remove('online');
+            dot.style.backgroundColor = '#ff0000';
+            text.innerText = 'Link Severed';
+            break;
+    }
+}
+
+function connectLocal() {
+    connectionState = CS.CONNECTING;
+    updateConnectionUI(connectionState);
+    
+    ws = new WebSocket(wsHost);
 
     ws.onopen = () => {
-        dot.classList.add('online'); text.innerText = 'Connected';
+        retryCount = 0;
+        connectionState = CS.CONNECTED_LOCAL;
+        updateConnectionUI(connectionState);
         ws.send(JSON.stringify({ type: 'control', command: 'requestState' }));
     };
+
     ws.onclose = () => {
-        dot.classList.remove('online'); text.innerText = 'Disconnected';
-        setTimeout(connect, 3000);
+        if (connectionState === CS.CONNECTED_LOCAL) {
+            console.log("Local connection lost. Retrying...");
+        }
+        connectionState = CS.DISCONNECTED;
+        updateConnectionUI(connectionState);
+        // Exponential backoff for local, then failover to relay? 
+        // For now, robust local retry then maybe relay manual toggle.
+        setTimeout(connectLocal, Math.min(1000 * (2 ** retryCount++), 10000));
     };
+
     ws.onmessage = (event) => handleMessage(JSON.parse(event.data));
+    ws.onerror = (err) => console.error("Local WS Error:", err);
+}
+
+// Function to switch to Cloud Relay (User Triggered)
+function connectRelay() {
+   if (ws) ws.close();
+   connectionState = CS.CONNECTING;
+   updateConnectionUI(connectionState);
+
+   const relayUrlWithRole = RELAY_URL.includes('?') ? `${RELAY_URL}&role=agent` : `${RELAY_URL}?role=agent`;
+   ws = new WebSocket(relayUrlWithRole);
+   
+   ws.onopen = () => {
+       connectionState = CS.CONNECTED_RELAY;
+       updateConnectionUI(connectionState);
+       ws.send(JSON.stringify({ type: 'system', data: `Agent ID ${APP_ID} Dashboard Online` }));
+   };
+
+   ws.onclose = () => {
+       connectionState = CS.DISCONNECTED;
+       updateConnectionUI(connectionState);
+   };
+   
+   ws.onmessage = (event) => handleMessage(JSON.parse(event.data));
+}
+
+function connect() {
+    // Default to local
+    connectLocal();
 }
 
 function handleMessage(msg) {

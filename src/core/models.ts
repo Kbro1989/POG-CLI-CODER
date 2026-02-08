@@ -85,6 +85,14 @@ export interface CircuitBreakerState {
   readonly cooldownMs: number;
 }
 
+export type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE';
+
+export interface HealthReport {
+  readonly state: ServiceHealthState;
+  readonly cooldownSeconds: number;
+  readonly message?: string;
+}
+
 export interface FreeModelConfig {
   readonly name: string;
   readonly command: string;
@@ -98,6 +106,7 @@ export interface FreeModelConfig {
     readonly isAvailable: boolean;
     readonly circuitLevel: Ternary; // -1: Failing, 0: Degrading, 1: Healthy
     readonly lastLatency?: number | undefined;
+    readonly cooldownSeconds?: number;
   };
 }
 
@@ -237,6 +246,8 @@ export interface VibeConfig {
   readonly embeddingDimensions: number;
   readonly logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error';
   readonly projectId: string;
+  readonly ollamaModelsPath?: string | undefined;
+  readonly gutenbergPath?: string | undefined;
   readonly errorTrackerModelPath?: string | undefined;
   readonly workspaces?: string[];
   readonly enabledServices: string[];
@@ -309,6 +320,29 @@ export interface Execution {
   readonly data?: any;
   readonly filesModified?: ReadonlyArray<string>;
   readonly commandsRun?: ReadonlyArray<string>;
+}
+
+export interface ExecutionStep {
+  readonly tool: string;
+  readonly args: string[];
+  readonly reasoning: string;
+  readonly rollback?: string;
+}
+
+export interface ExecutionPlan {
+  readonly goal: string;
+  readonly steps: ReadonlyArray<ExecutionStep>;
+}
+
+export interface ExecutionContext {
+  readonly prompt: string;
+  readonly filePath?: string;
+  readonly sessionId: string;
+  readonly startTime: number;
+  plan?: ExecutionPlan;
+  currentStepId?: number;
+  readonly imageBase64?: string;
+  readonly force?: boolean;
 }
 
 export interface ModelResponse {

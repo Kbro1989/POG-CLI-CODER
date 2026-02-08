@@ -40,8 +40,14 @@
                     </section>
                     <section class="panel main-panel">
                         <h3><span class="icon">👁️</span> MODEL VIEWER</h3>
-                        <div id="viewer-canvas-container" class="canvas-box">
-                            <div class="placeholder">3D Engine Initializing...</div>
+                        <div id="viewer-canvas-container" class="canvas-box premium-loader">
+                            <div class="cube-loader">
+                                <div class="cube cube1"></div>
+                                <div class="cube cube2"></div>
+                                <div class="cube cube3"></div>
+                                <div class="cube cube4"></div>
+                            </div>
+                            <div class="loader-text">NEURAL ENGINE ACTIVE</div>
                         </div>
                     </section>
                     <section class="panel side-panel">
@@ -154,14 +160,6 @@
                         <div class="settings-grid">
                             
                                 <div class="setting-item">
-                                    <label>GEMINI</label>
-                                    <label class="switch">
-                                        <input type="checkbox" checked onchange="toggleService('gemini', this.checked)">
-                                        <span class="slider round"></span>
-                                    </label>
-                                </div>
-                            
-                                <div class="setting-item">
                                     <label>OLLAMA</label>
                                     <label class="switch">
                                         <input type="checkbox" checked onchange="toggleService('ollama', this.checked)">
@@ -221,6 +219,38 @@
                                     <label>DASHBOARD</label>
                                     <label class="switch">
                                         <input type="checkbox" checked onchange="toggleService('dashboard', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>HELP</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('help', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>VS</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('vs', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>VIBE</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('vibe', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>GEMINI</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('gemini', this.checked)">
                                         <span class="slider round"></span>
                                     </label>
                                 </div>

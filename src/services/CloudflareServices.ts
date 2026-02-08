@@ -22,7 +22,10 @@ export class CloudflareServices {
     private apiToken: string | undefined;
     private readonly baseUrl: string = 'https://api.cloudflare.com/client/v4/accounts';
 
+    private readonly config: CloudflareConfig;
+
     constructor(config: CloudflareConfig) {
+        this.config = config;
         this.accountId = config.accountId;
         this.apiToken = config.apiToken;
     }
@@ -55,14 +58,15 @@ export class CloudflareServices {
     }
 
     /**
-     * Run a Workers AI model with free-tier prioritization
+     * Run a Workers AI model with free-tier prioritization and Universal Hub support
      */
     async runAi<T = any>(model: string, input: any): Promise<Result<T>> {
         if (!this.accountId || !this.apiToken) {
             return { ok: false, error: new Error('Cloudflare credentials missing') };
         }
 
-        const url = `${this.baseUrl}/${this.accountId}/ai/run/${model}`;
+        // Prefer Universal Hub if configured via gatewayUrl
+        const url = this.getHubUrl(`ai/run/${model}`);
 
         try {
             const response = await fetch(url, {
@@ -75,20 +79,142 @@ export class CloudflareServices {
             });
 
             if (!response.ok) {
-                const errorData = await response.json() as any;
-                const message = errorData?.errors?.[0]?.message || `Cloudflare API error: ${response.status}`;
+                const errorData = await response.json().catch(() => ({})) as any;
+                const message = errorData?.errors?.[0]?.message || errorData?.error || `Cloudflare error: ${response.status}`;
                 return { ok: false, error: new Error(message) };
             }
 
-            const data = await response.json() as any;
-            if (!data.success) {
-                return { ok: false, error: new Error(data.errors?.[0]?.message || 'Cloudflare AI execution failed') };
+            const contentType = response.headers.get('content-type');
+            if (contentType?.includes('image/')) {
+                const buffer = await response.arrayBuffer();
+                return { ok: true, value: Buffer.from(buffer) as any };
             }
 
-            return { ok: true, value: data.result };
+            const data = await response.json() as any;
+
+            // Standard API returns { success, result, ... }, Hub might return direct result
+            if (data.success === false) {
+                return { ok: false, error: new Error(data.errors?.[0]?.message || 'Execution failed') };
+            }
+
+            return { ok: true, value: (data.result !== undefined ? data.result : data) as T };
         } catch (error) {
             return { ok: false, error: error as Error };
         }
+    }
+
+    /**
+     * Call a deterministic Ghost Limb task
+     */
+    async runGhostLimb<T = any>(task: string, input: any): Promise<Result<T>> {
+        const url = this.getHubUrl(`deterministic/${task}`);
+        if (!url.includes('workers.dev') && !url.includes('localhost')) {
+            return { ok: false, error: new Error('Universal Hub URL required for Ghost Limb tasks') };
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.apiToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(input)
+            });
+
+            if (!response.ok) throw new Error(`Ghost Hub failed: ${response.status}`);
+            const data = await response.json() as T;
+            return { ok: true, value: data };
+        } catch (error) {
+            return { ok: false, error: error as Error };
+        }
+    }
+
+    private getHubUrl(path: string): string {
+        const base = this.config.gatewayUrl || `${this.baseUrl}/${this.accountId}/`;
+        return base.endsWith('/') ? `${base}${path}` : `${base}/${path}`;
+    }
+
+    /**
+     * Store object in R2 bucket
+     */
+    async putObject(bucket: string, key: string, data: string | Uint8Array, contentType: string): Promise<Result<void>> {
+        if (!this.accountId || !this.apiToken) return { ok: false, error: new Error('Missing CF credentials') };
+
+        const url = `${this.baseUrl}/${this.accountId}/r2/buckets/${bucket}/objects/${key}`;
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${this.apiToken}`,
+                    'Content-Type': contentType
+                },
+                body: data
+            });
+
+            if (!response.ok) {
+                const err = await response.text();
+                return { ok: false, error: new Error(`R2 Upload failed: ${response.status} - ${err}`) };
+            }
+
+            return { ok: true, value: undefined };
+        } catch (error) {
+            return { ok: false, error: error as Error };
+        }
+    }
+
+    /**
+     * Retrieve object from R2 bucket
+     */
+    async getObject(bucket: string, key: string): Promise<Result<Uint8Array>> {
+        if (!this.accountId || !this.apiToken) return { ok: false, error: new Error('Missing CF credentials') };
+
+        const url = `${this.baseUrl}/${this.accountId}/r2/buckets/${bucket}/objects/${key}`;
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.apiToken}`
+                }
+            });
+
+            if (!response.ok) {
+                return { ok: false, error: new Error(`R2 Download failed: ${response.status}`) };
+            }
+
+            return { ok: true, value: new Uint8Array(await response.arrayBuffer()) };
+        } catch (error) {
+            return { ok: false, error: error as Error };
+        }
+    }
+
+    /**
+     * Edge-Baking: Use Cloudflare Workers AI for high-speed procedural generation (Boilerplate, Styles, etc.)
+     */
+    async edgeBake(prompt: string, type: 'style' | 'markup' | 'logic'): Promise<Result<string>> {
+        const systemPrompt = `You are an Edge Procedural Generator. Output ONLY raw ${type} code. No markdown, no explanations.`;
+        const primaryModel = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+        const fallbackModel = '@cf/meta/llama-3.1-8b-instruct';
+
+        let result = await this.runAi(primaryModel, {
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: prompt }
+            ]
+        });
+
+        if (!result.ok) {
+            logger.warn({ model: primaryModel, error: result.error.message }, 'Edge-Bake primary model failed - falling back to 8B');
+            result = await this.runAi(fallbackModel, {
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: prompt }
+                ]
+            });
+        }
+
+        if (!result.ok) return result;
+        return { ok: true, value: result.value.response || '' };
     }
 
     /**

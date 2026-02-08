@@ -1,13 +1,3 @@
-/**
- * Free Model Router with Strategy Pattern (Google Golden Standard)
- * 
- * Composition:
- * - OverrideStrategy: Direct mapping for high-certainty intents
- * - ComplexityStrategy: Neural ternary decision tree
- * - FallbackStrategy: Resilient circuit-breaker mapping
- * - SemanticStrategy: Massively scalable dynamic model inventory
- */
-
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import pino from 'pino';
@@ -16,138 +6,40 @@ import { ModelInventory } from './ModelInventory.js';
 import type {
   ModelPerformance,
   CircuitBreakerState,
-  Result,
   FreeModelConfig,
-  TernaryNode,
-  RawRoutingContext,
-  AssessedRoutingContext,
   Ternary,
-  RoutingDecision,
   CircuitState,
-  VibeConfig
 } from './models.js';
-import { CircuitState as CS, TaskType as TT, ModelType as MT, ModelAbility as MA } from './models.js';
+import { CircuitState as CS, ModelType as MT, ModelAbility as MA } from './models.js';
 import { ContextBuilder } from '../context/ContextBuilder.js';
 import { VectorDB } from '../learning/VectorDB.js';
 import { GeminiService } from './GeminiService.js';
 import { TaskClassifier } from './TaskClassifier.js';
 import { ArchitectureDigest } from './ArchitectureDigest.js';
+import type { Result, VibeConfig } from './models.js';
+
+// Modular Routing Implementation
+import { CompositeStrategy } from '../routing/strategies/CompositeStrategy.js';
+import { OverrideStrategy } from '../routing/strategies/OverrideStrategy.js';
+import { AnalyticalStrategy } from '../routing/strategies/AnalyticalStrategy.js';
+import { TernaryClassifierStrategy } from '../routing/strategies/TernaryClassifierStrategy.js';
+import { FallbackStrategy } from '../routing/strategies/FallbackStrategy.js';
+import { DefaultStrategy } from '../routing/strategies/DefaultStrategy.js';
+import type { RoutingContext } from '../routing/types.js';
 
 const logger = pino({
   name: 'Router',
   base: { hostname: 'POG-VIBE' }
 });
 
-export interface RoutingContext extends AssessedRoutingContext {
-  availableModels: ReadonlyArray<FreeModelConfig>;
-}
-
-export interface IRoutingStrategy {
-  decide(ctx: RoutingContext): RoutingDecision | null;
-}
-
-/**
- * Strategy 1: Override Strategy
- */
-class OverrideStrategy implements IRoutingStrategy {
-  decide(ctx: RoutingContext): RoutingDecision | null {
-    const prompt = ctx.prompt.toLowerCase();
-
-    if (prompt.length < 25 && /\b(health|status|audit|check|verify|ping)\b/.test(prompt)) {
-      return {
-        modelName: 'gemini-flash',
-        path: [-1],
-        reason: 'Override: Rapid health/status check',
-        candidateConfidence: 1.0,
-        regretLikelihood: 0.01,
-        philosophy: {
-          couldBe: 'gemini-3-pro-preview',
-          shouldBe: 'gemini-flash',
-          shouldNotBe: ['ollama-local']
-        }
-      };
-    }
-
-    if (/\b(wrangler|gcloud|deploy|production|critical|security|auth|secrets|env)\b/.test(prompt)) {
-      return {
-        modelName: 'gemini-3-pro-preview',
-        path: [1],
-        reason: 'Override: High-stakes DevOps/Security target',
-        candidateConfidence: 0.95,
-        regretLikelihood: 0.02,
-        philosophy: {
-          couldBe: 'gemini-thinking',
-          shouldBe: 'gemini-3-pro-preview',
-          shouldNotBe: ['low-tier-local']
-        }
-      };
-    }
-
-    if (ctx.weightedTasks[TT.Architecture] > 0.8 || ctx.weightedTasks[TT.APIOrchestration] > 0.8) {
-      return {
-        modelName: 'gemini-thinking',
-        path: [1],
-        reason: 'Override: Extreme abstract complexity',
-        candidateConfidence: 0.9,
-        regretLikelihood: 0.05,
-        philosophy: {
-          couldBe: 'gemini-thinking',
-          shouldBe: 'gemini-thinking',
-          shouldNotBe: ['non-thinking-models']
-        }
-      };
-    }
-
-    return null;
-  }
-}
-
-/**
- * Strategy 2: Complexity Strategy
- */
-class ComplexityStrategy implements IRoutingStrategy {
-  constructor(private router: FreeModelRouter, private tree: TernaryNode) { }
-
-  decide(ctx: RoutingContext): RoutingDecision | null {
-    return this.router.traverseTree(this.tree, ctx);
-  }
-}
-
-/**
- * Strategy 3: Fallback Strategy
- */
-class FallbackStrategy implements IRoutingStrategy {
-  decide(_ctx: RoutingContext): RoutingDecision | null {
-    return null;
-  }
-}
-
-/**
- * Strategy 4: Semantic Strategy
- */
-class SemanticStrategy implements IRoutingStrategy {
-  constructor(_router: FreeModelRouter, _db: VectorDB) { }
-
-  decide(ctx: RoutingContext): RoutingDecision | null {
-    // Only use semantic search for high complexity or specialized tasks
-    if (ctx.complexity < 1 && ctx.weightedTasks[TT.Esoteric] < 0.5) return null;
-
-    // This is a placeholder for V2 implementation where we'd do a vector search
-    // for models that match the prompt's intent. For now, we return null to 
-    // fall back to the Complexity Strategy which is our Gamma-standard workhorse.
-    return null;
-  }
-}
-
 export class FreeModelRouter {
   private readonly performanceDB: string;
   private readonly circuitBreakers: Map<string, CircuitBreakerState> = new Map();
-  private readonly strategies: IRoutingStrategy[] = [];
   private healthCache: ReadonlyArray<FreeModelConfig> | null = null;
   private lastHealthCheck = 0;
   private readonly HEALTH_TTL = 30000;
 
-  private readonly decisionTree: TernaryNode;
+  private readonly composite: CompositeStrategy;
   public contextBuilder: ContextBuilder;
   private readonly dynamicModels: FreeModelConfig[];
   private readonly gemini: GeminiService | undefined;
@@ -163,16 +55,16 @@ export class FreeModelRouter {
     this.dynamicModels = ModelInventory.getAvailableModels();
     vectorDB.indexModelRegistry(ModelInventory.getRegistry()).catch(err => logger.error({ err }, 'Failed to index models'));
 
-    this.decisionTree = this.buildDecisionTree();
-
-    this.strategies = [
+    // Modularized Composite Chain
+    this.composite = new CompositeStrategy([
       new OverrideStrategy(),
-      new ComplexityStrategy(this, this.decisionTree),
-      new SemanticStrategy(this, vectorDB),
-      new FallbackStrategy()
-    ];
+      new AnalyticalStrategy(),
+      new TernaryClassifierStrategy(),
+      new FallbackStrategy(),
+      new DefaultStrategy()
+    ]);
 
-    logger.info({ pogDir: config.pogDir, modelCount: this.getAllModels().length }, 'Router Strategy Chain established');
+    logger.info({ pogDir: config.pogDir, modelCount: this.getAllModels().length }, 'Modular Router Substrate initialized');
   }
 
   private getAllModels(): ReadonlyArray<FreeModelConfig> {
@@ -185,45 +77,22 @@ export class FreeModelRouter {
     }
   }
 
-  private buildDecisionTree(): TernaryNode {
-    const leaf = (modelName: string): TernaryNode => ({ kind: 'leaf', modelName });
-
-    return {
-      kind: 'branch',
-      description: 'Assess initial complexity state',
-      condition: (ctx) => ctx.complexity,
-
-      left: {
-        kind: 'branch',
-        description: 'Optimize for speed/syntax (Local Preferred)',
-        condition: (ctx) => ctx.weightedTasks[TT.Syntax] > 0.7 ? -1 : 0,
-        left: leaf('qwen2.5-coder:7b-instruct-q4_K_M'),
-        center: leaf('yi-coder:9b-chat-q5_K_M'),
-        right: leaf('gemini-2.0-flash') // Flash 2.0 is the new stable workhorse
-      },
-
-      center: {
-        kind: 'branch',
-        description: 'Moderate Complexity (Cloudflare Intermediate Tier)',
-        condition: (ctx) => this.checkCircuitHealth(ctx),
-        left: leaf('yi-coder:9b-chat-q5_K_M'),
-        center: leaf('@cf/meta/llama-3.1-8b-instruct-fp8'), // Cloudflare edge tier
-        right: leaf('gemini-2.0-flash')
-      },
-
-      right: {
-        kind: 'branch',
-        description: 'High Complexity / Architecture (Pro Tier)',
-        condition: (ctx) => (ctx.weightedTasks[TT.Architecture] > 0.4 || ctx.weightedTasks[TT.Generate] > 0.4) ? 1 : 0,
-        left: leaf('@cf/meta/llama-3.1-8b-instruct-fp8'),
-        center: leaf('gemini-3-pro-preview'),
-        right: leaf('gemini-3-pro-preview')
-      }
-    };
-  }
-
-  async route(prompt: string, filePath?: string): Promise<Result<string>> {
+  async route(input: string | RoutingContext): Promise<Result<string>> {
     try {
+      const routingContext: RoutingContext = typeof input === 'string'
+        ? {
+          prompt: input,
+          weightedTasks: TaskClassifier.analyzeProbabilities(input),
+          complexity: 0,
+          availableModels: [],
+          metadata: { projectRoot: this.config.projectRoot }
+        }
+        : input;
+
+      const prompt = routingContext.prompt;
+      const filePath = routingContext.metadata?.['filePath'] as string | undefined;
+
+      // Sovereign SENSE: Layer 1 intelligence
       const weightedTasks = TaskClassifier.analyzeProbabilities(prompt);
       const availableModels = this.getModelHealthGrid();
 
@@ -236,185 +105,44 @@ export class FreeModelRouter {
         ? await TaskClassifier.assessComplexityAI(prompt, this.gemini)
         : staticComplexity;
 
-      // 3x3x3 Ternary Pipeline: Phase 1 - Sovereign SENSE
       const lessons = await this.contextBuilder.queryLessons(prompt);
-      const regretBias = this.calculateRegretBias(lessons);
-
-      // Cluster Intelligence Helpers (Sensing)
       const architectureDigest = new ArchitectureDigest(this.config.projectRoot);
       const architectureAlignment = this.contextBuilder.getArchitectureAlignment(prompt, architectureDigest.getManifest());
       const goldenTemplates = await this.contextBuilder.getGoldenTemplates(prompt);
 
-      const rawContext: RawRoutingContext = {
-        prompt,
-        weightedTasks,
-        extension: filePath?.split('.').pop() ?? '',
-        fileSize: filePath ? this.getFileSize(filePath) : undefined,
-        historicalPerformance: this.loadPerformanceHistory(),
-        availableModels,
-        architectureAlignment,
-        goldenTemplates
-      };
+      // Populate rich context for modular strategies (Ultimate Cognitive Upgrade)
+      routingContext.weightedTasks = weightedTasks;
+      routingContext.extension = filePath?.split('.').pop() ?? '';
+      routingContext.complexity = complexity;
+      routingContext.availableModels = [...availableModels];
+      routingContext.architectureAlignment = architectureAlignment;
+      routingContext.goldenTemplates = goldenTemplates;
+      routingContext.historicalPerformance = [...this.loadPerformanceHistory()];
+      routingContext.lessons = lessons;
 
-      // Cluster Intelligence Helpers (Thinking)
-      const resourceRisk = this.runResourceFutureCheck(availableModels);
-      const preMortemBias = this.runAdversarialPreMortem(prompt, weightedTasks);
+      // Phase 2 - Modular Routing Chain (Parallel THINK/Synthesis happens inside)
+      const decision = await this.composite.route(routingContext);
 
-      const context: RoutingContext = {
-        ...rawContext,
-        complexity,
-        availableModels
-      };
-
-      // Phase 2 - Parallel THINK (Simulations biased by lessons + Cluster Helpers)
-      const simulationBias = (regretBias + resourceRisk + preMortemBias) as Ternary;
-      const simulations = await this.performSimulations(context, simulationBias);
-
-      let decision: RoutingDecision | null = null;
-      for (const strategy of this.strategies) {
-        decision = strategy.decide(context);
-        if (decision) break;
+      if (!decision) {
+        return { ok: false, error: new Error('Routing chain failed to produce a decision.') };
       }
 
-      // Phase 3 - Synthesis (The optimal "Should Be")
-      const modelName = this.synthesizeDecision(decision, simulations);
-      const finalModel = this.applyCircuitBreaker(modelName, availableModels, complexity);
+      // Phase 3 - Resilience Application
+      const finalModel = this.applyCircuitBreaker(decision.model, availableModels, complexity as Ternary);
 
       logger.info({
-        decision: modelName,
-        simulations: simulations.map(s => s.modelName),
-        regretBias,
-        strategy: decision?.reason || 'default',
-        complexity: complexity,
-        finalSelected: finalModel
-      }, 'Sovereign Routing Synthesis complete');
+        input: prompt.substring(0, 50) + '...',
+        selected: finalModel,
+        reasoning: decision.metadata.reasoning,
+        source: decision.metadata.source,
+        complexity
+      }, 'Sovereign Routing complete');
 
       return { ok: true, value: finalModel };
     } catch (err) {
-      logger.error({ err }, 'Routing failed');
+      logger.error({ err }, 'Routing execution failed');
       return { ok: false, error: err as Error };
     }
-  }
-
-  /**
-   * Performs 3 parallel "thought processes" (Simulations)
-   */
-  private async performSimulations(ctx: RoutingContext, regretBias: Ternary): Promise<RoutingDecision[]> {
-    // 3 biases: Defensive (-1), Balanced (0), Exploratory (1)
-    // Plus the historical regret bias
-    const biases: Ternary[] = [-1, 0, 1];
-    return biases.map(bias => {
-      // Blend the bias with the regret lesson (Ternary math)
-      const blendedComplexity = Math.max(-1, Math.min(1, bias + regretBias)) as Ternary;
-      const simulatedCtx = { ...ctx, complexity: blendedComplexity };
-      return this.traverseTree(this.decisionTree, simulatedCtx);
-    });
-  }
-
-  /**
-   * Decision Synthesis: Best Route or Combined Best
-   */
-  private synthesizeDecision(primary: RoutingDecision | null, simulations: RoutingDecision[]): string {
-    if (primary && primary.candidateConfidence > 0.95) return primary.modelName;
-
-    // Pick based on highest collective intelligence (priority/regret balance)
-    const sorted = [...simulations].sort((a, b) =>
-      (b.candidateConfidence - b.regretLikelihood) - (a.candidateConfidence - a.regretLikelihood)
-    );
-    return sorted[0]?.modelName || primary?.modelName || 'gemini-2.0-flash';
-  }
-
-  /**
-   * THINK HELPER: Resource Futurist
-   * Adjusts simulation bias based on real-time circuit health.
-   */
-  private runResourceFutureCheck(availableModels: ReadonlyArray<FreeModelConfig>): Ternary {
-    const unhealthyModels = availableModels.filter(m => m.health && m.health.lastLatency && m.health.lastLatency > 5000);
-    if (unhealthyModels.length > availableModels.length / 2) {
-      logger.warn('Resource Futurist: High latency detected across cluster, shifting to Defensive bias.');
-      return -1; // Force defensive bias
-    }
-    return 0;
-  }
-
-  /**
-   * THINK HELPER: Adversarial Pre-Mortem
-   * Predicts likely failure modes and biases toward robustness.
-   */
-  private runAdversarialPreMortem(prompt: string, tasks: Record<string, number>): Ternary {
-    const highStakes = (tasks[TT.Architecture] || 0) > 0.7 || (tasks[TT.APIOrchestration] || 0) > 0.7;
-    const isVague = prompt.length < 50;
-
-    if (highStakes || isVague) {
-      logger.info('Adversarial Pre-Mortem: High stakes or vague intent detected, shifting to Exploratory robustness.');
-      return 1; // Force exploratory bias
-    }
-    return 0;
-  }
-
-  /**
-   * Analyzes past lessons to derive a complexity bias
-   */
-  private calculateRegretBias(lessons: any[]): Ternary {
-    if (lessons.length === 0) return 0;
-
-    // Average regret of similar past tasks
-    const avgRegret = lessons.reduce((acc, l) => acc + (l.regretLikelihood || 0), 0) / lessons.length;
-
-    if (avgRegret > 0.6) return 1;  // High regret: push for higher complexity/intelligence
-    if (avgRegret < 0.2) return -1; // Low regret: push for speed/efficiency
-    return 0;
-  }
-
-  public traverseTree(
-    node: TernaryNode,
-    context: AssessedRoutingContext,
-    path: Ternary[] = [],
-    reasons: string[] = []
-  ): RoutingDecision {
-    if (node.kind === 'leaf') {
-      const confidence = 1.0 - (path.filter(p => p === 0).length * 0.2);
-      const regret = context.complexity > 0 && node.modelName.includes('7b') ? 0.8 : 0.1;
-
-      // Sovereign Philosophy: Identifying alternatives
-      const availableModels = context.availableModels;
-      const couldBe = availableModels
-        .filter(m => m.health?.isAvailable)
-        .sort((a, b) => b.priority - a.priority)[0]?.name || 'gemini-3-pro-preview';
-
-      const shouldBe = node.modelName;
-      const shouldNotBe = availableModels
-        .filter(m => !m.health?.isAvailable || m.health?.circuitLevel === -1)
-        .map(m => m.name);
-
-      return {
-        modelName: node.modelName,
-        path: path,
-        reason: reasons.length > 0 ? reasons.join(' -> ') : `Defaulted to leaf: ${node.modelName}`,
-        candidateConfidence: confidence,
-        regretLikelihood: regret,
-        philosophy: {
-          couldBe,
-          shouldBe,
-          shouldNotBe
-        }
-      };
-    }
-
-    const decision = node.condition(context);
-    const nextNode = decision < 0 ? node.left : decision === 0 ? node.center : node.right;
-    const currentReason = node.description ? `${node.description} [${decision}]` : `Branch [${decision}]`;
-
-    return this.traverseTree(nextNode, context, [...path, decision], [...reasons, currentReason]);
-  }
-
-  private checkCircuitHealth(ctx: AssessedRoutingContext): Ternary {
-    const healthScores = ctx.availableModels.map(m => m.health?.circuitLevel ?? 1);
-    const averageHealth = healthScores.length > 0 ? healthScores.reduce<number>((a, b) => a + b, 0) / healthScores.length : 1;
-
-    if (averageHealth > 0.6) return 1;
-    if (averageHealth > -0.2) return 0;
-    return -1;
   }
 
   private getModelHealthGrid(): ReadonlyArray<FreeModelConfig> {
@@ -486,14 +214,10 @@ export class FreeModelRouter {
         if (bestCandidate) return bestCandidate.name;
       }
 
-      const staticFallback = this.getAllModels().find(m => m.name === model)?.fallback ?? 'gemini-flash';
+      const staticFallback = this.getAllModels().find(m => m.name === model)?.fallback ?? 'gemini-2.0-flash';
       return available.some(m => m.name === staticFallback) ? staticFallback : (available[0]?.name ?? model);
     }
     return model;
-  }
-
-  private getFileSize(path: string): number {
-    try { return readFileSync(path).length; } catch { return 0; }
   }
 
   private loadPerformanceHistory(): ReadonlyArray<ModelPerformance> {

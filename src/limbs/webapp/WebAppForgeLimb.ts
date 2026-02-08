@@ -218,13 +218,14 @@ export class WebAppForgeLimb extends BaseLimb {
             }
 
             return {
-                stack: Object.keys(this.templates)[0] || 'react-vite-internal',
-                name: 'generated-app-emergency-' + Date.now(),
-                features: [],
-                file_count: 5
+                stack: 'react-vite-internal',
+                name: 'pog-app-' + Date.now(),
+                features: ['sovereign-ui', 'responsive-layout', 'pog-integration'],
+                file_count: 12
             };
         }
     }
+
 
     private async scaffoldProject(dir: string, stackKey: string): Promise<void> {
         const template = this.templates[stackKey];

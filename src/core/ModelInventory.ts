@@ -27,24 +27,30 @@ export class ModelInventory {
             if (isLocal) command = `ollama run ${modelId}`;
             else if (isCloudflare) command = `cloudflare:run ${modelId}`;
 
-            // Determine Priority & Fallback
+            // Determine Priority & Dynamic Fallback
             let priority = id.startsWith('gold_') ? 90 : 50;
-            let fallback: string | undefined = 'gold_gemini_3_flash';
-
             if (id.includes('pro')) priority = 100;
             if (id.includes('flash')) priority = 80;
 
-            // Tiered Fallback Logic
-            if (isGemini) fallback = (id.includes('pro')) ? 'gold_gemini_3_flash' : 'gold_cloudflare_llama_3_1';
-            if (isCloudflare) fallback = 'gold_qwen_2_5_coder_7b';
-            if (isLocal) fallback = 'gold_gemini_3_flash'; // Local failure jumps to cloud-flash
+            // Tiered Fallback Logic (Capability-aware)
+            let fallback: string | undefined;
+            if (isLocal) {
+                // Local fallback jumps to Cloudflare or Gemini based on task
+                fallback = (taskType === 'image' || taskType === 'vision') ? 'gold_cloudflare_flux_dev' : 'gold_gemini_3_flash';
+            } else if (isCloudflare) {
+                // Cloudflare fallback jumps to Gemini Pro or Flash
+                fallback = (id.includes('flux') || id.includes('vision')) ? 'gold_gemini_3_flash' : 'gold_gemini_pro';
+            } else if (isGemini) {
+                // Gemini Pro falls back to Flash; Flash falls back to Cloudflare Llama
+                fallback = (id.includes('pro')) ? 'gold_gemini_3_flash' : 'gold_cloudflare_llama_3_1';
+            }
 
             return {
                 name: modelId,
                 command,
                 type,
                 capabilities: [taskType, 'agentic'],
-                fallback,
+                fallback: fallback || 'gold_gemini_3_flash', // Ultimate default
                 maxTokens: id.includes('pro') ? 128000 : 32768,
                 priority,
                 health: {
@@ -54,6 +60,7 @@ export class ModelInventory {
             } as FreeModelConfig;
         });
     }
+
 
     /**
      * Helper to get full map for indexing

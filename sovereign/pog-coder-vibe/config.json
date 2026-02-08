@@ -1,6 +1,6 @@
 {
   "pogDir": "D:\\pog-coder-vibe",
-  "projectRoot": "C:\\users\\destiny\\desktop\\projects\\new folder",
+  "projectRoot": "C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant",
   "agentName": "POG-VIBE-AGENT",
   "wsPort": 8765,
   "maxSnapshotAge": 86400000,
@@ -11,8 +11,9 @@
   "projectId": "TEST_ORCH",
   "workspaces": [],
   "errorTrackerModelPath": "D:\\ollama-models",
+  "ollamaModelsPath": "D:\\ollama-models",
+  "gutenbergPath": "",
   "enabledServices": [
-    "gemini",
     "ollama",
     "mcp_gitkraken",
     "healthcare",
@@ -20,7 +21,12 @@
     "vision",
     "mediaforge",
     "gutenberg",
-    "dashboard"
+    "dashboard",
+    "help",
+    "vs",
+    "vibe",
+    "gemini"
   ],
-  "cloudflareGatewayUrl": "https://gateway.ai.cloudflare.com/v1/6872653edcee9c787c1b783173793/pick-of-gods/workers-ai/run/"
+  "cloudflareGatewayUrl": "https://gateway.ai.cloudflare.com/v1/6872653edcee9c787c1b783173793/pick-of-gods/workers-ai/run/",
+  "sovereignRoot": "D:\\pog-coder-vibe"
 }

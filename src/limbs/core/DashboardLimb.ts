@@ -609,13 +609,18 @@ function updateHealthGauges(state) {
     document.getElementById('disk-gauge')?.setAttribute('stroke-dasharray', \`\${(diskPct / 100) * circumference} \${circumference}\`);
     
     // Update numeric labels
-    document.getElementById('cpu-pct')?.innerText = cpuPct.toFixed(0) + '%';
-    document.getElementById('mem-pct')?.innerText = memPct.toFixed(0) + '%';
-    document.getElementById('disk-pct')?.innerText = diskPct.toFixed(0) + '%';
+    const cpuEl = document.getElementById('cpu-pct');
+    if (cpuEl) cpuEl.innerText = cpuPct.toFixed(0) + '%';
+    const memEl = document.getElementById('mem-pct');
+    if (memEl) memEl.innerText = memPct.toFixed(0) + '%';
+    const diskEl = document.getElementById('disk-pct');
+    if (diskEl) diskEl.innerText = diskPct.toFixed(0) + '%';
     
     // Update footer
-    document.getElementById('cpu-load')?.innerText = cpuPct.toFixed(1) + '%';
-    document.getElementById('mem-usage')?.innerText = memPct.toFixed(1) + '%';
+    const cpuLoadEl = document.getElementById('cpu-load');
+    if (cpuLoadEl) cpuLoadEl.innerText = cpuPct.toFixed(1) + '%';
+    const memUsageEl = document.getElementById('mem-usage');
+    if (memUsageEl) memUsageEl.innerText = memPct.toFixed(1) + '%';
 
     // Update Environment Status
     if (state.envStatus) {

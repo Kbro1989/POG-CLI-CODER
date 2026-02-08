@@ -62,7 +62,7 @@ export class ModelExecutor {
             return this.callGeminiFallback(prompt, 'gemini-2.0-flash', tools);
         }
 
-        // 4. Execution Chain: Local -> Cloudflare -> Gemini
+        // 4. Execution Chain: Local -> Cloudflare -> Gemini -> Ghost Limb
         try {
             const response = await this.callOllama(model, prompt);
             return { ok: true, value: { model, response, latency: Date.now() - startTime } };
@@ -75,7 +75,29 @@ export class ModelExecutor {
 
             // Final fallback to Gemini
             this.logger.warn({ model, error: cfResult.error }, 'Cloudflare fallback failed, attempting Gemini');
-            return this.callGeminiFallback(prompt, undefined, tools);
+            try {
+                return await this.callGeminiFallback(prompt, undefined, tools);
+            } catch (geminiError) {
+                this.logger.error({ geminiError }, 'Gemini fallback failed, attempting Ghost Limb deterministic recovery');
+
+                // Final "Ghost" Fallback (Deterministic)
+                // We attempt to infer a task based on the prompt or model name
+                const task = model.includes('code') ? 'code-scaffold' : 'text-template';
+                const ghostResult = await this.callGhostLimb(task, { prompt });
+
+                if (ghostResult.ok) {
+                    return {
+                        ok: true,
+                        value: {
+                            model: `ghost:${task}`,
+                            response: ghostResult.value.result || JSON.stringify(ghostResult.value),
+                            latency: Date.now() - startTime
+                        }
+                    };
+                }
+
+                return { ok: false, error: geminiError as Error };
+            }
         }
     }
 
@@ -146,6 +168,31 @@ export class ModelExecutor {
         return { ok: true, value: data.text || JSON.stringify(data) };
     }
 
+    /**
+     * Call a deterministic "Ghost Limb" fallback in the Cloudflare Worker
+     */
+    async callGhostLimb(task: string, input: any): Promise<Result<any>> {
+        const gatewayUrl = this.config.cloudflareGatewayUrl;
+        if (!gatewayUrl) return { ok: false, error: new Error('Cloudflare AI Gateway URL not configured') };
+
+        try {
+            const finalUrl = gatewayUrl.endsWith('/') ? `${gatewayUrl}deterministic/${task}` : `${gatewayUrl}/deterministic/${task}`;
+            const response = await fetch(finalUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env['CLOUDFLARE_API_KEY'] || ''}`
+                },
+                body: JSON.stringify(input)
+            });
+
+            if (!response.ok) throw new Error(`Ghost Limb failed (${response.status})`);
+            return { ok: true, value: await response.json() };
+        } catch (error) {
+            return { ok: false, error: error as Error };
+        }
+    }
+
     private async callCloudflareGateway(
         prompt: string,
         model: string,
@@ -157,19 +204,10 @@ export class ModelExecutor {
         }
 
         try {
-            // Use the passed model if it looks like a Cloudflare ID (starts with @cf/),
-            // otherwise map models to Cloudflare equivalents
-            let cfModel = model.startsWith('@cf/') ? model : "@cf/meta/llama-3.1-8b-instruct";
+            // Use the passed model or a default
+            let cfModel = model.startsWith('@cf/') || model.startsWith('@hf/') ? model : "@cf/meta/llama-3.1-8b-instruct";
 
-            if (!model.startsWith('@cf/')) {
-                if (model.includes('qwen') || model.includes('coder')) {
-                    cfModel = "@cf/meta/llama-3.1-8b-instruct"; // Best coding fallback on CF
-                } else if (model.includes('vision')) {
-                    cfModel = "@cf/llmvic/llama-3-vision-8b-instruct";
-                }
-            }
-
-            const finalUrl = gatewayUrl.endsWith('/') ? `${gatewayUrl}${cfModel}` : `${gatewayUrl}/${cfModel}`;
+            const finalUrl = gatewayUrl.endsWith('/') ? `${gatewayUrl}ai/run/${cfModel}` : `${gatewayUrl}/ai/run/${cfModel}`;
             const response = await fetch(finalUrl, {
                 method: 'POST',
                 headers: {
@@ -177,14 +215,13 @@ export class ModelExecutor {
                     'Authorization': `Bearer ${process.env['CLOUDFLARE_API_KEY'] || ''}`
                 },
                 body: JSON.stringify({
-                    model: cfModel,
                     messages: [{ role: 'user', content: prompt }]
                 })
             });
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`Cloudflare Gateway failed (${response.status}): ${errorText}`);
+                throw new Error(`Cloudflare Hub failed (${response.status}): ${errorText}`);
             }
 
             const data = await response.json() as any;
@@ -197,7 +234,7 @@ export class ModelExecutor {
                 }
             };
         } catch (error) {
-            this.logger.error({ error }, 'Cloudflare AI Gateway fallback failed critically');
+            this.logger.error({ error }, 'Cloudflare Universal Hub call failed');
             return { ok: false, error: error as Error };
         }
     }
@@ -225,7 +262,9 @@ export class ModelExecutor {
 
     private async callOllama(model: string, prompt: string): Promise<string> {
         return new Promise((resolve, reject) => {
-            const ollamaPath = this.config.errorTrackerModelPath || 'D:\\ollama-models';
+            const ollamaPath = this.config.ollamaModelsPath ||
+                this.config.errorTrackerModelPath ||
+                'D:\\ollama-models';
             this.logger.info({ model, path: ollamaPath }, 'Invoking Ollama CLI with custom model path');
 
             const child = spawn('ollama', ['run', model, prompt], {

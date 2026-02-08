@@ -80,7 +80,7 @@ export const IntentMap: Record<string, IntentPathway[]> = {
         {
             id: 'clinical_radiology',
             description: 'Specialized clinical radiology and X-ray analysis',
-            targetCapabilityId: 'dynamic_radiology_foundations',
+            targetCapabilityId: 'medgemma:7b',
             keywords: ['medical', 'radiology', 'x-ray', 'clinical', 'health'],
             reasoning: 'Specialized medical models outperform general LLMs in diagnostics.'
         },
