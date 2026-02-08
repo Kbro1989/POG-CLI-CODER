@@ -37,6 +37,28 @@ export class GoogleServices {
     }
 
     /**
+     * Placeholder: Analyze image using Google Vision API (or simulated)
+     */
+    async analyzeImage(buffer: Buffer): Promise<Result<any>> {
+        // Implementation pending full Cloud Vision integration
+        return { ok: true, value: { fullTextAnnotation: { text: "Simulated OCR Text" } } };
+    }
+
+    /**
+     * Placeholder: Translate text using Google Translation API
+     */
+    async translateText(text: string, target: string): Promise<Result<string>> {
+        return { ok: true, value: `[Translated to ${target}]: ${text}` };
+    }
+
+    /**
+     * Placeholder: Analyze entities using Google Natural Language API
+     */
+    async analyzeEntities(text: string): Promise<Result<any>> {
+        return { ok: true, value: { entities: [] } };
+    }
+
+    /**
      * Placeholder for future cross-service Google discovery
      */
     async auditAbilities(): Promise<Result<{ services: string[] }>> {
