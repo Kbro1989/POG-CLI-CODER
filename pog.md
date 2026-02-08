@@ -16,6 +16,8 @@ If you have just cloned this repository, follow these steps to initialize the en
 - **cli/**: Interactive REPL and terminal orchestration logic.
 - **src/core/**: The "Selection Guide Brain" including Ternary Routing, Adversarial Orchestration, and Cluster Intelligence.
 - **src/limbs/**: Specialized AI agents (Limbs) for FileSystem, Media, Cloud, and more.
+- **src/limbs/experimental/**: Ghost Limbs (QuantumLimb, RelicLimb, OmegaLimb) for next-gen features.
+- **rsc-data/**: 14 authentic JAG/MEM archives from POG-Ultimate (RSC Archaeology).
 - **tests/**: Sovereign verification suite (Real implementations only).
 - **docs/**: Comprehensive guides and architectural blueprints.
 

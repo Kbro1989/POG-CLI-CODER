@@ -26,6 +26,7 @@ const logger = pino({
 export interface MonitorAgentEvents {
     issueDetected: (report: MonitorReport) => void;
     healthCheckPassed: () => void;
+    provenanceCandidate: (filePath: string) => void;
 }
 
 export interface MonitorReport {
@@ -44,6 +45,7 @@ export class MonitorAgent extends EventEmitter {
     private selfHealingEngine: SelfHealingEngine;
     private isRunning: boolean = false;
     private healthCheckInterval?: NodeJS.Timeout;
+    private recentChanges: Set<string> = new Set();
 
     private readonly MONITOR_MODEL: string;
     private readonly SNAPSHOT_MODEL: string;
@@ -87,6 +89,10 @@ export class MonitorAgent extends EventEmitter {
         this.tscMonitor.start();
         this.tscMonitor.on('errorsDetected', (errors) => {
             this.handleTSCErrors(errors);
+        });
+
+        this.tscMonitor.on('buildSuccess', () => {
+            this.handleBuildSuccess();
         });
 
         // Start file system watcher
@@ -140,8 +146,19 @@ Respond with ONLY: low, medium, high, or critical`;
         this.emit('issueDetected', report);
     }
 
+    private handleBuildSuccess(): void {
+        if (this.recentChanges.size > 0) {
+            logger.info({ count: this.recentChanges.size }, 'Build success! Processing candidates for Neural Harvest...');
+            for (const filePath of this.recentChanges) {
+                this.emit('provenanceCandidate', filePath);
+            }
+            this.recentChanges.clear();
+        }
+    }
+
     private async handleFileChange(filePath: string): Promise<void> {
         logger.debug({ filePath }, 'Structural file change detected');
+        this.recentChanges.add(filePath);
 
         // Use qwen2.5-coder:7b for context-aware analysis
         const prompt = `File changed: ${filePath}

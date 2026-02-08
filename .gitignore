@@ -47,9 +47,18 @@ Thumbs.db
 test_results*.txt
 tsc_errors*.txt
 typecheck_*.txt
+typecheck_*.log
 build_errors*.txt
+build_error*.log
 lint_*.txt
 *_output.txt
 *_log.txt
 deploy_log.txt
 deploy_log_utf8.txt
+error.log
+demo.log
+
+# Cloudflare model lists and R2 exports
+cf_models*.txt
+r2_*.txt
+buckets.txt

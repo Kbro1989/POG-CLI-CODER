@@ -74,6 +74,8 @@ export interface IntentHistory {
   readonly fileContext?: string;
   readonly executionTime: number;
   readonly snapshotId?: string;
+  readonly output: string | undefined;
+  readonly data: any;
 }
 
 export interface CircuitBreakerState {
@@ -345,9 +347,25 @@ export interface ExecutionContext {
   readonly force?: boolean;
 }
 
+export interface CascadeTier {
+  readonly name: string;
+  readonly status: 'success' | 'failure' | 'skipped';
+  readonly error?: string;
+  readonly timestamp: number;
+}
+
+export interface CascadeTracking {
+  readonly tiers: ReadonlyArray<CascadeTier>;
+  readonly finalModel: string;
+  readonly latency: number;
+  readonly generationMode: 'AI' | 'CLI-Fallback' | 'Ghost-Limb';
+  readonly failureCount: number;
+}
+
 export interface ModelResponse {
   readonly model: string;
   readonly response: string;
   readonly latency: number;
   readonly functionCalls?: FunctionCall[];
+  readonly provenance?: CascadeTracking;
 }

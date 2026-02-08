@@ -98,4 +98,12 @@ See comprehensive diagrams and data flows in:
 
 ---
 
+### 5. **Experimental Limb Integration**
+Gemini powers the planning layer for experimental Ghost Limbs:
+- **QuantumLimb**: Multi-hypothesis parallel reasoning
+- **RelicLimb**: RSC Archaeology planning (JAG archive analysis)
+- **OmegaLimb**: Teleological goal decomposition
+
+---
+
 *For implementation details, see `src/core/GeminiService.ts` and `src/core/Orchestrator.ts`.*

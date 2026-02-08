@@ -12,6 +12,11 @@ import pino from 'pino';
 export abstract class BaseLimb implements NeuralLimb {
     abstract id: string;
     abstract type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud';
+
+    // Strategic Affinity
+    public preferredHexagrams: string[] = []; // e.g., '111111' (Creative)
+    public avoidHexagrams: string[] = [];     // e.g., '010111' (Conflict)
+
     protected readonly spine: ToolingSpine = new ToolingSpine();
     protected readonly logger: pino.Logger;
 
@@ -109,6 +114,18 @@ User Intent: ${this.getUserIntent(intent)}`;
     async handleToolCall(name: string, args: any): Promise<Result<any>> {
         this.logger.debug({ tool: name, args }, 'Routing tool call through Spine');
         return this.spine.handleCall(name, args);
+    }
+
+    /**
+     * Get detailed diagnostic/contextual status of the limb.
+     */
+    public getStatus(): Record<string, any> {
+        return {
+            id: this.id,
+            type: this.type,
+            capabilities: this.capabilities,
+            toolCount: this.spine.getGeminiDeclarations().length
+        };
     }
 
     /**

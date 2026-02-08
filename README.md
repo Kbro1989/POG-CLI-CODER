@@ -77,6 +77,18 @@ Advanced cognitive loop implemented in Phase 10:
 - **Reflecting Helpers**: Anti-Pattern Hunter + Synthesis Weaver
 - **O(3³)**: Parallel cognitive simulations for maximum fidelity.
 
+### 11. **Experimental Limbs (Ghost Limbs)** 👻
+Advanced capability scaffolds for next-generation features:
+- **QuantumLimb**: Superposition-based parallel hypothesis testing (multi-branch reasoning)
+- **RelicLimb**: RSC Archaeology - Excavates and parses Jagex Archive (.jag) files from `rsc-data/`
+- **OmegaLimb**: Teleological planning - Goal-driven autonomous project completion
+
+### 12. **RSC Data Assets** 📦
+Authentic RuneScape Classic game data excavated from POG-Ultimate:
+- **14 JAG/MEM archives**: `config85.jag`, `entity24.jag`, `models36.jag`, `textures17.jag`, etc.
+- **Config directory**: `items.json`, `npcs.json`, `objects.json` game definitions
+- **Local-first**: Available at `./rsc-data/` for offline development
+
 ---
 
 ## 🤖 Model Strategy

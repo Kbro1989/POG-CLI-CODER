@@ -84,6 +84,43 @@ export class MemoryLimb extends BaseLimb {
                 }
             },
             {
+                name: 'add_lesson',
+                description: 'Manually inject a cognitive lesson, pattern, or error correction into the neural memory.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        text: { type: 'string', description: 'The lesson content.' },
+                        errorType: { type: 'string', description: 'Optional category (e.g., Syntax, Logic, Deployment).' },
+                        regretLikelihood: { type: 'number', description: 'Likelihood of needing this correction again (0-1).' }
+                    },
+                    required: ['text']
+                },
+                schema: z.object({
+                    text: z.string(),
+                    errorType: z.string().optional(),
+                    regretLikelihood: z.number().optional()
+                }),
+                handler: async (args): Promise<Result<void>> => {
+                    this.logger.info({ text: args.text.substring(0, 50) }, 'Injecting manual lesson into VectorDB');
+
+                    const embedResult = await this.gemini.embed(args.text);
+                    if (!embedResult.ok) return { ok: false, error: embedResult.error };
+
+                    const lesson = {
+                        id: `manual_${Date.now()}`,
+                        text: args.text,
+                        embedding: embedResult.value,
+                        createdAt: Date.now(),
+                        errorType: args.errorType,
+                        regretLikelihood: args.regretLikelihood || 0.5,
+                        projectId: this.config.projectId || 'global',
+                        sessionId: process.env['SESSION_ID'] || 'manual'
+                    };
+
+                    return this.vectorDB.addLesson(lesson);
+                }
+            },
+            {
                 name: 'get_memory_stats',
                 description: 'Retrieve statistics about the current learning database.',
                 parameters: { type: 'object', properties: {} },

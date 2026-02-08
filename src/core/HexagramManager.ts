@@ -18,6 +18,15 @@ export interface ContextCard {
     updatedAt?: string;
 }
 
+export interface SystemState {
+    buildPass: boolean;
+    cloudHealthy: boolean;
+    localModels: boolean;
+    noRecentErrors: boolean;
+    userActive: boolean;
+    lowResourcePressure: boolean;
+}
+
 export class HexagramManager {
     private lines: ContextCard[] = [];
     private readonly projectId: string;
@@ -76,7 +85,68 @@ export class HexagramManager {
             return { ok: false, error: new Error('Invalid line index (1-6)') };
         }
         const card: ContextCard = { lineIndex: index, title, content, state, importance: 1 };
+
+        // Persist to VectorDB for long-term Context Memory (Resilient)
+        if (this.vectorDB) {
+            try {
+                // Fire and forget - do not await to avoid blocking critical metabolic loops
+                void this.vectorDB.addLesson({
+                    id: `hex_card_${Date.now()}_${index}`,
+                    projectId: this.projectId,
+                    sessionId: 'system',
+                    text: `Hexagram Card [Line ${index}]: ${title} - ${content} (${YaoState[state]})`,
+                    embedding: new Float32Array(768).fill(0), // Placeholder to avoid API call
+                    createdAt: Date.now(),
+                    metadata: { type: 'hexagram_card', line: index, state: YaoState[state] },
+                    errorType: 'none'
+                }).catch(() => { }); // Silent fail
+            } catch (e) {
+                // Ignore synchronous errors
+            }
+        }
+
         return this.setLine(index, card);
+    }
+
+    /**
+     * Dynamically casts the Hexagram based on real-time system state.
+     * Maps operational metrics to the 6 Yao lines.
+     */
+    async updateLinesFromState(state: SystemState): Promise<void> {
+        // Line 1: Foundation (Build Status)
+        // Pass = Yang (Solid), Fail = Yin (Broken)
+        await this.pinCard(1, 'Build Foundation', state.buildPass ? 'Build Passing' : 'Build Failing',
+            state.buildPass ? YaoState.YoungYang : YaoState.YoungYin);
+
+        // Line 2: Interaction (User Activity)
+        // Active = Yang (Dynamic), Idle = Yin (Receptive)
+        await this.pinCard(2, 'User Interaction', state.userActive ? 'User Active' : 'User Idle',
+            state.userActive ? YaoState.YoungYang : YaoState.YoungYin);
+
+        // Line 3: Transition (Recent Errors)
+        // Stable = Yang, Errors = Yin (Conflict)
+        await this.pinCard(3, 'System Stability', state.noRecentErrors ? 'Stable' : 'Recent Errors Detected',
+            state.noRecentErrors ? YaoState.YoungYang : YaoState.OldYin); // Old Yin implies moving towards change
+
+        // Line 4: Environment (Cloud/Resources)
+        // Healthy = Yang, Degraded = Yin
+        const resourceState = state.cloudHealthy && state.lowResourcePressure
+            ? YaoState.YoungYang
+            : YaoState.YoungYin;
+        await this.pinCard(4, 'External Environment',
+            state.cloudHealthy ? 'Cloud Nominal' : 'Resource Pressure/Degradation',
+            resourceState);
+
+        // Line 5: Authority (Local/Cloud Models)
+        // Full Capacity = Yang, Partial = Yin
+        await this.pinCard(5, 'Cognitive Authority',
+            state.localModels ? 'Local Models Active' : 'Reliance on Cloud Only',
+            state.localModels ? YaoState.YoungYang : YaoState.YoungYin);
+
+        // Line 6: Culmination (UI/Preview)
+        // Does not map 1:1 to state, usually reflects user perception. 
+        // We default to Yang unless specifically set otherwise.
+        // For now, we leave it as is or update if we had a specific UI metric.
     }
 
     /**

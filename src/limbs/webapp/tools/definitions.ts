@@ -90,8 +90,27 @@ export const startPreviewTool = {
     }
 };
 
+export const digestComponentTool = {
+    name: 'digest_component',
+    description: 'Create or inject a high-fidelity UI component based on a description or pattern reference.',
+    parameters: {
+        type: 'object',
+        properties: {
+            projectDir: { type: 'string', description: 'Absolute path to the project root' },
+            componentName: { type: 'string', description: 'Name of the component (e.g., HeroSection)' },
+            description: { type: 'string', description: 'Detailed description of the UI pattern to digest' }
+        },
+        required: ['projectDir', 'componentName', 'description']
+    } as const,
+    handler: async (args: any) => {
+        // Handled in WebAppForgeLimb.ts logic
+        return `Drafting ${args.componentName} for digestion...`;
+    }
+};
+
 export const FORGE_TOOLS = [
     scaffoldProjectTool,
     setupDatabaseTool,
-    startPreviewTool
+    startPreviewTool,
+    digestComponentTool
 ];

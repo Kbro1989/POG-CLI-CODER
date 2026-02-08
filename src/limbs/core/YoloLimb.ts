@@ -45,8 +45,8 @@ export class YoloLimb extends BaseLimb {
     }
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
-        this.logger.info({ intent: intent.prompt }, 'Activating YOLO substrate via gemini-cli');
-        return this.executeYoloCommand(intent.prompt);
+        this.logger.info({ intent: intent.prompt }, 'Activating YOLO substrate');
+        return this.spine.handleCall('yolo_reasoning', { prompt: intent.prompt }) as any;
     }
 
     private async executeYoloCommand(prompt: string): Promise<Result<Execution>> {

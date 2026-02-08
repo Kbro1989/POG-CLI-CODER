@@ -19,6 +19,8 @@ POG-CODER-VIBE is a **local-first, cloud-optional AI coding assistant** that com
 - **Self-Documenting Manifests**: Recursive folder-level context via `pog.md` generation.
 - **Ternary Routing Engine**: O(log₃ n) decision logic with dynamic capability-aware fallbacks.
 - **Zero Technical Debt**: 100% Type-Safe (TSC Tight), zero placeholders, and zero mocks.
+- **Experimental Limbs (Ghost Limbs)**: QuantumLimb, RelicLimb (RSC Archaeology), OmegaLimb
+- **RSC Data Excavation**: 14 authentic JAG/MEM archives at `./rsc-data/`
 
 ---
 

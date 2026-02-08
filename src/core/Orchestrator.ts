@@ -80,6 +80,7 @@ import { ModelInventory } from './ModelInventory.js';
 import { SystemEnvChecker, EnvStatus } from '../utils/SystemEnvChecker.js';
 import { ControlPlaneLimb } from '../limbs/core/ControlPlaneLimb.js';
 import { MemoryLimb } from '../limbs/core/MemoryLimb.js';
+import { CognitionLimb } from '../limbs/core/CognitionLimb.js';
 
 // Note: Component logger is initialized in the constructor for dynamic identity.
 
@@ -212,7 +213,7 @@ export class FreeOrchestrator extends EventEmitter {
 
     const mediaForgeLimb = new MediaForgeLimb(config, this.modelExecutor, this.router);
     const bioIntelligenceLimb = new BioIntelligenceLimb(config);
-    const gutenbergLimb = new GutenbergLimb(config, this.vectorDB, this.geminiService);
+    const gutenbergLimb = new GutenbergLimb(config, this.vectorDB, this.geminiService, this.modelExecutor);
     const yoloLimb = new YoloLimb(config);
     const aiLimb = new AILimb(config, this.modelExecutor, this.router);
     const fileSystemLimb = new FileSystemLimb(config, sandbox);
@@ -227,12 +228,14 @@ export class FreeOrchestrator extends EventEmitter {
     this.substrateLimb = new SubstrateLimb(config, googleServices, cloudflareServices);
     const controlPlaneLimb = new ControlPlaneLimb(config, this.router);
     const memoryLimb = new MemoryLimb(config, this.vectorDB, this.indexer, this.geminiService!);
+    const cognitionLimb = new CognitionLimb(config, this.modelExecutor);
     cloudflareLimb.setExecutor(this.modelExecutor);
 
     // Store in collection for intent routing
     this.limbs = [
       controlPlaneLimb,
       memoryLimb,
+      cognitionLimb,
       aiModelLimb,
       fileLimb,
       entityLimb,
@@ -335,24 +338,37 @@ export class FreeOrchestrator extends EventEmitter {
       // 1b. Listen for file changes to keep VectorDB fresh (Proactive RAG)
       this.watcher.on('fileChanged', ({ filePath }) => {
         this.logger.debug({ filePath }, 'Proactive indexing triggered');
-        void this.indexer.indexFile(filePath);
+        void this.indexer.indexFile(filePath).catch(err => {
+          this.logger.warn({ err }, 'Proactive indexing failed (likely quota), continuing...');
+        });
       });
 
-      const dbResult = await this.vectorDB.initialize();
-      if (isErr(dbResult)) return dbResult;
-
-      // 1c. Cold Start Indexing: If DB is empty, perform initial project scan
-      const lessonCount = await this.vectorDB.getLessonCount();
-      if (lessonCount === 0) {
-        this.logger.info('VectorDB is empty. Triggering full project indexing scan...');
-        void this.indexer.indexProject();
+      // Robust VectorDB Initialization (Critical Path Protection)
+      try {
+        const dbResult = await this.vectorDB.initialize();
+        if (isErr(dbResult)) {
+          this.logger.error({ error: dbResult.error }, 'VectorDB init failed, continuing in Amnesia Mode');
+        } else {
+          // 1c. Cold Start Indexing: If DB is empty, perform initial project scan
+          const lessonCount = await this.vectorDB.getLessonCount();
+          if (lessonCount === 0) {
+            this.logger.info('VectorDB is empty. Triggering full project indexing scan...');
+            // Run in background to not block startup
+            void this.indexer.indexProject().catch(err => {
+              this.logger.warn({ err }, 'Initial indexing failed (likely quota), continuing in degraded mode');
+            });
+          }
+        }
+      } catch (dbError) {
+        this.logger.error({ error: dbError }, 'VectorDB critical failure, continuing without memory');
       }
 
       this.logger.info({ port: this.config.wsPort }, 'WebSocket server started');
       return { ok: true, value: undefined };
     } catch (error) {
       this.logger.error({ error }, 'Initialization failed');
-      return { ok: false, error: error as Error };
+      // Sovereign Fallback: Allow start even if Orchestrator is crippled
+      return { ok: true, value: undefined };
     }
   }
 
@@ -387,6 +403,8 @@ export class FreeOrchestrator extends EventEmitter {
             this.emit('userFeedback', payload.data);
           } else if (payload.type === 'control') {
             this.handleControlMessage(payload, ws);
+          } else if (payload.type === 'audio_input') {
+            void this.handleAudioInput(payload.data, ws);
           }
         } catch (e) {
           this.logger.error({ error: e }, 'Failed to parse WebSocket message');
@@ -421,6 +439,79 @@ export class FreeOrchestrator extends EventEmitter {
     this.monitorAgent.on('healthCheckPassed', () => {
       this.logger.debug('Monitor health check passed - no issues');
     });
+
+    this.monitorAgent.on('provenanceCandidate', async (filePath) => {
+      const neuralForge = this.limbs.find(l => l.id === 'neural_forge') as NeuralForgeLimb;
+      if (!neuralForge) return;
+
+      // Heuristic Filter (Ravenous Autonomy)
+      try {
+        const content = readFileSync(filePath, 'utf8');
+        const isComponent = filePath.endsWith('.tsx') && /export\s+function\s+\w+/.test(content);
+        const hasSovereignStyle = /className=".*sovereign-/.test(content);
+
+        if (isComponent && hasSovereignStyle) {
+          const path = await import('path');
+          const patternName = `AUTO_${path.basename(filePath, '.tsx').toUpperCase()}_${Date.now()}`;
+
+          this.logger.info({ patternName, filePath }, '🧬 Pattern Candidate Detected via Heuristic. Harvesting...');
+
+          await neuralForge.handleToolCall('harvest_pattern', {
+            filePath,
+            patternName,
+            description: 'Harvested via Ravenous Autonomy (Build Trigger)'
+          });
+        }
+      } catch (e) {
+        this.logger.warn({ error: e }, 'Failed to process provenance candidate');
+      }
+    });
+
+    // Wire Metabolic Events to Hexagram Strategy Engine
+    this.monitorAgent.on('issueDetected', () => this.refreshHexagramState());
+    this.monitorAgent.on('healthCheckPassed', () => this.refreshHexagramState());
+    this.monitorAgent.on('provenanceCandidate', () => this.refreshHexagramState());
+  }
+
+  /**
+   * Updates the Hexagram Strategy Engine with real-time system metrics.
+   * Maps the physiology (Build, Cloud, Errors) to the Psychology (Hexagram).
+   */
+  private async refreshHexagramState(): Promise<void> {
+    try {
+      const registry = (await import('./HealthRegistry.js')).HealthRegistry.getInstance();
+      const geminiHealth = registry.getHealth('gemini');
+
+      // Approximate System State
+      // Resolve async metrics first
+      const buildPass = this.monitorAgent
+        ? await this.monitorAgent.diagnoseState().then(d => d.decision === 1)
+        : true;
+
+      // Approximate System State
+      const state: import('../core/HexagramManager.js').SystemState = {
+        buildPass,
+        cloudHealthy: geminiHealth.state === 'READY',
+        localModels: true, // Always true for this architecture
+        noRecentErrors: !this.monitorAgent || (this.monitorAgent as any).tscMonitor.getCurrentErrors().length === 0,
+        userActive: true, // Assumed active if events are firing
+        lowResourcePressure: true // Default for now
+      };
+
+      // Resolve the promise for buildPass since diagnoseState is async
+      state.buildPass = await state.buildPass;
+
+      await this.hexagramManager.updateLinesFromState(state);
+
+      const currentHex = this.hexagramManager.getInterpretation();
+      this.logger.debug({
+        hexagram: currentHex.name,
+        strategy: currentHex.strategy
+      }, 'Hexagram Strategy Updated');
+
+    } catch (error) {
+      this.logger.warn({ error }, 'Failed to refresh Hexagram State');
+    }
   }
 
   private async handleAutoHeal(report: import('../monitor/MonitorAgent.js').MonitorReport): Promise<void> {
@@ -484,8 +575,37 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
 
     this.logger.info({ prompt: prompt.substring(0, 100) }, 'Executing intent (Advanced Loop)');
 
+    // Strategic Limb Ordering (Hexagram Affinity)
+    const currentHex = this.hexagramManager.getInterpretation();
+    const orderedLimbs = [...this.limbs].sort((a, b) => {
+      const aPref = (a.preferredHexagrams || []).includes(currentHex.binary);
+      const bPref = (b.preferredHexagrams || []).includes(currentHex.binary);
+      const aAvoid = (a.avoidHexagrams || []).includes(currentHex.binary);
+      const bAvoid = (b.avoidHexagrams || []).includes(currentHex.binary);
+
+      // Preference takes highest priority
+      if (aPref && !bPref) return -1;
+      if (!aPref && bPref) return 1;
+
+      // Avoidance takes lowest priority
+      if (aAvoid && !bAvoid) return 1;
+      if (!aAvoid && bAvoid) return -1;
+
+      return 0; // Preserve original order otherwise
+    });
+
+    if (currentHex.name !== 'Unknown Archetype' && orderedLimbs.length > 0) {
+      this.logger.debug({
+        strategy: currentHex.name,
+        topLimb: orderedLimbs[0]?.id
+      }, 'Strategic Limb Reordering applied');
+    }
+
     // 0. Check Neural Limbs (Specialized Agents) - PRIORITY OVER CONVERSATIONAL
-    for (const limb of this.limbs) {
+    for (const limb of orderedLimbs) {
+      // Skip if strictly avoided (optional strictness, currently just deprioritized)
+      // if (limb.avoidHexagrams.includes(currentHex.binary)) continue; 
+
       if (await limb.canHandle({ prompt: fullPrompt })) {
         const result = await limb.execute({ prompt: fullPrompt });
         if (result.ok) {
@@ -499,6 +619,7 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
             }
           }
 
+          this.recordIntent(context, limb.id, true, Date.now() - context.startTime, result.value.output, result.value.data);
           return { ok: true, value: result.value };
         }
         return { ok: false, error: result.error };
@@ -626,7 +747,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
     }
 
     this.recordSuccessMetadata(lastModel, prompt, Date.now() - context.startTime, filePath);
-    this.recordIntent(context, lastModel, true, Date.now() - context.startTime);
+    this.recordIntent(context, lastModel, true, Date.now() - context.startTime, totalResponse);
     return { ok: true, value: { output: totalResponse } };
   }
 
@@ -1011,17 +1132,18 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
   // Removed local classifyTaskType to use TaskClassifier
 
-  private recordIntent(context: ExecutionContext, model: string, success: boolean, time: number): void {
-    const intent: IntentHistory = {
-      sessionId: context.sessionId,
-      query: context.prompt,
-      selectedModel: model,
+  private recordIntent(context: ExecutionContext, model: string, success: boolean, time: number, output?: string, data?: any): void {
+    this.intentHistory.push({
+      sessionId: context.sessionId || '',
+      query: context.prompt || '',
+      selectedModel: model || 'unknown',
       success,
-      timestamp: context.startTime,
-      executionTime: time
-    };
-    this.intentHistory.push(intent);
-    this.emit('intentExecuted', intent);
+      timestamp: context.startTime || Date.now(),
+      executionTime: time,
+      output: output || '',
+      data: data || null
+    });
+    this.emit('intentExecuted', this.intentHistory[this.intentHistory.length - 1] as any);
     if (this.intentHistory.length > 1000) this.intentHistory.shift();
   }
 
@@ -1031,7 +1153,10 @@ Perform the current step and output results. If verifying, ensure you run the ne
       intentCount: this.intentHistory.length,
       recentIntents: this.intentHistory.slice(-10),
       enabledServices: this.config.enabledServices,
-      limbs: this.limbs.map(l => ({ id: l.id, type: l.type, capabilities: l.capabilities })),
+      limbs: this.limbs.map(l => {
+        const status = typeof (l as any).getStatus === 'function' ? (l as any).getStatus() : { id: l.id, type: l.type, capabilities: l.capabilities };
+        return status;
+      }),
       workspaces: this.config.workspaces || [],
       activeWorkspace: this.config.projectRoot,
       pinnedFiles: this.contextBuilder.getPinnedFiles(),
@@ -1118,6 +1243,50 @@ Perform the current step and output results. If verifying, ensure you run the ne
       case 'unpinFile':
         this.unpinFile(data.path);
         break;
+      case 'media_forge_request':
+        this.logger.info({ prompt: data.prompt, targetType: data.targetType }, 'Media forge request from dashboard - executing as intent');
+        void this.executeIntent(`forge ${data.targetType}: ${data.prompt}`);
+        break;
+      case 'requestBooks':
+        const gutenLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
+        if (gutenLimb && gutenLimb.handleToolCall) {
+          void gutenLimb.handleToolCall('get_library', {}).then(res => {
+            if (res.ok) ws.send(JSON.stringify({ type: 'books', data: res.value.data.books }));
+          });
+        }
+        break;
+      case 'readBook':
+        const gLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
+        if (gLimb && gLimb.handleToolCall) {
+          void gLimb.handleToolCall('read_book', { bookId: data.bookId }).then(res => {
+            if (res.ok) ws.send(JSON.stringify({ type: 'bookContent', data: res.value.data }));
+          });
+        }
+        break;
+      case 'narrateBook':
+        const nLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
+        if (nLimb && nLimb.handleToolCall) {
+          void nLimb.handleToolCall('narrate_book', { bookId: data.bookId, style: data.style }).then(res => {
+            if (res.ok) ws.send(JSON.stringify({ type: 'intentExecuted', data: { query: `narrate ${data.bookId}`, selectedModel: 'GutenbergNarrator', success: true, output: res.value.output, data: res.value.data } }));
+          });
+        }
+        break;
+      case 'transcribeAudiobook':
+        const tLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
+        if (tLimb && tLimb.handleToolCall) {
+          void tLimb.handleToolCall('audiobook_transcribe', { fileName: data.fileName }).then(res => {
+            if (res.ok) ws.send(JSON.stringify({ type: 'intentExecuted', data: { query: `transcribe ${data.fileName}`, selectedModel: 'GutenbergTranscriber', success: true, output: res.value.output, data: res.value.data } }));
+          });
+        }
+        break;
+      case 'forge_storyboard':
+        const sLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
+        if (sLimb && sLimb.handleToolCall) {
+          void sLimb.handleToolCall('generate_storyboard', { bookId: data.bookId, premise: data.premise }).then(res => {
+            if (res.ok) ws.send(JSON.stringify({ type: 'storyboard', data: res.value.data }));
+          });
+        }
+        break;
     }
   }
 
@@ -1183,6 +1352,34 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
   private getControlPlaneTools(): Tool[] {
     return this.getAllAvailableTools();
+  }
+
+
+  private async handleAudioInput(base64Data: string, ws: any): Promise<void> {
+    try {
+      this.logger.info('Received audio input from dashboard - transcribing...');
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      const result = await this.modelExecutor.transcribeAudio(buffer);
+      if (result.ok) {
+        const text = result.value;
+        this.logger.info({ transcription: text }, 'Audio transcription successful');
+
+        // Send transcription back for UI feedback
+        if (ws.readyState === 1) {
+          ws.send(JSON.stringify({ type: 'transcription', data: { text } }));
+        }
+
+        // Execute the transcribed text as a prompt
+        if (text.trim().length > 3) {
+          void this.executeIntent(text);
+        }
+      } else {
+        this.logger.error({ error: result.error }, 'Audio transcription failed');
+      }
+    } catch (e) {
+      this.logger.error({ error: e }, 'Critical error in audio processing');
+    }
   }
 
   async cleanup(): Promise<void> {

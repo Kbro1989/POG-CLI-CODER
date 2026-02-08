@@ -57,6 +57,12 @@ This index catalogs all source files, documentation, and artifacts in the produc
 - ✅ **`api/ai/AILimb.ts`** - Path-based AI capability dispatcher
 - ✅ **`api/ai/Dispatcher.ts`** - Vertex AI & Cloud REST bridge
 - ✅ **`cloud/CloudflareLimb.ts`** - Unified Cloudflare AI capabilities (Image, Chat, Embeddings)
+- ✅ **`experimental/QuantumLimb.ts`** - Superposition-based parallel hypothesis testing
+- ✅ **`experimental/RelicLimb.ts`** - RSC Archaeology (JAG archive excavation)
+- ✅ **`experimental/OmegaLimb.ts`** - Teleological goal-driven planning
+- ✅ **`experimental/rsc/JagArchive.ts`** - Jagex Archive decompression and parsing
+- ✅ **`experimental/rsc/JagBuffer.ts`** - Binary buffer utilities for JAG files
+- ✅ **`experimental/utils/Stream.ts`** - Stream utilities for legacy data formats
 
 ---
 

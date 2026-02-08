@@ -382,4 +382,24 @@ const customTree: TernaryNode = {
 
 ---
 
+## 👻 Ghost Limbs: Experimental Routing
+
+The Ternary Tree now supports routing to **Experimental Limbs** for specialized tasks:
+
+| Limb | Category | Routing Trigger |
+|------|----------|-----------------|
+| **QuantumLimb** | Hypothesis Testing | Multi-branch reasoning requests |
+| **RelicLimb** | RSC Archaeology | `.jag` file operations, cache excavation |
+| **OmegaLimb** | Teleology | Goal-driven project completion |
+
+**Example:**
+```
+User: "Excavate config85.jag and list all entries"
+→ ROOT: -1 (Simple, file-specific)
+→ Category: Binary Archive
+→ Route: RelicLimb.explore_museum({ category: 'config' })
+```
+
+---
+
 **Ternary Binary Trees: Because -1, 0, and 1 are all you need to rule the model routing world.** 🌳⚡

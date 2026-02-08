@@ -744,4 +744,18 @@ Speedup: 2.71x ⚡
 
 ---
 
+## Phase 14: Experimental Limbs & RSC Archaeology (Feb 2026)
+
+| Feature | Status |
+|---------|--------|
+| **QuantumLimb** | ✅ Superposition-based parallel hypothesis testing |
+| **RelicLimb** | ✅ RSC Archaeology - JAG archive excavation |
+| **OmegaLimb** | ✅ Teleological goal-driven planning |
+| **RSC Data** | ✅ 14 authentic JAG/MEM archives from POG-Ultimate |
+| **JagArchive/JagBuffer** | ✅ Ported from POG-Ultimate |
+
+**Key Addition**: The `rsc-data/` directory now contains real RuneScape Classic game data for manipulation.
+
+---
+
 *"Premature optimization is the root of all evil. But mature optimization is the path to enlightenment."* - Not Knuth, but probably should be

@@ -10,6 +10,12 @@ export interface NeuralLimb {
     capabilities: string[];
 
     /**
+     * Strategic affinity for Hexagram states
+     */
+    preferredHexagrams?: string[];
+    avoidHexagrams?: string[];
+
+    /**
      * Check if this limb can handle the given intent
      */
     canHandle(intent: Intent): Promise<boolean>;
@@ -28,5 +34,10 @@ export interface NeuralLimb {
      * Optional: Handle a formal tool call from the model
      */
     handleToolCall?(name: string, args: any): Promise<Result<any>>;
+
+    /**
+     * Optional: Get detailed diagnostic/contextual status of the limb
+     */
+    getStatus?(): Record<string, any>;
 }
 

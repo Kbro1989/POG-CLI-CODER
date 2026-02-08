@@ -75,6 +75,23 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 | **[AILimb.ts](./src/api/ai/AILimb.ts)** | Registry-pathed specialized AI dispatcher | ✅ 283 Models |
 | **[Dispatcher.ts](./src/api/ai/Dispatcher.ts)** | gcloud Auth bridge & **Simulation Substrate** | ✅ Phase 13 Complete |
 
+### Experimental Limbs (`/src/limbs/experimental`) 👻
+
+| File | Purpose | Status |
+|------|---------|--------|
+| **[QuantumLimb.ts](./src/limbs/experimental/QuantumLimb.ts)** | Superposition-based parallel hypothesis testing | ✅ Scaffolded |
+| **[RelicLimb.ts](./src/limbs/experimental/RelicLimb.ts)** | RSC Archaeology (JAG archive excavation) | ✅ Real Data |
+| **[OmegaLimb.ts](./src/limbs/experimental/OmegaLimb.ts)** | Teleological goal-driven planning | ✅ Scaffolded |
+| **[JagArchive.ts](./src/limbs/experimental/rsc/JagArchive.ts)** | Jagex Archive decompression and parsing | ✅ Ported |
+| **[JagBuffer.ts](./src/limbs/experimental/rsc/JagBuffer.ts)** | Binary buffer utilities for JAG files | ✅ Ported |
+| **[Stream.ts](./src/limbs/experimental/utils/Stream.ts)** | Stream utilities for legacy data formats | ✅ Ported |
+
+### RSC Data Assets (`/rsc-data`) 📦
+
+| File | Purpose |
+|------|---------|
+| `config85.jag`, `entity24.jag`, `models36.jag`, etc. | 14 authentic JAG/MEM archives from POG-Ultimate |
+| `config/` directory | Game definitions (`items.json`, `npcs.json`, `objects.json`) |
 
 
 ---

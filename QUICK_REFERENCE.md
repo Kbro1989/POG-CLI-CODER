@@ -77,6 +77,7 @@ gcloud auth application-default login
 src/
 ├── core/           # Brain (Orchestrator, Router, Gemini)
 ├── limbs/          # Specialized agents (WebAppForge, etc.)
+│   └── experimental/  # Ghost Limbs (Quantum, Relic, Omega)
 ├── learning/       # VectorDB, CodebaseIndexer
 ├── sandbox/        # Secure command execution
 ├── watcher/        # AST file monitoring
@@ -86,7 +87,9 @@ src/
 cli/                # Terminal interface
 tests/              # Test suite
 vscode-extension/   # VS Code dashboard
+rsc-data/           # 14 authentic JAG/MEM archives + config
 ```
+
 
 ---
 

@@ -64,6 +64,21 @@ export class CloudflareLimb extends BaseLimb {
         return { state: this.healthState, cooldownSeconds: 0 };
     }
 
+    /**
+     * Specialized status for Cloudflare AI monitoring
+     */
+    public override getStatus(): Record<string, any> {
+        const base = super.getStatus();
+        const health = this.getHealth();
+        return {
+            ...base,
+            health: health.state,
+            cooldown: health.cooldownSeconds,
+            backoffUntil: this.lastBackoffUntil > 0 ? new Date(this.lastBackoffUntil).toISOString() : 'None',
+            provider: 'Cloudflare Workers AI'
+        };
+    }
+
     private registerCloudflareTools(): void {
         this.registerTools([
             {

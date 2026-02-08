@@ -87,18 +87,15 @@ export class HexagramLimb extends BaseLimb {
             const rawContext = await this.manager.formatForPrompt();
             const interpretation = this.manager.getInterpretation();
 
-            // Note: We avoid direct dependency on terminal utils in limbs, 
-            // but we can return structured data that the CLI knows how to handle.
-            // For now, we enhance the string output with some "Sovereign" character.
-
             return {
                 ok: true,
                 value: {
-                    output: `👑 SOVEREIGN ARCHETYPE: ${interpretation.name}\n${rawContext}`,
+                    output: `👑 SOVEREIGN ARCHETYPE: ${interpretation.name}\n${rawContext}\n\n>> TERNARY STRATEGY: ${interpretation.strategy} (Distributed via Local/Edge/Cloud)`,
                     data: {
                         formatted: rawContext,
                         archetype: interpretation.name,
-                        strategy: interpretation.strategy
+                        strategy: interpretation.strategy,
+                        tier: 'Ternary-Substrate'
                     }
                 }
             };

@@ -6,6 +6,18 @@
         "devCommand": "npm run dev",
         "defaultPort": 5173
     },
+    "react-vite-sovereign": {
+        "description": "High-fidelity React + Vite + Tailwind with Sovereign UI patterns",
+        "init": "npm create vite@latest . -- --template react-ts && npm install -D tailwindcss postcss autoprefixer && npx tailwindcss init -p",
+        "install": "npm install",
+        "devCommand": "npm run dev",
+        "defaultPort": 5173,
+        "absorbedFrom": [
+            "lovable",
+            "v0",
+            "shadcn"
+        ]
+    },
     "nextjs-vibe": {
         "description": "Next.js 14+ with Tailwind and App Router",
         "init": "npx -y create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\"",

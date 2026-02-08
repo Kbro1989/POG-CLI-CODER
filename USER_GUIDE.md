@@ -115,6 +115,19 @@ To ensure every folder in your project is understood by developers and clones al
 
 ---
 
+## 👻 Experimental Limbs (Ghost Limbs)
+
+Advanced capability scaffolds for next-generation features:
+- **QuantumLimb**: Superposition-based parallel hypothesis testing and multi-branch reasoning.
+- **RelicLimb**: RSC Archaeology - Excavates and parses Jagex Archive (.jag) files from `rsc-data/`.
+- **OmegaLimb**: Teleological planning - Goal-driven autonomous project completion.
+
+**Real RSC Data Available:**
+- 14 JAG/MEM archives (`config85.jag`, `entity24.jag`, `models36.jag`, etc.)
+- Game definitions in `rsc-data/config/`
+
+---
+
 ## 🛡️ Best Practices
 1. **Trust the Cluster**: The system performs 3 parallel cognitive simulations for every intent. Review the synthesized plan in the logs.
 2. **Use Natural Language**: Don't force technical commands; simply describe your goal.

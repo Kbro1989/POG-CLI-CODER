@@ -97,6 +97,59 @@ export class FileSystemLimb extends BaseLimb {
                 }
             },
             {
+                name: 'create_directory',
+                description: 'Create a new directory recursively within the project root.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        path: { type: 'string', description: 'Relative directory path to create.' }
+                    },
+                    required: ['path']
+                },
+                handler: async (args) => {
+                    const absPath = join(this.config.projectRoot, args.path);
+                    if (fs.existsSync(absPath)) return { ok: true, value: { status: 'exists' } };
+                    fs.mkdirSync(absPath, { recursive: true });
+                    return { ok: true, value: { status: 'created', path: args.path } };
+                }
+            },
+            {
+                name: 'delete_file',
+                description: 'Safe removal of a file within the project root. Checks existence first.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        path: { type: 'string', description: 'Relative path to the file to delete.' }
+                    },
+                    required: ['path']
+                },
+                handler: async (args) => {
+                    const absPath = join(this.config.projectRoot, args.path);
+                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args.path}`);
+                    fs.unlinkSync(absPath);
+                    return { ok: true, value: { status: 'deleted', path: args.path } };
+                }
+            },
+            {
+                name: 'move_file',
+                description: 'Atomic move or rename of a file or directory.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        source: { type: 'string', description: 'Relative source path.' },
+                        destination: { type: 'string', description: 'Relative destination path.' }
+                    },
+                    required: ['source', 'destination']
+                },
+                handler: async (args) => {
+                    const srcAbs = join(this.config.projectRoot, args.source);
+                    const dstAbs = join(this.config.projectRoot, args.destination);
+                    if (!fs.existsSync(srcAbs)) throw new Error(`Source not found: ${args.source}`);
+                    fs.renameSync(srcAbs, dstAbs);
+                    return { ok: true, value: { status: 'moved', from: args.source, to: args.destination } };
+                }
+            },
+            {
                 name: 'rollback_snapshot',
                 description: 'Rollback the project state to a previous snapshot (Ollama Review Mode).',
                 parameters: {

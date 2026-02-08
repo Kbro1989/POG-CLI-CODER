@@ -1,6 +1,0 @@
-
-> pog-coder-vibe@1.0.0 build
-> tsc --noEmit && esbuild cli/index.ts --bundle --outfile=dist/cli.js --platform=node --target=node20 --format=esm --banner:js="import { createRequire } from 'module'; const require = createRequire(import.meta.url); globalThis.__filename = require('url').fileURLToPath(import.meta.url); globalThis.__dirname = require('path').dirname(globalThis.__filename);" --external:sqlite3 --external:tree-sitter --external:pino-pretty --minify
-
-src/limbs/bio/BioIntelligenceLimb.ts(18,25): error TS6138: Property 'config' is declared but its value is never read.
-src/limbs/media/MediaForgeLimb.ts(18,25): error TS6138: Property 'config' is declared but its value is never read.

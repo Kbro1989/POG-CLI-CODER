@@ -63,41 +63,89 @@ export class ModelExecutor {
         }
 
         // 4. Execution Chain: Local -> Cloudflare -> Gemini -> Sovereign CLI -> Ghost Limb
+        const tiers: import('./models.js').CascadeTier[] = [];
+        let generationMode: 'AI' | 'CLI-Fallback' | 'Ghost-Limb' = 'AI';
+        let failureCount = 0;
+
         try {
             const response = await this.callOllama(model, prompt);
-            return { ok: true, value: { model, response, latency: Date.now() - startTime } };
+            tiers.push({ name: 'Local Ollama', status: 'success', timestamp: Date.now() });
+            return {
+                ok: true,
+                value: {
+                    model,
+                    response,
+                    latency: Date.now() - startTime,
+                    provenance: { tiers, finalModel: model, latency: Date.now() - startTime, generationMode, failureCount }
+                }
+            };
         } catch (ollamaError: any) {
-            this.logger.warn({ model, error: ollamaError.message || ollamaError }, 'Ollama execution failed, attempting Cloudflare AI Gateway');
+            tiers.push({ name: 'Local Ollama', status: 'failure', error: ollamaError.message, timestamp: Date.now() });
+            failureCount++;
 
             // Try Cloudflare as Primary Backup
             const cfResult = await this.callCloudflareGateway(prompt, model, startTime);
-            if (cfResult.ok) return cfResult;
+            if (cfResult.ok) {
+                tiers.push({ name: 'Cloudflare Edge', status: 'success', timestamp: Date.now() });
+                const val = cfResult.value;
+                return {
+                    ok: true,
+                    value: {
+                        ...val,
+                        provenance: { tiers, finalModel: val.model, latency: Date.now() - startTime, generationMode, failureCount }
+                    }
+                };
+            }
+            tiers.push({ name: 'Cloudflare Edge', status: 'failure', error: String(cfResult.error), timestamp: Date.now() });
+            failureCount++;
 
             // Secondary Fallback to Gemini SDK
-            this.logger.warn({ model, error: cfResult.error instanceof Error ? cfResult.error.message : cfResult.error }, 'Cloudflare fallback failed, attempting Gemini SDK');
             try {
-                return await this.callGeminiFallback(prompt, undefined, tools, true);
+                const geminiResult = await this.callGeminiFallback(prompt, undefined, tools, true);
+                tiers.push({ name: 'Gemini Cloud', status: 'success', timestamp: Date.now() });
+                const val = (geminiResult as any).value;
+                return {
+                    ok: true,
+                    value: {
+                        ...val,
+                        provenance: { tiers, finalModel: val.model, latency: Date.now() - startTime, generationMode, failureCount }
+                    }
+                };
             } catch (geminiError: any) {
-                this.logger.warn({ error: geminiError.message || geminiError }, 'Gemini SDK failed, attempting Sovereign CLI (gemini -y)');
+                tiers.push({ name: 'Gemini Cloud', status: 'failure', error: geminiError.message, timestamp: Date.now() });
+                failureCount++;
+                generationMode = 'CLI-Fallback';
 
                 // Tertiary Fallback: Sovereign CLI
                 const cliResult = await this.callSovereignCLI(prompt);
-                if (cliResult.ok) return cliResult;
-
-                this.logger.error({ error: cliResult.error }, 'Sovereign CLI failed, attempting Ghost Limb deterministic recovery');
+                if (cliResult.ok) {
+                    tiers.push({ name: 'Sovereign CLI', status: 'success', timestamp: Date.now() });
+                    const val = cliResult.value;
+                    return {
+                        ok: true,
+                        value: {
+                            ...val,
+                            provenance: { tiers, finalModel: val.model, latency: Date.now() - startTime, generationMode, failureCount }
+                        }
+                    };
+                }
+                tiers.push({ name: 'Sovereign CLI', status: 'failure', error: String(cliResult.error), timestamp: Date.now() });
+                failureCount++;
 
                 // Final "Ghost" Fallback (Deterministic)
-                // We attempt to infer a task based on the prompt or model name
+                generationMode = 'Ghost-Limb';
                 const task = model.includes('code') ? 'code-scaffold' : 'text-template';
                 const ghostResult = await this.callGhostLimb(task, { prompt });
 
                 if (ghostResult.ok) {
+                    tiers.push({ name: 'Ghost Limb', status: 'success', timestamp: Date.now() });
                     return {
                         ok: true,
                         value: {
                             model: `ghost:${task}`,
                             response: ghostResult.value.result || JSON.stringify(ghostResult.value),
-                            latency: Date.now() - startTime
+                            latency: Date.now() - startTime,
+                            provenance: { tiers, finalModel: `ghost:${task}`, latency: Date.now() - startTime, generationMode, failureCount }
                         }
                     };
                 }

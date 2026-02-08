@@ -53,6 +53,18 @@ export class FileLimb extends BaseLimb {
                 handler: async (args) => this.npmInstall(args.packages, args.saveDev)
             },
             {
+                name: 'git_push',
+                description: 'Push committed changes to the remote branch (Ternary Orchestration).',
+                parameters: { type: 'object', properties: {} },
+                handler: async () => this.gitPush()
+            },
+            {
+                name: 'git_pull',
+                description: 'Pull and merge changes from the remote branch.',
+                parameters: { type: 'object', properties: {} },
+                handler: async () => this.gitPull()
+            },
+            {
                 name: 'template_scaffold',
                 description: 'Scaffolds a new project component or sub-service based on ultimate templates.',
                 parameters: {
@@ -80,7 +92,9 @@ export class FileLimb extends BaseLimb {
 
     private async gitCommit(message: string): Promise<Result<string>> {
         try {
-            execSync('git add .', { cwd: this.config.projectRoot });
+            execSync('git add .', {
+                cwd: this.config.projectRoot
+            });
             const output = execSync(`git commit -m "[Sovereign] ${message}"`, { cwd: this.config.projectRoot, encoding: 'utf-8' });
             this.state.updateMetrics({ turnCount: 1 });
             return { ok: true, value: output };
@@ -121,12 +135,32 @@ export class FileLimb extends BaseLimb {
         }
     }
 
+    private async gitPush(): Promise<Result<string>> {
+        try {
+            const output = execSync('git push', { cwd: this.config.projectRoot, encoding: 'utf-8' });
+            return { ok: true, value: output || 'Pushed successfully' };
+        } catch (error) {
+            return { ok: false, error: error as Error };
+        }
+    }
+
+    private async gitPull(): Promise<Result<string>> {
+        try {
+            const output = execSync('git pull', { cwd: this.config.projectRoot, encoding: 'utf-8' });
+            return { ok: true, value: output || 'Pulled successfully' };
+        } catch (error) {
+            return { ok: false, error: error as Error };
+        }
+    }
+
     override async execute(intent: Intent): Promise<Result<Execution>> {
         const p = intent.prompt.toLowerCase();
 
         if (p.includes('status') || p.includes('git')) {
-            const status = await this.gitStatus();
-            if (status.ok) return { ok: true, value: { output: status.value } };
+            const matchedCap = this.spine.getCapabilities().find(cap => p.includes(cap));
+            if (matchedCap) {
+                return this.spine.handleCall(matchedCap, {}) as any;
+            }
         }
 
         return super.execute(intent);

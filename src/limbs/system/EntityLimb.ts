@@ -85,8 +85,8 @@ export class EntityLimb extends BaseLimb {
         const p = intent.prompt.toLowerCase();
 
         if (p.includes('scene') || p.includes('render') || p.includes('3d')) {
-            const scene = await this.serializeScene();
-            if (scene.ok) return { ok: true, value: { output: `[SCENE_MANIFEST]\n${scene.value}` } };
+            const scene = await this.spine.handleCall('serialize_scene', {});
+            if (scene.ok) return { ok: true, value: { output: `[SCENE_MANIFEST]\n${JSON.stringify(scene.value, null, 2)}` } };
         }
 
         return super.execute(intent);

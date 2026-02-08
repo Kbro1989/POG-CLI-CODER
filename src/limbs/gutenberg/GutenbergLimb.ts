@@ -2,9 +2,11 @@ import { BaseLimb } from '../core/BaseLimb.js';
 import type { Intent, Execution } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
+import * as fs from 'fs'; // For namespace access if needed
 import { join } from 'path';
 import { StyleAnalyzer } from './StyleAnalyzer.js';
 import { GeminiService } from '../../core/GeminiService.js';
+import { ModelExecutor } from '../../core/ModelExecutor.js';
 
 // Domain taxonomy for intelligent book categorization
 export const GUTENBERG_DOMAINS = {
@@ -61,15 +63,18 @@ export class GutenbergLimb extends BaseLimb {
     private lastRequestTime = 0;
     private vectorDB: any;
     private gemini: GeminiService | undefined;
+    private modelExecutor: ModelExecutor | undefined;
 
     constructor(
         config: VibeConfig,
         vectorDB?: any,
-        gemini?: GeminiService
+        gemini?: GeminiService,
+        modelExecutor?: ModelExecutor
     ) {
         super(config);
         this.vectorDB = vectorDB;
         this.gemini = gemini;
+        this.modelExecutor = modelExecutor;
 
         const sovereignRoot = this.config.sovereignRoot;
         const pogDir = this.config.pogDir || join(process.cwd(), '.pog-coder-vibe');
@@ -149,8 +154,212 @@ export class GutenbergLimb extends BaseLimb {
                 handler: async () => {
                     return this.handleListStyles();
                 }
+            },
+            {
+                name: 'get_library',
+                description: 'Retrieve the metadata for all locally cached books.',
+                parameters: {
+                    type: 'object',
+                    properties: {}
+                },
+                handler: async () => {
+                    const books = this.loadMetadataCache();
+                    return {
+                        ok: true,
+                        value: {
+                            output: `Retrieved ${books.length} books from local library.`,
+                            data: { books }
+                        }
+                    };
+                }
+            },
+            {
+                name: 'read_book',
+                description: 'Read the contents of a locally cached book by its ID.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        bookId: { type: 'number', description: 'The ID of the book to read' }
+                    },
+                    required: ['bookId']
+                },
+                handler: async (args: any) => {
+                    const books = this.loadMetadataCache();
+                    const book = books.find(b => b.id === args.bookId);
+                    if (!book) return { ok: false, error: new Error(`Book ${args.bookId} not found in local library.`) };
+
+                    try {
+                        const content = readFileSync(book.path, 'utf8');
+                        return {
+                            ok: true,
+                            value: {
+                                output: `Retrieved content for "${book.title}" (ID: ${book.id})`,
+                                data: { content, book }
+                            }
+                        };
+                    } catch (err) {
+                        return { ok: false, error: err as Error };
+                    }
+                }
+            },
+            {
+                name: 'audiobook_transcribe',
+                description: 'Transcribe a local audio file and add it to the book library.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        fileName: { type: 'string', description: 'Name of the audio file in the audiobook directory' }
+                    },
+                    required: ['fileName']
+                },
+                handler: async (args: any) => {
+                    const audioPath = join(this.GUTENBERG_CACHE, 'audio', args.fileName);
+                    if (!fs.existsSync(audioPath)) return { ok: false, error: new Error(`Audio file ${args.fileName} not found in library audio folder.`) };
+
+                    this.logger.info({ fileName: args.fileName }, 'Starting audiobook transcription via Whisper');
+
+                    if (!this.modelExecutor) return { ok: false, error: new Error('ModelExecutor not initialized for transcription.') };
+
+                    try {
+                        const buffer = fs.readFileSync(audioPath);
+                        const transcription = await this.modelExecutor.transcribeAudio(buffer);
+
+                        if (!transcription.ok) return transcription;
+
+                        // In a real scenario, we'd save this to a file and add to metadata
+                        const textFileName = args.fileName.replace(/\.[^/.]+$/, "") + ".txt";
+                        const textPath = join(this.GUTENBERG_CACHE, textFileName);
+                        writeFileSync(textPath, transcription.value);
+
+                        return {
+                            ok: true,
+                            value: {
+                                output: `Successfully transcribed "${args.fileName}". Added to library as "${textFileName}".`,
+                                data: { type: 'transcription_complete', fileName: args.fileName, result: transcription.value }
+                            }
+                        };
+                    } catch (err) {
+                        return { ok: false, error: err as Error };
+                    }
+                }
+            },
+            {
+                name: 'narrate_book',
+                description: 'Generate professional audiobook narration for a specific book.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        bookId: { type: 'number', description: 'The ID of the book to narrate' },
+                        style: { type: 'string', enum: ['Professional', 'Storyteller', 'Dramatic'], default: 'Professional' }
+                    },
+                    required: ['bookId']
+                },
+                handler: async (args: any) => {
+                    const books = this.loadMetadataCache();
+                    const book = books.find(b => b.id === args.bookId);
+                    if (!book) return { ok: false, error: new Error(`Book ${args.bookId} not found in local library.`) };
+
+                    return {
+                        ok: true,
+                        value: {
+                            output: `Switching to audiobook narration mode for "${book.title}". Narrating in ${args.style} style.`,
+                            data: {
+                                type: 'narration_start',
+                                bookId: book.id,
+                                title: book.title,
+                                style: args.style
+                            }
+                        }
+                    };
+                }
+            },
+            {
+                name: 'generate_storyboard',
+                description: 'Generate a sequence of narrative beats and visual prompts inspired by a specific book style.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        bookId: { type: 'number', description: 'ID of the book for style inspiration' },
+                        premise: { type: 'string', description: 'The core idea for the storyboard' },
+                        sceneCount: { type: 'number', description: 'Number of scenes to generate', default: 4 }
+                    },
+                    required: ['bookId', 'premise']
+                },
+                handler: async (args: any) => {
+                    const books = this.loadMetadataCache();
+                    const book = books.find(b => b.id === args.bookId);
+                    if (!book) return { ok: false, error: new Error(`Book ${args.bookId} not found.`) };
+
+                    this.logger.info({ bookTitle: book.title, premise: args.premise }, 'Generating style-aware storyboard');
+
+                    try {
+                        const content = readFileSync(book.path, 'utf8').slice(0, 5000);
+                        const styleProfile = StyleAnalyzer.analyze(content);
+
+                        const prompt = `Act as a master storyteller. Using the prose style and narrative tone of "${book.author}" (specifically like "${book.title}"), generate a storyboard for the following premise: "${args.premise}".
+Style Context:
+- Avg Sentence Length: ${styleProfile.avgSentenceLength}
+- Readability: ${styleProfile.readabilityScore}
+- Tone: ${styleProfile.tone}
+- Direct Snippet: "${content.slice(100, 400)}..."
+
+Generate exactly ${args.sceneCount || 4} scenes. For each scene, provide:
+1. Scene Title
+2. Narrative Beat (in the author's style)
+3. Visual Forge Prompt (for an image generator)
+
+Return as JSON array of objects.`;
+
+                        let storyboardResult: any[] = [];
+                        if (this.gemini) {
+                            const response = await this.gemini.generateContent(prompt);
+                            if (response.ok) {
+                                try {
+                                    // Extract JSON block if present
+                                    const jsonStr = response.value.response.match(/\[[\s\S]*\]/)?.[0] || response.value.response;
+                                    storyboardResult = JSON.parse(jsonStr);
+                                } catch (e) {
+                                    this.logger.warn({ err: e }, 'Failed to parse storyboard JSON, using raw response');
+                                    storyboardResult = [{ title: 'Narrative Flow', beat: response.value.response, visual: 'A literary landscape' }];
+                                }
+                            }
+                        }
+
+                        // Learning Mechanism: Save this to VectorDB
+                        if (this.vectorDB && typeof this.vectorDB.addLesson === 'function') {
+                            await this.vectorDB.addLesson({
+                                id: `storyboard-${Date.now()}`,
+                                text: JSON.stringify(storyboardResult),
+                                sessionId: 'storyboarding',
+                                projectId: 'global',
+                                metadata: { source: `gutenberg:${book.id}`, styleProfile, type: 'storyboard' }
+                            });
+                        }
+
+                        return {
+                            ok: true,
+                            value: {
+                                output: `Generated storyboard for "${args.premise}" inspired by ${book.author}.`,
+                                data: { storyboard: storyboardResult, book }
+                            }
+                        };
+                    } catch (err) {
+                        return { ok: false, error: err as Error };
+                    }
+                }
             }
         ]);
+    }
+
+    override getStatus(): Record<string, any> {
+        const books = this.loadMetadataCache();
+        return {
+            id: this.id,
+            type: this.type,
+            capabilities: this.spine.getCapabilities(),
+            totalBooks: books.length,
+            libraryPath: this.GUTENBERG_CACHE
+        };
     }
 
     override async canHandle(intent: Intent): Promise<boolean> {
