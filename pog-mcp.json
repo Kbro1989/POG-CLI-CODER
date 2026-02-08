@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant"
+            ]
+        }
+    }
+}
