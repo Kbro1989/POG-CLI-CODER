@@ -17,7 +17,7 @@ import pino from 'pino';
 import { readFileSync } from 'fs';
 import { createHash } from 'crypto';
 
-import { Tool, Type } from '@google/genai';
+import { Tool } from '@google/genai';
 
 import {
   type Result,
@@ -47,6 +47,7 @@ import { BioIntelligenceLimb } from '../limbs/bio/BioIntelligenceLimb.js';
 import { GutenbergLimb } from '../limbs/gutenberg/GutenbergLimb.js';
 import { YoloLimb } from '../limbs/core/YoloLimb.js';
 import { NeuralLimb } from '../limbs/core/NeuralLimb.js';
+import { BaseLimb } from '../limbs/core/BaseLimb.js';
 import { FileSystemLimb } from '../limbs/core/FileSystemLimb.js';
 import { VoiceLimb } from '../limbs/core/VoiceLimb.js';
 import { DashboardLimb } from '../limbs/core/DashboardLimb.js';
@@ -77,6 +78,8 @@ import { EntityLimb } from '../limbs/system/EntityLimb.js';
 import { AIModelLimb } from '../limbs/cloud/AIModelLimb.js';
 import { ModelInventory } from './ModelInventory.js';
 import { SystemEnvChecker, EnvStatus } from '../utils/SystemEnvChecker.js';
+import { ControlPlaneLimb } from '../limbs/core/ControlPlaneLimb.js';
+import { MemoryLimb } from '../limbs/core/MemoryLimb.js';
 
 // Note: Component logger is initialized in the constructor for dynamic identity.
 
@@ -174,7 +177,28 @@ export class FreeOrchestrator extends EventEmitter {
       this.hexagramManager
     );
 
+    // Initializing high-fidelity cognitive services for project-aware learning and recall
+    this.logger.info({ projectId: config.projectId, projectRoot: config.projectRoot }, 'Booting ContextBuilder for Sovereign retrieval');
+    this.contextBuilder = new ContextBuilder(
+      this.vectorDB,
+      config.projectRoot,
+      config.projectId,
+      this.geminiService
+    );
 
+    // Initializing the automated codebase indexer with real Gemini dependency
+    this.logger.info('Initializing CodebaseIndexer for full-project semantic indexing');
+    this.indexer = new CodebaseIndexer(
+      this.vectorDB,
+      this.geminiService,
+      config.projectRoot
+    );
+
+    // Reality Check: Verify learning services are integrated before limb generation
+    if (!this.contextBuilder || !this.indexer) {
+      this.logger.fatal('Critical failure: Learning infrastructure failed to initialize despite valid configuration');
+      throw new Error('Sovereign Boot Failure: ContextBuilder/Indexer unassigned');
+    }
     this.adversarialOrchestrator = new AdversarialOrchestrator(
       config,
       this.modelExecutor,
@@ -201,9 +225,14 @@ export class FreeOrchestrator extends EventEmitter {
     const fileLimb = new FileLimb(config);
     const entityLimb = new EntityLimb(config);
     this.substrateLimb = new SubstrateLimb(config, googleServices, cloudflareServices);
+    const controlPlaneLimb = new ControlPlaneLimb(config, this.router);
+    const memoryLimb = new MemoryLimb(config, this.vectorDB, this.indexer, this.geminiService!);
+    cloudflareLimb.setExecutor(this.modelExecutor);
 
     // Store in collection for intent routing
     this.limbs = [
+      controlPlaneLimb,
+      memoryLimb,
       aiModelLimb,
       fileLimb,
       entityLimb,
@@ -223,11 +252,16 @@ export class FreeOrchestrator extends EventEmitter {
       sovereignShellLimb
     ];
 
+    // 3. Global Limb Configuration
+    this.limbs.forEach(limb => {
+      if (limb instanceof BaseLimb) {
+        limb.setExecutor(this.modelExecutor);
+      }
+    });
+
     this.sovereignShellLimb = sovereignShellLimb;
 
     // 3. Post-Limb Systems
-    this.contextBuilder = new ContextBuilder(vectorDB, config.projectRoot, config.projectId, this.geminiService);
-    this.indexer = new CodebaseIndexer(vectorDB, this.geminiService, config.projectRoot);
 
     // Initialize MonitorAgent (Background Helper) - ENABLED BY DEFAULT
     if (process.env['ENABLE_MONITOR'] !== 'false') {
@@ -528,6 +562,11 @@ User: ${prompt}`,
             executionPlan = JSON.parse(jsonMatch[0]);
             context.plan = executionPlan;
             this.logger.info('Parsed execution plan from text fallback');
+          } else if (planResult.value.response.length > 50 && !planResult.value.response.includes('Sandbox')) {
+            // If response is long and doesn't mention tools, it's likely a direct answer
+            this.logger.info('Supervisor provided direct response - bypassing execution steps');
+            this.recordSuccessMetadata('supervisor', prompt, Date.now() - context.startTime, filePath);
+            return { ok: true, value: { output: planResult.value.response } };
           }
         } catch (e) {
           this.logger.warn('Failed to parse execution plan, falling back to direct mode');
@@ -578,10 +617,10 @@ Perform the current step and output results. If verifying, ensure you run the ne
       const audit = await this.intentVerifier.verify(prompt, turnResult, context);
       if (!audit.isAligned) {
         this.logger.warn({ score: audit.score, correction: audit.correction }, 'Sovereign Drift Detected');
-        // We log it heavily but don't stop execution unless critical (implementation choice for now)
-        // To make it stricter, we could inject the correction into the next turn
-        totalResponse += `\n[SOVEREIGN WARNING]: Your last action drifted from intent. Score: ${audit.score}. Correction: ${audit.correction}\n`;
+        // Inject the correction into the totalResponse so it affects subsequent steps' context
+        totalResponse += `\n[SOVEREIGN DRIFT DETECTED]: Your last action deviated from the sovereign intent.\nDrift Score: ${audit.score}\nPROACTIVE CORRECTION: ${audit.correction}\n`;
       }
+
 
       if (turnResult.model) lastModel = turnResult.model;
     }
@@ -793,30 +832,9 @@ Perform the current step and output results. If verifying, ensure you run the ne
           }
         }
 
-        // Handle Internal Control Plane tools if not handled by limbs
+        // All tool calls (Limbs & Control Plane) are now handled via the ToolingSpine in handleToolCall
         if (!handled) {
-          const args = call.args as Record<string, any>;
-          if (call.name === 'plan_tool_execution') {
-            this.logger.info({ goal: args['goal'] }, 'Plan received');
-            result = { ok: true, value: { status: 'plan_recorded' } };
-          } else if (call.name === 'route_model') {
-            this.logger.info({ taskType: args['taskType'] }, 'Dynamic routing call');
-            const routeResult = await this.router.route(response);
-            if (routeResult.ok) {
-              result = { ok: true, value: { selectedModel: routeResult.value, reason: args['reason'] } };
-            } else {
-              result = { ok: false, error: routeResult.error };
-            }
-          } else if (call.name === 'evaluate_result') {
-            this.logger.info({ success: args['success'] }, 'Result evaluation received');
-            result = { ok: true, value: { auditId: `AUDIT_${Date.now()}` } };
-          } else if (call.name === 'emit_execution_manifest') {
-            this.logger.info('Emitting execution manifest');
-            result = { ok: true, value: { manifestUri: `gs://pog-audit/manifests/${Date.now()}.json` } };
-          } else if (call.name === 'manage_event_triggers') {
-            this.logger.info({ action: args['action'], triggerId: args['triggerId'] }, 'Event trigger management received');
-            result = { ok: true, value: { status: 'trigger_configured', triggerId: args['triggerId'] } };
-          }
+          this.logger.warn({ tool: call.name }, 'Tool call not handled by any registered limb');
         }
 
         executionResults += `\nTool: ${call.name}\nResult: ${result.ok ? JSON.stringify(result.value) : result.error.message}\n`;
@@ -1164,156 +1182,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
   }
 
   private getControlPlaneTools(): Tool[] {
-    const baseTools = this.getAllAvailableTools();
-    const planningTools: Tool[] = [
-      ...baseTools,
-      {
-        functionDeclarations: [
-          {
-            name: 'plan_tool_execution',
-            description: 'Decomposes a task into a sequence of actionable steps with tool mappings.',
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                goal: { type: Type.STRING, description: 'The final objective.' },
-                steps: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      tool: { type: Type.STRING, enum: ['Sandbox', 'GitManager', 'WebAppForge', 'Wrangler', 'gcloud', 'FileSystem'] },
-                      args: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      reasoning: { type: Type.STRING },
-                      rollback: { type: Type.STRING, description: 'Command to run if this step fails.' }
-                    },
-                    required: ['tool', 'args', 'reasoning']
-                  }
-                }
-              },
-              required: ['goal', 'steps']
-            }
-          },
-          {
-            name: 'route_model',
-            description: 'Selects the optimal model for a specific task type and context.',
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                taskType: { type: Type.STRING, enum: ['architecture', 'syntax', 'refactor', 'debug', 'generate'] },
-                contextSize: { type: Type.NUMBER, description: 'Estimated token count.' },
-                requiresCloud: { type: Type.BOOLEAN },
-                reason: { type: Type.STRING }
-              },
-              required: ['taskType', 'reason']
-            }
-          },
-          {
-            name: 'evaluate_result',
-            description: 'Analyzes execution output to determine success and identify lessons.',
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                success: { type: Type.BOOLEAN },
-                errorType: { type: Type.STRING, description: 'Categorized error (e.g., Timeout, Syntax, Permission).' },
-                diff: { type: Type.STRING, description: 'Unified diff of changes made.' },
-                lessons: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING, description: 'Takeaways for future routing optimization.' }
-                },
-                regretLikelihood: { type: Type.NUMBER, minimum: 0, maximum: 1 }
-              },
-              required: ['success', 'lessons', 'regretLikelihood']
-            }
-          },
-          {
-            name: 'manage_durable_memory',
-            description: 'Manages persistent state and assets (Vector snapshots, artifacts) on GCS.',
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                intent: {
-                  type: Type.STRING,
-                  enum: [
-                    'store_vector_snapshot',
-                    'fetch_execution_artifact',
-                    'commit_model_output',
-                    'load_router_checkpoint',
-                    'archival_cleanup'
-                  ]
-                },
-                payload_uri: { type: Type.STRING },
-                metadata: { type: Type.OBJECT }
-              },
-              required: ['intent', 'payload_uri']
-            }
-          },
-          {
-            name: 'emit_execution_manifest',
-            description: 'Records a complete audit log of a cognitive intent to GCS.',
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                intentId: { type: Type.STRING },
-                routingDecision: { type: Type.OBJECT },
-                toolChain: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING }
-                },
-                artifactPointers: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING }
-                },
-                lessonDerived: { type: Type.BOOLEAN }
-              },
-              required: ['intentId', 'routingDecision', 'toolChain']
-            }
-          },
-          {
-            name: 'cloud_shell_cognitive_assist',
-            description: 'Leverages Gemini in Cloud Shell for terminal-aware code generation or debugging.',
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                intent: {
-                  type: Type.STRING,
-                  enum: ['explain_terminal_error', 'generate_infra_script', 'debug_context']
-                },
-                terminal_context: { type: Type.STRING },
-                proposed_action: { type: Type.STRING }
-              },
-              required: ['intent', 'terminal_context']
-            }
-          },
-          {
-            name: 'manage_event_triggers',
-            description: 'Configures and manages event-driven triggers for cross-surface orchestration.',
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                action: { type: Type.STRING, enum: ['create', 'delete', 'list'] },
-                triggerId: { type: Type.STRING },
-                source: {
-                  type: Type.OBJECT,
-                  properties: {
-                    provider: { type: Type.STRING, enum: ['storage.googleapis.com', 'pubsub.googleapis.com'] },
-                    event: { type: Type.STRING, description: 'e.g., google.cloud.storage.object.v1.finalized' }
-                  }
-                },
-                destination: {
-                  type: Type.OBJECT,
-                  properties: {
-                    type: { type: Type.STRING, enum: ['cloud_function', 'cloud_run', 'workflow'] },
-                    uri: { type: Type.STRING }
-                  }
-                }
-              },
-              required: ['action', 'triggerId']
-            }
-          }
-        ]
-      }
-    ];
-    return planningTools;
+    return this.getAllAvailableTools();
   }
 
   async cleanup(): Promise<void> {

@@ -2,7 +2,7 @@
  * @license
  * POG-CODER-VIBE
  * Fallback Routing Strategy
- * Simplified production-ready fallback without VibeConfig dependencies
+ * Production-ready fallback using actual model data from RoutingContext
  */
 
 import type { RoutingContext, RoutingDecision, RoutingStrategy } from '../types.js';
@@ -10,8 +10,8 @@ import type { Logger } from 'pino';
 import pino from 'pino';
 
 /**
- * A strategy that handles model failures by routing to an available fallback tier.
- * Returns null if no fallback is needed (i.e., no active failures).
+ * A strategy that handles model failures by routing to an available fallback.
+ * Uses actual model names from RoutingContext.availableModels, not abstract tiers.
  */
 export class FallbackStrategy implements RoutingStrategy {
     readonly name = 'fallback';
@@ -38,60 +38,41 @@ export class FallbackStrategy implements RoutingStrategy {
         this.logger.info({ model }, 'Model failure cleared');
     }
 
-    async route(_context: RoutingContext): Promise<RoutingDecision | null> {
+    async route(context: RoutingContext): Promise<RoutingDecision | null> {
         const startTime = performance.now();
 
-        // Check if there are any failed models that need fallback
+        // No fallback needed if no models have failed
         if (this.failedModels.size === 0) {
-            return null; // No fallback needed
+            return null;
         }
 
-        // Determine which models are currently available
-        const availableModels = this.getAvailableModels();
+        // Get available models that haven't failed
+        const available = (context.availableModels || []).filter(
+            m => m.health?.isAvailable && !this.failedModels.has(m.name)
+        );
 
-        if (availableModels.length === 0) {
+        if (available.length === 0) {
             this.logger.error('No available models for fallback');
             return null; // Let next strategy handle
         }
 
-        // Select the best available model based on priority
-        const fallbackModel = this.selectBestFallback(availableModels);
+        // Sort by priority (highest first) and select best fallback
+        const sorted = [...available].sort((a, b) => b.priority - a.priority);
+        const fallback = sorted[0];
+
+        this.logger.info({
+            failedModels: Array.from(this.failedModels),
+            selectedFallback: fallback.name
+        }, 'Fallback model selected');
 
         return {
-            model: fallbackModel,
+            model: fallback.name,
             metadata: {
                 source: 'fallback',
                 latencyMs: Math.round(performance.now() - startTime),
-                reasoning: `Falling back due to failed models: ${Array.from(this.failedModels).join(', ')}`,
+                reasoning: `Falling back to ${fallback.name} (priority: ${fallback.priority}) due to failed models: ${Array.from(this.failedModels).join(', ')}`,
             },
         };
     }
-
-    private getAvailableModels(): string[] {
-        const available: string[] = [];
-
-        // Check which tiers are not marked as failed
-        const allTiers = ['local', 'edge', 'cloud'];
-        for (const tier of allTiers) {
-            if (!this.failedModels.has(tier)) {
-                available.push(tier);
-            }
-        }
-
-        return available;
-    }
-
-    private selectBestFallback(availableModels: string[]): string {
-        // Prefer local → edge → cloud for performance and cost
-        const priority = ['local', 'edge', 'cloud'];
-
-        for (const tier of priority) {
-            if (availableModels.includes(tier)) {
-                return tier;
-            }
-        }
-
-        // Fallback to first available if priority doesn't match, or 'local' if somehow empty
-        return availableModels[0] ?? 'local';
-    }
 }
+

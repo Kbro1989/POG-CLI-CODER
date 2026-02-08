@@ -62,23 +62,29 @@ export class ModelExecutor {
             return this.callGeminiFallback(prompt, 'gemini-2.0-flash', tools);
         }
 
-        // 4. Execution Chain: Local -> Cloudflare -> Gemini -> Ghost Limb
+        // 4. Execution Chain: Local -> Cloudflare -> Gemini -> Sovereign CLI -> Ghost Limb
         try {
             const response = await this.callOllama(model, prompt);
             return { ok: true, value: { model, response, latency: Date.now() - startTime } };
-        } catch (ollamaError) {
-            this.logger.warn({ model, error: ollamaError }, 'Ollama execution failed, attempting Cloudflare AI Gateway');
+        } catch (ollamaError: any) {
+            this.logger.warn({ model, error: ollamaError.message || ollamaError }, 'Ollama execution failed, attempting Cloudflare AI Gateway');
 
             // Try Cloudflare as Primary Backup
             const cfResult = await this.callCloudflareGateway(prompt, model, startTime);
             if (cfResult.ok) return cfResult;
 
-            // Final fallback to Gemini
-            this.logger.warn({ model, error: cfResult.error }, 'Cloudflare fallback failed, attempting Gemini');
+            // Secondary Fallback to Gemini SDK
+            this.logger.warn({ model, error: cfResult.error instanceof Error ? cfResult.error.message : cfResult.error }, 'Cloudflare fallback failed, attempting Gemini SDK');
             try {
-                return await this.callGeminiFallback(prompt, undefined, tools);
-            } catch (geminiError) {
-                this.logger.error({ geminiError }, 'Gemini fallback failed, attempting Ghost Limb deterministic recovery');
+                return await this.callGeminiFallback(prompt, undefined, tools, true);
+            } catch (geminiError: any) {
+                this.logger.warn({ error: geminiError.message || geminiError }, 'Gemini SDK failed, attempting Sovereign CLI (gemini -y)');
+
+                // Tertiary Fallback: Sovereign CLI
+                const cliResult = await this.callSovereignCLI(prompt);
+                if (cliResult.ok) return cliResult;
+
+                this.logger.error({ error: cliResult.error }, 'Sovereign CLI failed, attempting Ghost Limb deterministic recovery');
 
                 // Final "Ghost" Fallback (Deterministic)
                 // We attempt to infer a task based on the prompt or model name
@@ -96,7 +102,7 @@ export class ModelExecutor {
                     };
                 }
 
-                return { ok: false, error: geminiError as Error };
+                return { ok: false, error: cliResult.error as Error };
             }
         }
     }
@@ -115,7 +121,7 @@ export class ModelExecutor {
             const finalUrl = gatewayUrl.endsWith('/') ? `${gatewayUrl}${model}` : `${gatewayUrl}/${model}`;
 
             const headers: Record<string, string> = {
-                'Authorization': `Bearer ${process.env['CLOUDFLARE_API_KEY'] || ''}`
+                'Authorization': `Bearer ${process.env['CLOUDFLARE_API_TOKEN'] || process.env['CLOUDFLARE_API_KEY'] || ''}`
             };
 
             if (!isBinaryInput) {
@@ -181,7 +187,7 @@ export class ModelExecutor {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${process.env['CLOUDFLARE_API_KEY'] || ''}`
+                    'Authorization': `Bearer ${process.env['CLOUDFLARE_API_TOKEN'] || process.env['CLOUDFLARE_API_KEY'] || ''}`
                 },
                 body: JSON.stringify(input)
             });
@@ -212,7 +218,7 @@ export class ModelExecutor {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${process.env['CLOUDFLARE_API_KEY'] || ''}`
+                    'Authorization': `Bearer ${process.env['CLOUDFLARE_API_TOKEN'] || process.env['CLOUDFLARE_API_KEY'] || ''}`
                 },
                 body: JSON.stringify({
                     messages: [{ role: 'user', content: prompt }]
@@ -233,8 +239,8 @@ export class ModelExecutor {
                     latency: Date.now() - startTime
                 }
             };
-        } catch (error) {
-            this.logger.error({ error }, 'Cloudflare Universal Hub call failed');
+        } catch (error: any) {
+            this.logger.error({ error: error.message || error }, 'Cloudflare Universal Hub call failed critically');
             return { ok: false, error: error as Error };
         }
     }
@@ -242,7 +248,8 @@ export class ModelExecutor {
     private async callGeminiFallback(
         prompt: string,
         modelOverride?: string,
-        tools?: Tool[]
+        tools?: Tool[],
+        disableFallback = false
     ): Promise<Result<ModelResponse>> {
         const startTime = Date.now();
         try {
@@ -255,8 +262,45 @@ export class ModelExecutor {
 
             return result;
         } catch (geminiError) {
+            if (disableFallback) throw geminiError;
+
             this.logger.warn({ geminiError }, 'Gemini execution failed, attempting Cloudflare AI Gateway');
             return this.callCloudflareGateway(prompt, modelOverride || 'gemini-2.0-flash', startTime);
+        }
+    }
+
+    private async callSovereignCLI(prompt: string): Promise<Result<ModelResponse>> {
+        const startTime = Date.now();
+        // Using 'gemini -y' as the primary sovereign fallback.
+        // This assumes the user has a 'gemini' CLI tool in their path, distinct from the 'gcloud' resource manager.
+        // If 'gemini' is not found, we could try 'gcloud gemini ...' but mostly likely that is for resource mgmt.
+        // The user's prompt implies 'gemini -y' is the way to Prompt the model.
+        const cmd = `gemini -y "${prompt.replace(/"/g, '\\"')}"`;
+
+        try {
+            this.logger.info({ cmd }, 'Invoking Sovereign CLI Fallback');
+            const { stdout, stderr } = await execAsync(cmd);
+
+            if (stderr && !stdout) {
+                this.logger.warn({ stderr }, 'Sovereign CLI stderr output');
+            }
+
+            // If we get output, we assume success even if there was stderr (warnings)
+            if (stdout) {
+                return {
+                    ok: true,
+                    value: {
+                        model: 'cli:gemini-y',
+                        response: stdout.trim(),
+                        latency: Date.now() - startTime
+                    }
+                };
+            }
+
+            return { ok: false, error: new Error(`Sovereign CLI produced no output. Stderr: ${stderr}`) };
+
+        } catch (error: any) {
+            return { ok: false, error: new Error(`Sovereign CLI execution failed: ${error.message}`) };
         }
     }
 

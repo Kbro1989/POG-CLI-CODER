@@ -1,6 +1,7 @@
 import type { NeuralLimb, Intent, Execution } from './NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { ToolingSpine, type LimbTool } from '../../core/ToolingSpine.js';
+import type { ModelExecutor } from '../../core/ModelExecutor.js';
 import pino from 'pino';
 
 /**
@@ -14,7 +15,10 @@ export abstract class BaseLimb implements NeuralLimb {
     protected readonly spine: ToolingSpine = new ToolingSpine();
     protected readonly logger: pino.Logger;
 
-    constructor(protected readonly config: VibeConfig) {
+    constructor(
+        protected readonly config: VibeConfig,
+        protected readonly executor?: ModelExecutor
+    ) {
         this.logger = pino({
             name: this.constructor.name,
             base: { hostname: 'POG-VIBE' }
@@ -29,21 +33,63 @@ export abstract class BaseLimb implements NeuralLimb {
     }
 
     /**
+     * Extracts the raw user intent from a potentially system-wrapped prompt.
+     */
+    protected getUserIntent(intent: Intent): string {
+        const p = intent.prompt;
+        const intentMarker = '### CURRENT USER INTENT';
+        if (p.includes(intentMarker)) {
+            const parts = p.split(intentMarker);
+            const content = parts[1];
+            if (content) {
+                const subParts = content.split('### EXECUTION DIRECTIVE');
+                const userPart = subParts[0];
+                if (userPart) return userPart.trim();
+            }
+        }
+        return p.trim();
+    }
+
+    /**
      * Default canHandle implementation: checks if any tool name or limb id is in the prompt.
      * Derived classes should override for more sophisticated intent detection.
      */
     async canHandle(intent: Intent): Promise<boolean> {
-        const p = intent.prompt.toLowerCase();
+        const p = this.getUserIntent(intent).toLowerCase();
         if (p.includes(this.id.toLowerCase())) return true;
 
         return this.spine.getCapabilities().some(cap => p.includes(cap.toLowerCase()));
     }
 
     /**
-     * Default execute implementation: returns error as high-level orchestration
-     * should typically happen via specific tool calls in the Tooling Spine.
+     * Default execute implementation: attempts a Cognitive Response if no tool is matched.
+     * This acts as a "Sovereign Chat" fallback within specialized limbs.
      */
-    async execute(_intent: Intent): Promise<Result<Execution>> {
+    async execute(intent: Intent): Promise<Result<Execution>> {
+        if (this.executor) {
+            this.logger.info('Direct execution triggered - invoking Cognitive Response fallback');
+            const prompt = `You are a specialized limb of POG-CODER-VIBE.
+ID: ${this.id}
+TYPE: ${this.type}
+CAPABILITIES: ${this.capabilities.join(', ')}
+
+The user has triggered this limb with an intent that didn't map to a specific formal tool call.
+Use your specialized context to provide a brilliant, straight-up response or guidance.
+
+User Intent: ${this.getUserIntent(intent)}`;
+
+            const response = await this.executor.callModel('gemini:gemini-1.5-flash', prompt);
+            if (response.ok) {
+                return {
+                    ok: true,
+                    value: {
+                        output: `[Sovereign Cognitive Response - ${this.id}]\n${response.value.response}`,
+                        data: { source: this.id, cognitive: true }
+                    }
+                };
+            }
+        }
+
         return {
             ok: false,
             error: new Error(`Limb [${this.id}] requires formal tool calls. Use getTools() to see options.`)
@@ -63,6 +109,13 @@ export abstract class BaseLimb implements NeuralLimb {
     async handleToolCall(name: string, args: any): Promise<Result<any>> {
         this.logger.debug({ tool: name, args }, 'Routing tool call through Spine');
         return this.spine.handleCall(name, args);
+    }
+
+    /**
+     * Assigns a ModelExecutor for cognitive fallbacks.
+     */
+    public setExecutor(executor: ModelExecutor): void {
+        (this as any).executor = executor;
     }
 
     /**

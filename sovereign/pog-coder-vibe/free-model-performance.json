@@ -548,6 +548,33 @@
       "success": true,
       "timestamp": 1770511625755,
       "isFree": true
+    },
+    {
+      "model": "webapp_forge",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 90508,
+      "success": true,
+      "timestamp": 1770519065964,
+      "isFree": true
+    },
+    {
+      "model": "cloudflare_ai",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 1,
+      "success": true,
+      "timestamp": 1770527381988,
+      "isFree": true
+    },
+    {
+      "model": "cloudflare_ai",
+      "taskType": "docs",
+      "extension": "",
+      "latency": 3,
+      "success": true,
+      "timestamp": 1770527855847,
+      "isFree": true
     }
   ],
   "version": "1.2.0"

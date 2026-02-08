@@ -97,7 +97,14 @@ export class ConfigManager {
       logLevel: (process.env['VIBE_LOG_LEVEL'] as VibeConfig['logLevel']) || overrides?.logLevel || fileConfig.logLevel || 'info',
       projectId: process.env['POG_PROJECT_ID'] || overrides?.projectId || fileConfig.projectId || projectRoot.split(/[\\/]/).pop() || 'default-project',
       ollamaModelsPath: process.env['OLLAMA_MODELS_PATH'] || overrides?.ollamaModelsPath || fileConfig.ollamaModelsPath || fileConfig.errorTrackerModelPath || '',
-      gutenbergPath: process.env['GUTENBERG_PATH'] || overrides?.gutenbergPath || fileConfig.gutenbergPath || '',
+      gutenbergPath: (() => {
+        const raw = process.env['POG_GUTENBERG_PATH'] || overrides?.gutenbergPath || fileConfig.gutenbergPath || '';
+        // Resolve relative paths against pogDir
+        if (raw && !/^[a-zA-Z]:/.test(raw) && !raw.startsWith('/') && !raw.startsWith('\\')) {
+          return join(pogDir, raw);
+        }
+        return raw;
+      })(),
       errorTrackerModelPath: process.env['POG_ERROR_TRACKER_PATH'] || overrides?.errorTrackerModelPath || fileConfig.errorTrackerModelPath || '',
       enabledServices: overrides?.enabledServices || fileConfig.enabledServices || ['gemini', 'ollama', 'cloudflare', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge', 'gutenberg', 'dashboard'],
       cloudflareGatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'] || overrides?.cloudflareGatewayUrl || fileConfig.cloudflareGatewayUrl,

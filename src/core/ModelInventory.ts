@@ -52,11 +52,8 @@ export class ModelInventory {
                 capabilities: [taskType, 'agentic'],
                 fallback: fallback || 'gold_gemini_3_flash', // Ultimate default
                 maxTokens: id.includes('pro') ? 128000 : 32768,
-                priority,
-                health: {
-                    isAvailable: true,
-                    circuitLevel: 1
-                }
+                priority
+                // Health is determined dynamically by Router.getModelHealthGrid()
             } as FreeModelConfig;
         });
     }

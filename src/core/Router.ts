@@ -156,6 +156,8 @@ export class FreeModelRouter {
         output = execSync('ollama list', { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
       } catch { }
 
+      const history = this.loadPerformanceHistory();
+
       const grid = this.getAllModels().map(m => {
         const isPresent = m.type === MT.CloudFree || m.type === MT.Cloudflare
           ? !!process.env['GOOGLE_API_KEY'] || !!process.env['CLOUDFLARE_API_KEY']
@@ -166,12 +168,17 @@ export class FreeModelRouter {
         if (state?.state === CS.Open) circuitLevel = -1;
         else if (state?.state === CS.HalfOpen || (state?.failures ?? 0) > 0) circuitLevel = 0;
 
+        // Populate lastLatency from performance history
+        const modelPerf = history.filter(h => h.model === m.name);
+        const lastPerfEntry = modelPerf[modelPerf.length - 1];
+        const lastLatency = lastPerfEntry?.latency;
+
         return {
           ...m,
           health: {
             isAvailable: isPresent,
             circuitLevel,
-            lastLatency: undefined
+            lastLatency
           }
         };
       });
@@ -180,7 +187,7 @@ export class FreeModelRouter {
       this.lastHealthCheck = Date.now();
       return grid;
     } catch {
-      return this.getAllModels().map(m => ({ ...m, health: { isAvailable: false, circuitLevel: -1 } }));
+      return this.getAllModels().map(m => ({ ...m, health: { isAvailable: false, circuitLevel: -1 as Ternary } }));
     }
   }
 

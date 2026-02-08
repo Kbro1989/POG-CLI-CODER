@@ -1,6 +1,6 @@
 {
   "pogDir": "D:\\pog-coder-vibe",
-  "projectRoot": "C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant",
+  "projectRoot": "C:\\Users\\Destiny\\Desktop\\projects\\New folder\\New folder",
   "agentName": "POG-VIBE-AGENT",
   "wsPort": 8765,
   "maxSnapshotAge": 86400000,
@@ -12,7 +12,7 @@
   "workspaces": [],
   "errorTrackerModelPath": "D:\\ollama-models",
   "ollamaModelsPath": "D:\\ollama-models",
-  "gutenbergPath": "",
+  "gutenbergPath": "D:\\pog-gutenberg",
   "enabledServices": [
     "ollama",
     "mcp_gitkraken",
@@ -27,6 +27,10 @@
     "vibe",
     "gemini"
   ],
-  "cloudflareGatewayUrl": "https://gateway.ai.cloudflare.com/v1/6872653edcee9c787c1b783173793/pick-of-gods/workers-ai/run/",
+  "cloudflareGatewayUrl": "https://pog-vibe-worker.kristain33rs.workers.dev",
+  "monitorModel": "tinyllama",
+  "snapshotModel": "yi-coder",
+  "criticModel": "deepseek-coder",
+  "planningModel": "qwen2.5-coder",
   "sovereignRoot": "D:\\pog-coder-vibe"
 }

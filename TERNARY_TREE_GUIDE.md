@@ -96,9 +96,11 @@ function assessComplexity(context) {
   if (fileSize > 10000) score++;
   
   // Return ternary decision
-  if (score >= 4) return +1;  // Complex
-  if (score >= 2) return 0;   // Medium
-  return -1;                  // Simple
+  if (score >= 4) return +1;  // Complex -> Gemini Pro/Thinking
+  if (score >= 2) return 0;   // Medium -> Qwen/Flash/Cloudflare
+  return -1;                  // Simple -> Ollama/Llama (High-Fidelity Ghost Limb)
+}
+
 }
 ```
 
@@ -150,9 +152,10 @@ function checkPerformanceHistory(context) {
 ```
 
 **Example:**
-- Previous TypeScript tasks: 95% success, 300ms avg → +1 → `deepseek-coder:33b`
-- Previous TypeScript tasks: 75% success, 4000ms avg → 0 → `qwen2.5-coder:14b`
-- Previous TypeScript tasks: 50% success, 8000ms avg → -1 → `phi3:14b`
+- Previous TypeScript tasks: 95% success, 300ms avg → +1 → `gold_gemini_pro`
+- Previous TypeScript tasks: 75% success, 4000ms avg → 0 → `gold_cloudflare_llama_3_1`
+- Previous TypeScript tasks: 50% success, 8000ms avg → -1 → `ollama:qwen2.5-coder`
+
 
 ### Level 2C: Supervisor Requirement (Complex path)
 
@@ -165,7 +168,9 @@ function checkSupervisorNeeds(context) {
   
   if (containsArchitecture && isLargeModule) return +1; // Gemini Thinking
   if (isLargeModule) return 0;                          // Gemini Flash (Context King)
-  return -1;                                           // DeepSeek (Local Power)
+  return -1;                                           // Simulation Substrate (Top Brain)
+}
+
 }
 ```
 

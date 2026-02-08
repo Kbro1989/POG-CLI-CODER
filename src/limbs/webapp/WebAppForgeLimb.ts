@@ -108,12 +108,10 @@ export class WebAppForgeLimb extends BaseLimb {
     }
 
     override async canHandle(intent: Intent): Promise<boolean> {
-        const userIntentMatch = intent.prompt.match(/### CURRENT USER INTENT\n([\s\S]*?)\n\n### EXECUTION DIRECTIVE/);
-        const rawIntent = (userIntentMatch && userIntentMatch[1]) ? userIntentMatch[1] : intent.prompt;
-        const p = rawIntent.toLowerCase();
+        const p = this.getUserIntent(intent).toLowerCase();
 
-        const triggers = ['create', 'scaffold', 'generate', 'new', 'make'];
-        const targets = ['app', 'website', 'project', 'template', 'starter'];
+        const triggers = ['create', 'scaffold', 'generate', 'new', 'make', 'build'];
+        const targets = ['app', 'website', 'project', 'template', 'starter', 'viewer', 'dashboard', 'interface', 'ui'];
 
         const hasTrigger = triggers.some(t => p.includes(t));
         const hasTarget = targets.some(ta => p.includes(ta));
@@ -140,6 +138,51 @@ export class WebAppForgeLimb extends BaseLimb {
             fs.mkdirSync(projectDir);
 
             await this.scaffoldProject(projectDir, blueprint.stack);
+
+            // 2b. Generate Custom App Code (CRITICAL: Replace Vite's default demo)
+            const appTsxPath = join(projectDir, 'src', 'App.tsx');
+            if (fs.existsSync(appTsxPath)) {
+                this.logger.info('🎨 Generating custom App.tsx based on user request');
+                const codeGenPrompt = `Generate a production-ready React TypeScript component for App.tsx.
+
+USER REQUEST: ${intent.prompt}
+
+FEATURES TO IMPLEMENT: ${blueprint.features.join(', ')}
+
+REQUIREMENTS:
+- Export default function App()
+- Use modern React patterns (hooks, functional components)
+- Include proper TypeScript types
+- Use Tailwind CSS classes for styling (already installed)
+- Make it visually appealing with modern UI
+- DO NOT create a simple counter demo - implement actual functionality based on the user request
+- Include proper error handling
+- Output ONLY the complete App.tsx code, no markdown fences
+
+Start with: import React from 'react';`;
+
+                const codeResult = await this.modelExecutor.callModel(
+                    this.config.planningModel || 'gemini-2.0-flash',
+                    codeGenPrompt
+                );
+
+                if (codeResult.ok && codeResult.value.response) {
+                    let generatedCode = codeResult.value.response
+                        .replace(/```tsx?/g, '')
+                        .replace(/```/g, '')
+                        .trim();
+
+                    // Ensure it has the import statement
+                    if (!generatedCode.startsWith('import')) {
+                        generatedCode = `import React from 'react';\n${generatedCode}`;
+                    }
+
+                    fs.writeFileSync(appTsxPath, generatedCode);
+                    this.logger.info('✅ Custom App.tsx generated successfully');
+                } else {
+                    this.logger.warn('Code generation failed, keeping scaffold default');
+                }
+            }
 
             // 3. Git Init
             const projectGit = new GitManager(projectDir);

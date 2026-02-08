@@ -1,5 +1,6 @@
 import { BaseLimb } from '../core/BaseLimb.js';
-import { Result, VibeConfig, ModelResponse } from '../../core/models.js';
+import type { Intent, Execution } from '../core/NeuralLimb.js';
+import type { Result, VibeConfig, ModelResponse } from '../../core/models.js';
 import { CloudflareServices } from '../../services/CloudflareServices.js';
 
 // Cloudflare AI model IDs (from official templates)
@@ -226,13 +227,32 @@ export class CloudflareLimb extends BaseLimb {
         ]);
     }
 
-    override async canHandle(intent: import('../core/NeuralLimb.js').Intent): Promise<boolean> {
+    override async canHandle(intent: Intent): Promise<boolean> {
         // Ternary Availability Check
         const health = this.getHealth();
         if (health.state === 'CRITICAL_FAILURE' || !this.services.getAccountId()) return false;
 
-        const p = intent.prompt.toLowerCase();
-        return p.includes('cloudflare') || p.includes('embedding') || p.includes('cf_') || this.spine.getCapabilities().some(cap => p.includes(cap));
+        const p = this.getUserIntent(intent).toLowerCase();
+
+        // Only match explicit Cloudflare/CF requests, not generic app generation
+        const cfKeywords = ['cloudflare', 'cf_', 'workers ai', 'r2 bucket', 'r2 storage'];
+        return cfKeywords.some(kw => p.includes(kw));
+    }
+
+    /**
+     * Execute handles direct intents by listing available tools
+     */
+    override async execute(_intent: Intent): Promise<Result<Execution>> {
+        const tools = this.getTools();
+        const toolNames = tools.map((t: any) => t.function?.name || t.name).join(', ');
+
+        return {
+            ok: true,
+            value: {
+                output: `Cloudflare AI Limb is ready. Available tools: ${toolNames}\n\nTo use, specify a tool like: "use cf_generate_image to create..."`,
+                data: { availableTools: toolNames }
+            }
+        };
     }
 
     async generateEmbeddings(texts: string[]): Promise<Result<number[][]>> {

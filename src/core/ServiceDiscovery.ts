@@ -160,12 +160,15 @@ export class ServiceDiscovery {
     }
 
     private async checkKnowledgeLimbs(): Promise<Omit<ServiceStatus, 'enabled'>> {
+        const gutenbergPath = this.config.gutenbergPath || join(this.config.pogDir, 'knowledge');
+        const exists = fs.existsSync(gutenbergPath);
+
         return {
             id: 'gutenberg',
             name: 'Gutenberg Knowledge',
-            status: 'ACTIVE',
+            status: exists ? 'ACTIVE' : 'INACTIVE',
             type: 'EXTENSION',
-            details: 'Substrate: READY (Local)'
+            details: exists ? `Substrate: ${gutenbergPath} (Local)` : 'Knowledge path not found'
         };
     }
 

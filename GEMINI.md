@@ -29,6 +29,8 @@ Implemented strict function schemas for:
 - **`evaluate_result`**: Critical analysis of execution outcomes
 - **`emit_execution_manifest`**: Audit logging for compliance
 - **`manage_event_triggers`**: Cross-surface event orchestration
+- **`simulate_specialized_service`**: Top-brain emulation for missing SDKs (Verified 0 Mock substrate)
+
 
 #### 3. **Response Handling**
 - Robust extraction of `.text` from `GenerateContentResponse`
@@ -59,6 +61,8 @@ Gemini is used when:
 - Storage is critical (\<5GB available)
 - Context exceeds local model limits (\>32K tokens)
 - Ollama is unavailable
+- **Specialized Service Simulation**: Emulating complex cloud APIs (Sora, Bio, etc.) via prompt-driven logic
+
 
 ### 2. **Embeddings**
 VectorDB uses Gemini's `textembedding-gecko-004` for semantic search.

@@ -13,7 +13,7 @@ export class TaskClassifier {
         [TT.Docs]: /\b(document|comment|explain|readme|tutorial|guide|wiki|docstring|jsdoc|markdown|md)\b/i,
         [TT.Diagnostic]: /\b(diagnostic|critic|error-track|path-correction|analyze-error|health|status|audit|validate|check)\b/i,
         [TT.Esoteric]: /\b(medical|bio|hear|video|music|image|forge|acoustics|pathology|derm|imagen|veo|lyria|medgemma|gutenberg|hexagram)\b/i,
-        [TT.Conversational]: /^(hi|hello|hey|greetings|who are you|what can you do|help|thanks?|how are you|good (morning|afternoon|evening))\b|^\s*\w+\s*$/i
+        [TT.Conversational]: /^(hi|hello|hey|greetings|who are you|what can you do|help|thanks?|how are you|good (morning|afternoon|evening))\b|^(tell me|explain|what is|how do i|why|can you|describe|show me)\b|^\s*\w+\s*$/i
     };
 
     static classify(prompt: string): TT {

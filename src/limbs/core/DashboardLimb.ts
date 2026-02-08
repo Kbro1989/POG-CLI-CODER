@@ -115,6 +115,7 @@ export class DashboardLimb extends BaseLimb {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POG-CODER-VIBE | ${this.config.projectId}</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2300f2ff'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='%23050505'>⚡</text></svg>" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="vibe-theme">
@@ -270,9 +271,9 @@ export class DashboardLimb extends BaseLimb {
                         <div class="settings-grid">
                             ${this.config.enabledServices.map(s => `
                                 <div class="setting-item">
-                                    <label>${s.toUpperCase()}</label>
+                                    <label for="svc-${s}">${s.toUpperCase()}</label>
                                     <label class="switch">
-                                        <input type="checkbox" checked onchange="toggleService('${s}', this.checked)">
+                                        <input type="checkbox" id="svc-${s}" checked onchange="toggleService('${s}', this.checked)">
                                         <span class="slider round"></span>
                                     </label>
                                 </div>
@@ -505,8 +506,9 @@ function handleMessage(msg) {
         case 'intentExecuted': addIntent(msg.data); break;
         case 'commandExecuted': addLog(\`CMD: \${msg.data.command}\`, 'stdout'); break;
         case 'preview_log':
-            const pathMatch = msg.data.match(/[a-zA-Z]:\\\\([^\\s]+)/);
-            addLog(msg.data, 'stdout', pathMatch ? pathMatch[0] : null);
+            const logText = typeof msg.data === 'string' ? msg.data : '';
+            const pathMatch = logText.match(/[a-zA-Z]:\\\\([^\\s]+)/);
+            addLog(logText, 'stdout', pathMatch ? pathMatch[0] : null);
             break;
         case 'state': updateStateUI(msg.data); break;
     }
@@ -532,7 +534,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
-        document.getElementById(tabId).classList.add('active');
+        const tabEl = tabId ? document.getElementById(tabId) : null;
+        if (tabEl) tabEl.classList.add('active');
     };
 });
 
