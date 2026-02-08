@@ -50,8 +50,8 @@ export class AnalyticalStrategy implements RoutingStrategy {
         };
     }
 
-    private performSimulations(ctx: RoutingContext): string[] {
-        const { complexity = 0, weightedTasks = {} } = ctx;
+    private performSimulations(context: RoutingContext): string[] {
+        const { complexity = 0, weightedTasks = {} } = context;
         const biases: Ternary[] = [-1, 0, 1];
 
         return biases.map(bias => {
@@ -60,8 +60,8 @@ export class AnalyticalStrategy implements RoutingStrategy {
         });
     }
 
-    private synthesizeDecision(simulations: string[], ctx: RoutingContext): string {
-        const { complexity = 0, availableModels = [] } = ctx;
+    private synthesizeDecision(simulations: string[], context: RoutingContext): string {
+        const { complexity = 0, availableModels = [] } = context;
 
         // Pick tier based on simulations and complexity
         let selectedTier: 'cloud' | 'edge' | 'local' = 'local';
@@ -73,15 +73,21 @@ export class AnalyticalStrategy implements RoutingStrategy {
             selectedTier = 'edge';
         }
 
-        return this.selectModelFromTier(selectedTier, availableModels) || 'gemini-2.0-flash';
+        return this.selectModelFromTier(selectedTier, availableModels, context) || 'gemini-2.0-flash';
     }
 
-    private selectModelFromTier(tier: string, available: any[]): string | null {
+    private selectModelFromTier(tier: string, available: any[], context: RoutingContext): string | null {
         // Map abstract tiers to concrete categories
         const tierFilter = (m: any) => {
             if (tier === 'cloud') return m.type === 'cloud-free' || m.type === 'cloudflare';
             if (tier === 'edge') return m.name.includes('llama-3.1-8b') || m.name.includes('yi-coder') || m.type === 'cloudflare';
-            return m.type === 'local';
+            if (tier === 'local') {
+                const weightedTasks = context.weightedTasks || {};
+                const isMonitor = (weightedTasks[TT.Monitor] ?? 0) > 0.4 || (weightedTasks[TT.Intervention] ?? 0) > 0.4;
+                if (isMonitor) return m.type === 'local' && (m.name.includes('tinyllama') || m.name.includes('1.5b'));
+                return m.type === 'local';
+            }
+            return false;
         };
 
         const candidates = available

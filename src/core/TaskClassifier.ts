@@ -12,6 +12,8 @@ export class TaskClassifier {
         [TT.Test]: /\b(test|spec|assert|verify|unit|integration|e2e|mock|stub|coverage|jest|vitest|mocha|chai)\b/i,
         [TT.Docs]: /\b(document|comment|explain|readme|tutorial|guide|wiki|docstring|jsdoc|markdown|md)\b/i,
         [TT.Diagnostic]: /\b(diagnostic|critic|error-track|path-correction|analyze-error|health|status|audit|validate|check)\b/i,
+        [TT.Monitor]: /\b(monitor|watch|observe|tracking|live-feed|stats|dashboard|metrics|telemetry|uptime)\b/i,
+        [TT.Intervention]: /\b(intervene|autosave|correction|override|safety|kill-switch|recover|rollback|fix-on-fly)\b/i,
         [TT.Esoteric]: /\b(medical|bio|hear|video|music|image|forge|acoustics|pathology|derm|imagen|veo|lyria|medgemma|gutenberg|hexagram)\b/i,
         [TT.Conversational]: /^(hi|hello|hey|greetings|who are you|what can you do|help|thanks?|how are you|good (morning|afternoon|evening))\b|^(tell me|explain|what is|how do i|why|can you|describe|show me)\b|^\s*\w+\s*$/i
     };

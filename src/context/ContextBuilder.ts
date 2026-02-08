@@ -4,7 +4,7 @@
  */
 
 import { VectorDB } from '../learning/VectorDB.js';
-import { readFileSync, readdirSync, statSync } from 'fs';
+import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname, relative, resolve } from 'path';
 import pino from 'pino';
 
@@ -98,10 +98,17 @@ export class ContextBuilder {
         // 2. Find files in same directory
         const sameDir = this.getFilesInDirectory(dirname(filePath))
             .filter(f => f !== filePath)
-            .slice(0, 15); // Expanded to 15 files
+            .slice(0, 15);
 
         // 3. Find semantically related files via VectorDB
         const related: string[] = [];
+
+        // 4. Proactive GEMINI.md Discovery (Sovereign Law)
+        const geminiMd = this.findDominantMetadata(filePath);
+        if (geminiMd) {
+            logger.info({ geminiMd }, 'Sovereign Law (GEMINI.md) detected and injected into context');
+            related.push(geminiMd);
+        }
 
         if (this.gemini) {
             try {
@@ -112,7 +119,7 @@ export class ContextBuilder {
                     if (similar.ok) {
                         const similarPaths = similar.value
                             .map(l => (l.metadata as any)?.path)
-                            .filter((p): p is string => !!p);
+                            .filter((p): p is string => !!p && p !== relativePath && p !== relative(this.projectRoot, geminiMd || ''));
                         related.push(...similarPaths);
                     }
                 }
@@ -127,6 +134,24 @@ export class ContextBuilder {
             imports,
             sameDirectory: sameDir.map(f => relative(this.projectRoot, f))
         };
+    }
+
+    /**
+     * Find GEMINI.md or similar dominant metadata up the directory tree
+     */
+    private findDominantMetadata(startPath: string): string | null {
+        let currentDir = statSync(startPath).isDirectory() ? startPath : dirname(startPath);
+
+        while (currentDir.length >= this.projectRoot.length) {
+            const target = join(currentDir, 'GEMINI.md');
+            if (existsSync(target)) return target;
+
+            const parent = dirname(currentDir);
+            if (parent === currentDir) break;
+            currentDir = parent;
+        }
+
+        return null;
     }
 
     /**

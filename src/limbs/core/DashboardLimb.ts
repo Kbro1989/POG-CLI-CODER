@@ -147,7 +147,7 @@ export class DashboardLimb extends BaseLimb {
                     <section class="panel main-panel">
                         <h3><span class="icon">👁️</span> NEURAL VIEWER</h3>
                         <div id="viewer-canvas-container" class="canvas-box premium-loader">
-                            <div class="cube-loader"><div class="cube cube1"></div><div class="cube cube2"></div><div class="cube cube3"></div><div class="cube cube4"></div></div>
+                            <div id="connectivity-matrix" class="matrix-canvas"></div>
                         </div>
                         <div id="memory-pulse" class="memory-pulse-container">
                             <div class="memory-label">MEMORY PULSE</div>
@@ -250,6 +250,16 @@ export class DashboardLimb extends BaseLimb {
                                         <circle id="disk-gauge" class="gauge-fg disk" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
                                     </svg>
                                     <div id="disk-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">NEURAL LATENCY</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="latency-gauge" class="gauge-fg latency" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="latency-val" class="gauge-value">--</div>
                                 </div>
                             </div>
                         </div>
@@ -471,6 +481,19 @@ input:checked + .slider:before { transform: translateX(16px); }
 .memory-bubble { font-size: 0.7rem; background: rgba(0,242,255,0.05); border: 1px solid rgba(0,242,255,0.15); color: #88eeff; padding: 4px 10px; border-radius: 12px; animation: pulseGlow 2s infinite alternate; }
 @keyframes pulseGlow { from { box-shadow: 0 0 5px rgba(0,242,255,0.1); border-color: rgba(0,242,255,0.1); } to { box-shadow: 0 0 12px rgba(0,242,255,0.3); border-color: var(--accent-primary); } }
 .hexagram-badge { font-size: 0.75rem; color: var(--accent-secondary); font-weight: 800; border: 1px solid var(--accent-secondary); padding: 4px 8px; border-radius: 4px; display: inline-block; background: rgba(255,0,234,0.05); }
+
+/* CONNECTIVITY MATRIX */
+.matrix-canvas { width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, rgba(0, 242, 255, 0.05) 0%, transparent 70%); }
+.matrix-node { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--accent-primary); box-shadow: 0 0 8px var(--accent-primary); opacity: 0.3; transition: 0.5s; }
+.matrix-node.active { opacity: 1; transform: scale(1.5); box-shadow: 0 0 15px var(--accent-primary); }
+.matrix-line { position: absolute; background: linear-gradient(90deg, transparent, var(--accent-primary), transparent); height: 1px; opacity: 0.1; transform-origin: left center; }
+.gauge-fg.latency { stroke: #ffcc00; }
+.memory-bubble.strategy { border-color: var(--accent-secondary); color: var(--accent-secondary); background: rgba(255, 0, 234, 0.05); }
+.memory-bubble.code { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(0, 242, 255, 0.05); }
+.memory-bubble.lore { border-color: #00ff00; color: #00ff00; background: rgba(0, 255, 0, 0.05); }
+.log-line.stdout { border-left: 2px solid var(--accent-primary); padding-left: 5px; margin-bottom: 2px; }
+.log-line.stderr { border-left: 2px solid #ff4444; padding-left: 5px; color: #ff8888; margin-bottom: 2px; }
+.log-line.json { color: #88ccff; font-family: 'JetBrains Mono', monospace; }
 `;
 
         const js = `
@@ -545,7 +568,7 @@ function promptAudiobookImport() {
 }
 
 function connect() {
-    ws = new WebSocket(\`ws://\${window.location.hostname}:8765\`);
+    ws = new WebSocket(\`ws://\${window.location.hostname}:${this.config.wsPort}\`);
     ws.onopen = () => {
         addLog("Neural Link OK", "stdout");
         const dot = document.getElementById('ws-status');
@@ -563,7 +586,12 @@ function connect() {
             if (msg.data.book.styleProfile) renderStyle(msg.data.book.styleProfile);
         }
         else if (msg.type === 'storyboard') { renderStoryboard(msg.data.storyboard); }
-        else if (msg.type === 'intentExecuted') { addLog(msg.data.output, "stdout"); addIntent(msg.data); }
+        else if (msg.type === 'intentExecuted') { 
+            addLog(msg.data.output, "stdout"); 
+            addIntent(msg.data);
+            window.lastNeuralLatency = msg.data.executionTime;
+            pulseMatrix();
+        }
         else if (msg.type === 'state') {
             updateStateUI(msg.data);
         }
@@ -583,7 +611,10 @@ function updateStateUI(state) {
     if (state.modelInventory) renderModelGallery(state.modelInventory);
     if (state.pinnedFiles) updatePinnedFiles(state.pinnedFiles);
     if (state.enabledServices) updateSettingsGrid(state.enabledServices);
-    if (state.limbs) renderLimbMatrix(state.limbs);
+    if (state.limbs) {
+        renderLimbMatrix(state.limbs);
+        if (!document.querySelector('.matrix-node')) initMatrix(state.limbs);
+    }
     if (state.activeHexagram) updateHexagramUI(state.activeHexagram);
     if (state.activeMemories) updateMemoryPulse(state.activeMemories);
     
@@ -600,6 +631,7 @@ function updateHealthGauges(metrics) {
     const cpu = metrics.cpu || 0;
     const mem = metrics.mem || 0;
     const disk = metrics.disk || 0;
+    const latency = metrics.latency || window.lastNeuralLatency || 0;
 
     const cpuGauge = document.getElementById('cpu-gauge');
     if (cpuGauge) cpuGauge.setAttribute('stroke-dasharray', \`\${(cpu / 100) * circumference} \${circumference}\`);
@@ -614,6 +646,10 @@ function updateHealthGauges(metrics) {
     const diskGauge = document.getElementById('disk-gauge');
     if (diskGauge) diskGauge.setAttribute('stroke-dasharray', \`\${(disk / 100) * circumference} \${circumference}\`);
     document.getElementById('disk-pct').innerText = disk.toFixed(0) + '%';
+
+    const latencyGauge = document.getElementById('latency-gauge');
+    if (latencyGauge) latencyGauge.setAttribute('stroke-dasharray', \`\${(Math.min(latency, 2000) / 2000) * circumference} \${circumference}\`);
+    document.getElementById('latency-val').innerText = (latency / 1000).toFixed(1) + 's';
 }
 
 function renderLimbHealth(limbs) {
@@ -721,9 +757,15 @@ function updateMemoryPulse(memories) {
         container.innerHTML = '<span style="color:#444;font-size:0.7rem">No historical context matched.</span>';
         return;
     }
-    container.innerHTML = memories.map(m => \`
-        <div class="memory-bubble" title="\${m.text}">\${m.type || 'Lesson'}: \${m.text.substring(0, 30)}...</div>
-    \`).join('');
+    container.innerHTML = memories.map(m => {
+        const type = (m.type || 'lesson').toLowerCase();
+        let cls = 'memory-bubble';
+        if (type.includes('code') || type.includes('script')) cls += ' code';
+        else if (type.includes('strategy') || type.includes('workflow')) cls += ' strategy';
+        else if (type.includes('lore') || type.includes('fact')) cls += ' lore';
+        
+        return \`<div class="\${cls}" title="\${m.text}">\${m.type || 'Lesson'}: \${m.text.substring(0, 30)}...</div>\`;
+    }).join('');
 }
 
 function renderStoryboard(beats) {
@@ -747,8 +789,21 @@ function addLog(t, s) {
     const l = document.getElementById('log-container');
     if (!l) return;
     const d = document.createElement('div');
-    d.innerHTML = \`<span style="color:#444">\${new Date().toLocaleTimeString()}</span> \${t}\`;
+    d.className = \`log-line \${(s || 'stdout').toLowerCase()}\`;
+    
+    let content = t;
+    if (typeof t === 'string' && t.startsWith('{') && t.endsWith('}')) {
+        try {
+            const json = JSON.parse(t);
+            content = \`<pre class="log-line json">\${JSON.stringify(json, null, 2)}</pre>\`;
+        } catch(e) {}
+    }
+
+    d.innerHTML = \`<span style="color:#444">\${new Date().toLocaleTimeString()}</span> \${content}\`;
     l.prepend(d);
+    
+    // Pulse matrix on activity
+    pulseMatrix();
 }
 
 function addIntent(data) {
@@ -792,6 +847,56 @@ function forgeMedia() {
     const p = promptEl ? promptEl.value : ''; 
     const t = targetEl ? targetEl.value : 'image'; 
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'control', command: 'media_forge_request', data: { prompt: p, targetType: t } })); 
+}
+
+function updateMemoryPulse(memories) {
+    const container = document.getElementById('active-memories-list');
+    if (!container) return;
+    if (memories.length === 0) {
+        container.innerHTML = '<span style="color:#444;font-size:0.7rem">No historical context matched.</span>';
+        return;
+    }
+    container.innerHTML = memories.map(m => {
+        const type = (m.type || 'lesson').toLowerCase();
+        let cls = 'memory-bubble';
+        if (type.includes('code') || type.includes('script')) cls += ' code';
+        else if (type.includes('strategy') || type.includes('workflow')) cls += ' strategy';
+        else if (type.includes('lore') || type.includes('fact')) cls += ' lore';
+        
+        return \`<div class="\${cls}" title="\${m.text}">\${m.type || 'Lesson'}: \${m.text.substring(0, 30)}...</div>\`;
+    }).join('');
+}
+
+function initMatrix(limbs) {
+    const container = document.getElementById('connectivity-matrix');
+    if (!container) return;
+    container.innerHTML = '';
+    const nodeCount = limbs.length || 5;
+    const centerX = container.offsetWidth / 2;
+    const centerY = container.offsetHeight / 2;
+    const radius = 60;
+
+    limbs.forEach((l, i) => {
+        const angle = (i / nodeCount) * Math.PI * 2;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        
+        const node = document.createElement('div');
+        node.className = 'matrix-node';
+        node.id = \`node-\${l.id}\`;
+        node.style.left = \`\${x}px\`;
+        node.style.top = \`\${y}px\`;
+        node.title = l.id;
+        container.appendChild(node);
+    });
+}
+
+function pulseMatrix() {
+    const nodes = document.querySelectorAll('.matrix-node');
+    if (nodes.length === 0) return;
+    const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+    randomNode.classList.add('active');
+    setTimeout(() => randomNode.classList.remove('active'), 1000);
 }
 
 connect();

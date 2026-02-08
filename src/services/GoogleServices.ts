@@ -12,14 +12,32 @@ export interface GoogleServiceConfig {
     region?: string;
 }
 
+import { ImageAnnotatorClient } from '@google-cloud/vision';
+import { v2 } from '@google-cloud/translate';
+const { Translate } = v2;
+import { LanguageServiceClient } from '@google-cloud/language';
+
 /**
  * GoogleServices - Unified Google API Substrate
  */
 export class GoogleServices {
     protected readonly config: GoogleServiceConfig;
+    private visionClient?: ImageAnnotatorClient;
+    private translateClient?: any; // v2.Translate
+    private nlClient?: LanguageServiceClient;
 
     constructor(config: GoogleServiceConfig) {
         this.config = config;
+
+        const authOptions = config.apiKey ? { apiKey: config.apiKey } : {};
+
+        try {
+            this.visionClient = new ImageAnnotatorClient(authOptions);
+            this.translateClient = new Translate(authOptions);
+            this.nlClient = new LanguageServiceClient(authOptions);
+        } catch (e) {
+            logger.warn({ error: (e as Error).message }, 'Failed to initialize GCloud Sensory Clients - Fallback active');
+        }
     }
 
     /**
@@ -37,25 +55,60 @@ export class GoogleServices {
     }
 
     /**
-     * Placeholder: Analyze image using Google Vision API (or simulated)
+     * Analyze image using Google Vision API
      */
-    async analyzeImage(_buffer: Buffer): Promise<Result<any>> {
-        // Implementation pending full Cloud Vision integration
-        return { ok: true, value: { fullTextAnnotation: { text: "Simulated OCR Text" } } };
+    async analyzeImage(buffer: Buffer): Promise<Result<any>> {
+        if (!this.visionClient) return { ok: false, error: new Error('Vision Client not initialized') };
+
+        try {
+            const [result] = await this.visionClient.annotateImage({
+                image: { content: buffer },
+                features: [
+                    { type: 'TEXT_DETECTION' },
+                    { type: 'LABEL_DETECTION' },
+                    { type: 'OBJECT_LOCALIZATION' }
+                ]
+            });
+            return { ok: true, value: result };
+        } catch (error) {
+            logger.error({ error }, 'Vision API call failed');
+            return { ok: false, error: error as Error };
+        }
     }
 
     /**
-     * Placeholder: Translate text using Google Translation API
+     * Translate text using Google Translation API
      */
     async translateText(text: string, target: string): Promise<Result<string>> {
-        return { ok: true, value: `[Translated to ${target}]: ${text}` };
+        if (!this.translateClient) return { ok: false, error: new Error('Translate Client not initialized') };
+
+        try {
+            const [translation] = await this.translateClient.translate(text, target);
+            return { ok: true, value: translation };
+        } catch (error) {
+            logger.error({ error }, 'Translation API call failed');
+            return { ok: false, error: error as Error };
+        }
     }
 
     /**
-     * Placeholder: Analyze entities using Google Natural Language API
+     * Analyze entities using Google Natural Language API
      */
-    async analyzeEntities(_text: string): Promise<Result<any>> {
-        return { ok: true, value: { entities: [] } };
+    async analyzeEntities(text: string): Promise<Result<any>> {
+        if (!this.nlClient) return { ok: false, error: new Error('NL Client not initialized') };
+
+        try {
+            const [result] = await this.nlClient.analyzeEntities({
+                document: {
+                    content: text,
+                    type: 'PLAIN_TEXT'
+                }
+            });
+            return { ok: true, value: result };
+        } catch (error) {
+            logger.error({ error }, 'Natural Language API call failed');
+            return { ok: false, error: error as Error };
+        }
     }
 
     /**

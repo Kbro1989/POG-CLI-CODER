@@ -13,6 +13,8 @@ export const enum TaskType {
   Docs = 'docs',
   APIOrchestration = 'api-orchestration',
   Diagnostic = 'diagnostic',
+  Monitor = 'monitor',
+  Intervention = 'intervention',
   Esoteric = 'esoteric',
   Conversational = 'conversational'
 }

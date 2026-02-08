@@ -20,6 +20,7 @@
             <nav class="tab-nav">
                 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
                 <button class="tab-btn" data-tab="ai">AI Pipeline</button>
+                <button class="tab-btn" data-tab="limbs">Limb Matrix</button>
                 <button class="tab-btn" data-tab="terminal">Terminal</button>
                 <button class="tab-btn" data-tab="health">Health</button>
                 <button class="tab-btn" data-tab="books" id="tab-books">Books</button>
@@ -46,6 +47,11 @@
                         <h3><span class="icon">👁️</span> NEURAL VIEWER</h3>
                         <div id="viewer-canvas-container" class="canvas-box premium-loader">
                             <div class="cube-loader"><div class="cube cube1"></div><div class="cube cube2"></div><div class="cube cube3"></div><div class="cube cube4"></div></div>
+                        </div>
+                        <div id="memory-pulse" class="memory-pulse-container">
+                            <div class="memory-label">MEMORY PULSE</div>
+                            <div id="active-memories-list" class="memory-bubbles"></div>
+                            <div id="active-hexagram-info" class="hexagram-badge">Unknown Archetype</div>
                         </div>
                     </section>
                     <section class="panel side-panel">
@@ -77,6 +83,18 @@
                                     <p class="muted">Loading model inventory...</p>
                                 </div>
                             </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- LIMB MATRIX TAB -->
+            <div id="limbs" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">🧬</span> INTERACTIVE LIMB MATRIX</h3>
+                        <div id="limb-matrix" class="limb-grid scroll-box">
+                            <p class="muted">Introspecting limb substrate...</p>
                         </div>
                     </section>
                 </div>
@@ -298,14 +316,6 @@
                                 </div>
                             
                                 <div class="setting-item">
-                                    <label>VS</label>
-                                    <label class="switch">
-                                        <input type="checkbox" checked onchange="toggleService('vs', this.checked)">
-                                        <span class="slider round"></span>
-                                    </label>
-                                </div>
-                            
-                                <div class="setting-item">
                                     <label>VIBE</label>
                                     <label class="switch">
                                         <input type="checkbox" checked onchange="toggleService('vibe', this.checked)">
@@ -317,6 +327,14 @@
                                     <label>GEMINI</label>
                                     <label class="switch">
                                         <input type="checkbox" checked onchange="toggleService('gemini', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                                <div class="setting-item">
+                                    <label>VS</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('vs', this.checked)">
                                         <span class="slider round"></span>
                                     </label>
                                 </div>

@@ -108,6 +108,9 @@ function updateStateUI(state) {
     if (state.modelInventory) renderModelGallery(state.modelInventory);
     if (state.pinnedFiles) updatePinnedFiles(state.pinnedFiles);
     if (state.enabledServices) updateSettingsGrid(state.enabledServices);
+    if (state.limbs) renderLimbMatrix(state.limbs);
+    if (state.activeHexagram) updateHexagramUI(state.activeHexagram);
+    if (state.activeMemories) updateMemoryPulse(state.activeMemories);
     
     // Update footer statuses
     if (document.getElementById('gemini-status')) {
@@ -193,8 +196,59 @@ function updateSettingsGrid(services) {
     `).join('');
 }
 
+function renderLimbMatrix(limbs) {
+    const container = document.getElementById('limb-matrix');
+    if (!container) return;
+    container.innerHTML = limbs.map(l => {
+        const tools = l.tools || [];
+        return `
+            <div class="limb-card">
+                <div class="limb-header">
+                    <span class="limb-id">${l.id.toUpperCase()}</span>
+                    <span class="limb-type">${l.type}</span>
+                </div>
+                <div class="limb-desc">${l.capabilities.slice(0, 3).join(', ')}...</div>
+                <div class="limb-tools">
+                    ${tools.map(t => `
+                        <button class="tool-btn" title="${t.description}" onclick="invokeTool('${l.id}', '${t.name}')">
+                            ${t.name}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function invokeTool(limbId, toolName) {
+    addLog(`Invoking tool: ${toolName} on ${limbId}...`, "stdout");
+    if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'control', command: 'invoke_limb_tool', data: { limbId, toolName } }));
+    }
+}
+
 function toggleService(service, enabled) {
     if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'control', command: 'toggleService', data: { service, enabled } }));
+}
+
+function updateHexagramUI(hex) {
+    const el = document.getElementById('active-hexagram-info');
+    if (el) {
+        el.innerText = `HEX: ${hex.name} (${hex.binary})`;
+        el.title = hex.strategy;
+    }
+}
+
+function updateMemoryPulse(memories) {
+    const container = document.getElementById('active-memories-list');
+    if (!container) return;
+    if (memories.length === 0) {
+        container.innerHTML = '<span style="color:#444;font-size:0.7rem">No historical context matched.</span>';
+        return;
+    }
+    container.innerHTML = memories.map(m => `
+        <div class="memory-bubble" title="${m.text}">${m.type || 'Lesson'}: ${m.text.substring(0, 30)}...</div>
+    `).join('');
 }
 
 function renderStoryboard(beats) {

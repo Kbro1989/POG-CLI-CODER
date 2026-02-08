@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { CapabilityRegistry, AICapability, AIServiceType } from './CapabilityRegistry.js';
 import { VibeConfig } from '../../core/models.js';
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import pino from 'pino';
 
 const logger = pino({
@@ -112,9 +112,20 @@ export class AIDispatcher {
         logger.info({ capabilityId: request.capabilityId, state: currentState }, 'Dispatching AI task');
 
         try {
+            let response: DispatchResponse;
             switch (capability.serviceType) {
                 case 'GEMINI':
-                    return await this.handleGemini(capability, request);
+                    response = await this.handleGemini(capability, request);
+                    break;
+                case 'CLOUDFLARE':
+                    response = await this.handleCloudflare(capability, request);
+                    break;
+                case 'HUGGINGFACE':
+                    response = await this.handleHuggingFace(capability, request);
+                    break;
+                case 'OLLAMA':
+                    response = await this.handleOllama(capability, request);
+                    break;
                 case 'VERTEX_AI':
                 case 'HEALTH_AI':
                 case 'GEOSPATIAL':
@@ -122,12 +133,44 @@ export class AIDispatcher {
                 case 'VIDEO_INTELLIGENCE':
                 case 'TRANSLATION':
                 case 'NATURAL_LANGUAGE':
-                    return await this.handleVertex(capability, request);
+                    response = await this.handleVertex(capability, request);
+                    break;
                 default:
-                    return await this.handleSpecializedCloud(capability, request);
+                    response = await this.handleSpecializedCloud(capability, request);
             }
-        } catch (error) {
+
+            // If failed and fallback exists, recursively dispatch
+            if (!response.success && capability.fallback) {
+                logger.warn({
+                    capabilityId: request.capabilityId,
+                    fallbackId: capability.fallback,
+                    error: response.error
+                }, 'Primary capability failed. Attempting failover to fallback.');
+
+                return await this.dispatch({
+                    ...request,
+                    capabilityId: capability.fallback
+                });
+            }
+
+            return response;
+        } catch (error: any) {
             this.setServiceState(capability.serviceType, 'ERROR');
+
+            // Handle recursive fallback on catch as well
+            if (capability.fallback) {
+                logger.warn({
+                    capabilityId: request.capabilityId,
+                    fallbackId: capability.fallback,
+                    error: error.message
+                }, 'Dispatch exception. Attempting failover to fallback.');
+
+                return await this.dispatch({
+                    ...request,
+                    capabilityId: capability.fallback
+                });
+            }
+
             return {
                 success: false,
                 result: null,
@@ -136,6 +179,160 @@ export class AIDispatcher {
                 state: 'ERROR'
             };
         }
+    }
+
+    private async handleCloudflare(capability: AICapability, request: DispatchRequest): Promise<DispatchResponse> {
+        this.setServiceState('CLOUDFLARE' as any, 'CONNECTING');
+        const accountId = process.env['CLOUDFLARE_ACCOUNT_ID'];
+        const apiKey = process.env['CLOUDFLARE_API_KEY'];
+        const email = process.env['CLOUDFLARE_EMAIL'];
+        const modelId = request.modelOverride || capability.modelId || '@cf/meta/llama-3.1-8b-instruct';
+
+        if (!accountId || !apiKey || !email) {
+            throw new Error('Cloudflare credentials (Account ID, API Key, Email) not configured');
+        }
+
+        try {
+            const resp = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${modelId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Auth-Key': apiKey,
+                    'X-Auth-Email': email,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    messages: typeof request.payload === 'string'
+                        ? [{ role: 'user', content: request.payload }]
+                        : (request.payload as any).map((p: any) => ({ role: 'user', content: p.text }))
+                })
+            });
+
+            const data: any = await resp.json();
+            if (!resp.ok) {
+                throw new Error(`Cloudflare AI Error (${resp.status}): ${JSON.stringify(data.errors)}`);
+            }
+
+            this.setServiceState('CLOUDFLARE' as any, 'READY');
+            return {
+                success: true,
+                result: data.result.response || data.result,
+                serviceUsed: 'CLOUDFLARE' as any,
+                state: 'READY'
+            };
+        } catch (error: any) {
+            this.setServiceState('CLOUDFLARE' as any, 'ERROR');
+            return {
+                success: false,
+                result: null,
+                error: error.message,
+                serviceUsed: 'CLOUDFLARE' as any,
+                state: 'ERROR'
+            };
+        }
+    }
+
+    private async handleHuggingFace(capability: AICapability, request: DispatchRequest): Promise<DispatchResponse> {
+        this.setServiceState('HUGGINGFACE' as any, 'CONNECTING');
+        const apiKey = process.env['HUGGINGFACE_API_KEY'];
+        const modelId = request.modelOverride || capability.modelId || 'mistralai/Mistral-7B-Instruct-v0.3';
+
+        if (!apiKey) {
+            throw new Error('Hugging Face API key not configured');
+        }
+
+        try {
+            const resp = await fetch(`https://api-inference.huggingface.co/models/${modelId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    inputs: typeof request.payload === 'string' ? request.payload : JSON.stringify(request.payload),
+                    parameters: {
+                        return_full_text: false,
+                        max_new_tokens: 512
+                    }
+                })
+            });
+
+            const data: any = await resp.json();
+            if (!resp.ok) {
+                throw new Error(`Hugging Face Error (${resp.status}): ${JSON.stringify(data.error || data)}`);
+            }
+
+            this.setServiceState('HUGGINGFACE' as any, 'READY');
+
+            const generatedText = Array.isArray(data) ? data[0].generated_text : (data.generated_text || JSON.stringify(data));
+
+            return {
+                success: true,
+                result: generatedText,
+                serviceUsed: 'HUGGINGFACE' as any,
+                state: 'READY'
+            };
+        } catch (error: any) {
+            this.setServiceState('HUGGINGFACE' as any, 'ERROR');
+            return {
+                success: false,
+                result: null,
+                error: error.message,
+                serviceUsed: 'HUGGINGFACE' as any,
+                state: 'ERROR'
+            };
+        }
+    }
+
+    private async handleOllama(capability: AICapability, request: DispatchRequest): Promise<DispatchResponse> {
+        this.setServiceState('OLLAMA' as any, 'CONNECTING');
+        const modelId = request.modelOverride || capability.modelId || 'qwen2.5-coder:7b';
+        const prompt = typeof request.payload === 'string'
+            ? request.payload
+            : (request.payload as any).map((p: any) => p.text).join('\n');
+
+        return new Promise((resolve) => {
+            const child = spawn('ollama', ['run', modelId, prompt], {
+                shell: true
+            });
+
+            let stdout = '';
+            let stderr = '';
+
+            child.stdout.on('data', (data: Buffer) => stdout += data.toString());
+            child.stderr.on('data', (data: Buffer) => stderr += data.toString());
+
+            child.on('close', (code: number | null) => {
+                if (code === 0) {
+                    this.setServiceState('OLLAMA' as any, 'READY');
+                    resolve({
+                        success: true,
+                        result: stdout.trim(),
+                        serviceUsed: 'OLLAMA' as any,
+                        state: 'READY'
+                    });
+                } else {
+                    this.setServiceState('OLLAMA' as any, 'ERROR');
+                    resolve({
+                        success: false,
+                        result: null,
+                        error: `Ollama failed (${code}): ${stderr}`,
+                        serviceUsed: 'OLLAMA' as any,
+                        state: 'ERROR'
+                    });
+                }
+            });
+
+            child.on('error', (err: Error) => {
+                this.setServiceState('OLLAMA' as any, 'ERROR');
+                resolve({
+                    success: false,
+                    result: null,
+                    error: err.message,
+                    serviceUsed: 'OLLAMA' as any,
+                    state: 'ERROR'
+                });
+            });
+        });
     }
 
     private async handleGemini(capability: AICapability, request: DispatchRequest): Promise<DispatchResponse> {

@@ -6,7 +6,7 @@ export type { Result, Intent, Execution, TernaryDecision };
 
 export interface NeuralLimb {
     id: string;
-    type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud';
+    type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud' | 'action' | 'experimental' | 'sensory' | 'metabolic' | 'psychic';
     capabilities: string[];
 
     /**
@@ -40,5 +40,10 @@ export interface NeuralLimb {
      * Optional: Get detailed diagnostic/contextual status of the limb
      */
     getStatus?(): Record<string, any>;
+
+    /**
+     * Optional: Assigns a ModelExecutor for cognitive fallbacks
+     */
+    setExecutor?(executor: any): void;
 }
 

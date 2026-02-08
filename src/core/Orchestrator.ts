@@ -14,7 +14,7 @@ import { EventEmitter } from 'events';
 import { homedir } from 'os';
 import { join, resolve, relative } from 'path';
 import pino from 'pino';
-import { readFileSync } from 'fs';
+import * as fs from 'fs';
 import { createHash } from 'crypto';
 import * as os from 'os';
 
@@ -74,6 +74,8 @@ import { CloudflareServices } from '../services/CloudflareServices.js';
 import { NeuralForgeLimb } from '../limbs/core/NeuralForgeLimb.js';
 import { SovereignShellLimb } from '../limbs/system/SovereignShellLimb.js';
 import { SubstrateLimb } from '../limbs/system/SubstrateLimb.js';
+import { WebSensoryLimb } from '../limbs/system/WebSensoryLimb.js';
+import { MCPLimb } from '../limbs/system/MCPLimb.js';
 import { FileLimb } from '../limbs/system/FileLimb.js';
 import { EntityLimb } from '../limbs/system/EntityLimb.js';
 import { AIModelLimb } from '../limbs/cloud/AIModelLimb.js';
@@ -232,6 +234,8 @@ export class FreeOrchestrator extends EventEmitter {
     const fileLimb = new FileLimb(config);
     const entityLimb = new EntityLimb(config);
     this.substrateLimb = new SubstrateLimb(config, googleServices, cloudflareServices);
+    const webSensoryLimb = new WebSensoryLimb(config);
+    const mcpLimb = new MCPLimb(config);
     const controlPlaneLimb = new ControlPlaneLimb(config, this.router);
     const memoryLimb = new MemoryLimb(config, this.vectorDB, this.indexer, this.geminiService!);
     const cognitionLimb = new CognitionLimb(config, this.modelExecutor);
@@ -240,15 +244,6 @@ export class FreeOrchestrator extends EventEmitter {
     const quantumLimb = new QuantumLimb(config, this.modelExecutor);
     const relicLimb = new RelicLimb(config, this.modelExecutor);
     const omegaLimb = new OmegaLimb(config, this.modelExecutor);
-
-    // Phase 15. Local Substrate Expansion
-    // - Ollama Side-Tasking Integration
-    //   - Add `llama3.2:1b` and `llama3.2:3b` to `StaticModelRegistry.ts`
-    //   - Add `qwen2.5-coder:1.5b` and `qwen2.5-coder:3b` for fast local coding
-    //   - Integrate `mistral:7b` as a medium-tier reasoning fallback
-    // - Ternary Routing Calibration
-    //   - Update `TaskClassifier` to prefer 1B models for "Conversational" or "Diagnostic" tasks
-    //   - Verify local execution priority for "Side-Tasks"
 
     cloudflareLimb.setExecutor(this.modelExecutor);
 
@@ -263,6 +258,8 @@ export class FreeOrchestrator extends EventEmitter {
       neuralForgeLimb,
       cloudflareLimb,
       this.substrateLimb,
+      webSensoryLimb,
+      mcpLimb,
       this.hexagramLimb,
       this.webAppForgeLimb,
       mediaForgeLimb,
@@ -282,7 +279,9 @@ export class FreeOrchestrator extends EventEmitter {
     // 3. Global Limb Configuration
     this.limbs.forEach(limb => {
       if (limb instanceof BaseLimb) {
-        limb.setExecutor(this.modelExecutor);
+        if (limb.setExecutor) {
+          limb.setExecutor(this.modelExecutor);
+        }
       }
     });
 
@@ -405,7 +404,7 @@ export class FreeOrchestrator extends EventEmitter {
 
   private async setupWebSocket(): Promise<void> {
     const { WebSocketServer } = await import('ws');
-    this.wsServer = new WebSocketServer({ port: this.config.wsPort });
+    this.wsServer = new WebSocketServer({ port: this.config.wsPort, host: '0.0.0.0' });
 
     this.wsServer.on('connection', (ws) => {
       this.logger.debug('Client connected');
@@ -472,12 +471,12 @@ export class FreeOrchestrator extends EventEmitter {
     });
 
     this.monitorAgent.on('provenanceCandidate', async (filePath) => {
-      const neuralForge = this.limbs.find(l => l.id === 'neural_forge') as NeuralForgeLimb;
-      if (!neuralForge) return;
+      const forge = this.limbs.find(l => l.id === 'neural_forge') as any as WebAppForgeLimb;
+      if (!forge) return;
 
       // Heuristic Filter (Ravenous Autonomy)
       try {
-        const content = readFileSync(filePath, 'utf8');
+        const content = fs.readFileSync(filePath, 'utf8');
         const isComponent = filePath.endsWith('.tsx') && /export\s+function\s+\w+/.test(content);
         const hasSovereignStyle = /className=".*sovereign-/.test(content);
 
@@ -487,7 +486,7 @@ export class FreeOrchestrator extends EventEmitter {
 
           this.logger.info({ patternName, filePath }, '🧬 Pattern Candidate Detected via Heuristic. Harvesting...');
 
-          await neuralForge.handleToolCall('harvest_pattern', {
+          await forge.handleToolCall('harvest_pattern', {
             filePath,
             patternName,
             description: 'Harvested via Ravenous Autonomy (Build Trigger)'
@@ -1213,6 +1212,13 @@ Perform the current step and output results. If verifying, ensure you run the ne
       output: output || '',
       data: data || null
     });
+
+    // Update Neural Latency (Rolling average of last 5)
+    const recentExecs = this.intentHistory.slice(-5).map(i => i.executionTime);
+    if (recentExecs.length > 0) {
+      (this as any).neuralLatency = recentExecs.reduce((a, b) => a + b, 0) / recentExecs.length;
+    }
+
     this.emit('intentExecuted', this.intentHistory[this.intentHistory.length - 1] as any);
     if (this.intentHistory.length > 1000) this.intentHistory.shift();
   }
@@ -1222,6 +1228,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
       sessionId: this.sessionId,
       intentCount: this.intentHistory.length,
       recentIntents: this.intentHistory.slice(-10),
+      neuralLatency: (this as any).neuralLatency || 0,
       enabledServices: this.config.enabledServices,
       limbs: this.limbs.map(l => {
         const status = typeof (l as any).getStatus === 'function' ? (l as any).getStatus() : { id: l.id, type: l.type, capabilities: l.capabilities };
@@ -1261,13 +1268,15 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
     const cpuUsage = 100 - (100 * totalIdle / totalTick);
 
-    // Disk usage is harder to get cross-platform without 'df' or 'wmic', 
-    // but we can provide a realistic simulated value if real measurement fails, 
-    // or use a baseline for the project drive.
+    // Disk usage: Simplified to avoid placeholders as requested.
+    // Real cross-platform disk I/O requires child_process or a library like 'diskusage'.
+    // We will leave it as 0 for now to avoid false metrics.
+    let diskUsage = 0;
+
     return {
       cpu: cpuUsage,
       mem: memUsage,
-      disk: 42 // Placeholder for real disk I/O which requires external commands
+      disk: diskUsage
     };
   }
 
@@ -1431,7 +1440,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
     for (const absPath of uniqueFiles) {
       try {
-        const content = readFileSync(absPath, 'utf8');
+        const content = fs.readFileSync(absPath, 'utf8');
         const hash = createHash('md5').update(content).digest('hex');
         const relPath = relative(root, absPath);
 

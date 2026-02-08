@@ -17,19 +17,31 @@ import pino from 'pino';
 import * as fs from 'fs';
 import { Writable } from 'stream';
 
-// ===== QOL: LOG TOGGLE =====
 // Default: hide JSON logs, press Ctrl+F12 to reveal
-let showLogs = false;
+// showLogs is now controlled via showDetailedReports and vibeCLIInstance.bufferReport
 
 const logToggleStream = new Writable({
   write(chunk, encoding, callback) {
-    if (showLogs) {
+    if (showDetailedReports) {
       process.stderr.write(chunk, encoding, callback);
     } else {
+      // Buffer logs for F12 view
+      const content = chunk.toString();
+      try {
+        const parsed = JSON.parse(content);
+        vibeCLIInstance?.bufferReport(parsed.level >= 50 ? 'error' : 'info', parsed.msg || content);
+      } catch {
+        vibeCLIInstance?.bufferReport('info', content);
+      }
       callback();
     }
   }
 });
+
+// For singleton access in log stream
+let vibeCLIInstance: VibeCLI | null = null;
+let showDetailedReports = false;
+const reportBuffer: { type: string, content: string }[] = [];
 
 // Resolve project root strictly for .env discovery
 const __filename = fileURLToPath(import.meta.url);
@@ -43,7 +55,7 @@ import { FreeOrchestrator } from '../src/core/Orchestrator.js';
 import { ASTWatcher } from '../src/watcher/ASTWatcher.js';
 import { VectorDB } from '../src/learning/VectorDB.js';
 import { Sandbox } from '../src/sandbox/Sandbox.js';
-import { select, drawBox, drawMessage, drawSovereignReport } from '../src/utils/terminal.js';
+import { select, drawBox, drawMessage, drawSovereignFooter, drawDetailedReports } from '../src/utils/terminal.js';
 import { ServiceDiscovery } from '../src/core/ServiceDiscovery.js';
 import { InteractiveMenu } from './InteractiveMenu.js';
 import chalk from 'chalk';
@@ -67,8 +79,10 @@ class VibeCLI {
   private readonly discovery: ServiceDiscovery;
   private running = true;
   private shutdownResolve?: (value: void | PromiseLike<void>) => void;
+  private errorCount = 0;
 
   constructor(projectRoot: string) {
+    vibeCLIInstance = this;
     // Initialize configuration
     this.configManager = new ConfigManager(projectRoot);
     const config = this.configManager.getConfig();
@@ -92,14 +106,63 @@ class VibeCLI {
 
     // Setup event listeners
     this.setupEventListeners();
+    this.setupGlobalHotkeys();
 
-    // Note: Logs are hidden by default. Use 'debug' command to toggle visibility.
+    // Note: Logs are hidden by default. Use 'debug' command or Ctrl+F12 to toggle visibility.
 
     logger.info({
       projectRoot,
       sessionId: this.orchestrator.getSessionId(),
       wsPort: config.wsPort
     }, 'CLI initialized');
+  }
+
+  public bufferReport(type: string, content: string): void {
+    if (type === 'error') this.errorCount++;
+    reportBuffer.push({ type, content });
+    if (reportBuffer.length > 50) reportBuffer.shift();
+  }
+
+  private setupGlobalHotkeys(): void {
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+      readline.emitKeypressEvents(process.stdin);
+      process.stdin.on('keypress', (_str, key) => {
+        // Ctrl+F12 (matches most terminals for F12 or custom sequence)
+        // Note: Many terminals send ESC [ 24 ; 5 ~ for Ctrl+F12
+        if (key.name === 'f12' || (key.ctrl && key.name === 'f12')) {
+          showDetailedReports = !showDetailedReports;
+          this.refreshUI();
+        }
+
+        // Allow Ctrl+C to still work despite raw mode
+        if (key.ctrl && key.name === 'c') {
+          void this.shutdown();
+          process.exit(0);
+        }
+      });
+    }
+  }
+
+  private refreshUI(): void {
+    console.clear();
+    this.displayBanner();
+    if (showDetailedReports) {
+      drawDetailedReports(reportBuffer);
+    }
+    this.renderFooter();
+    this.rl.prompt(true);
+  }
+
+  private renderFooter(): void {
+    const config = this.configManager.getConfig();
+    drawSovereignFooter({
+      substrate: config.sovereignRoot ? `ACTIVE [${config.sovereignRoot}]` : 'INACTIVE',
+      extension: this.orchestrator.getEndpointStatus('extension'),
+      edge: this.orchestrator.getEndpointStatus('worker'),
+      session: this.orchestrator.getSessionId(),
+      errors: this.errorCount
+    });
   }
 
   private setupEventListeners(): void {
@@ -110,18 +173,22 @@ class VibeCLI {
         success: data.success,
         executionTime: data.executionTime
       }, 'Intent executed');
+      this.refreshUI();
     });
 
     this.orchestrator.on('modelCalled', (data) => {
-      // eslint-disable-next-line no-console
-      console.log(`🤖 Using model: ${data.model}`);
+      this.bufferReport('info', `Using model: ${data.model}`);
+      if (showDetailedReports) this.refreshUI();
     });
 
     this.orchestrator.on('executionError', (data) => {
+      this.errorCount++;
+      this.bufferReport('error', data.error.message);
       logger.error({
         error: data.error,
         prompt: data.context.prompt.substring(0, 100)
       }, 'Execution error');
+      this.refreshUI();
     });
 
     // Readline events
@@ -364,13 +431,11 @@ class VibeCLI {
     },
     {
       pattern: /^debug$/i,
-      description: 'debug            - Toggle JSON log visibility',
+      description: 'debug            - Show current detailed report buffer',
       handler: (args: string[]): void => {
         void args;
-        showLogs = !showLogs;
-        const status = showLogs ? chalk.green('VISIBLE') : chalk.gray('HIDDEN');
-        // eslint-disable-next-line no-console
-        console.log(`\n🔧 Debug Logs: ${status} \n`);
+        showDetailedReports = !showDetailedReports;
+        this.refreshUI();
       }
     },
     {
@@ -621,9 +686,8 @@ class VibeCLI {
     drawMessage('USER', prompt);
 
     try {
-      const startTime = Date.now();
       const result = await this.orchestrator.executeIntent(prompt);
-      const executionTime = Date.now() - startTime;
+      // const executionTime = Date.now() - startTime;
 
       if (!result.ok) {
         drawMessage('SYSTEM', `Error: ${result.error.message} `);
@@ -633,18 +697,7 @@ class VibeCLI {
       // Premium POG response
       drawMessage('POG', result.value.output);
 
-      // Sovereign Audit Footer
-      const history = this.orchestrator.getIntentHistory();
-      const lastIntent = history[history.length - 1];
-
-      if (lastIntent) {
-        drawSovereignReport('Execution Audit', {
-          'Model Used': lastIntent.selectedModel,
-          'Latency': `${executionTime}ms`,
-          'Integrity': 'Verified',
-          'Substrate': this.configManager.getConfig().sovereignRoot ? 'D: High-Priority' : 'Local Only'
-        });
-      }
+      // UI is auto-refreshed via events and refreshUI()
     } catch (error) {
       logger.error({ error }, 'Unexpected error');
       drawMessage('SYSTEM', `Unexpected error: ${(error as Error).message} `);

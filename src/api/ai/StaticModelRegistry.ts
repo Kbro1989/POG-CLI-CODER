@@ -61,32 +61,45 @@ export const CatalogMetadata = {
 
 export const StaticModelRegistry: Record<string, AICapability> = {
     // --- GOLD STANDARD TERNARY TIERS ---
-    'gold_gemini_3_pro': {
-        id: 'gold_gemini_3_pro',
-        name: 'Gemini 3 Pro',
+    'gold_gemini_2_5_pro': {
+        id: 'gold_gemini_2_5_pro',
+        name: 'Gemini 2.5 Pro',
         serviceType: 'GEMINI' as any,
         taskType: 'TEXT' as any,
-        modelId: 'gemini-3-pro-preview',
-        description: 'ULTIMATE TIER: Most powerful reasoning and coding core.',
-        passthroughEnabled: true
+        modelId: 'gemini-2.5-pro',
+        description: 'PRIMARY REASONING: Most powerful planning and architectural core.',
+        passthroughEnabled: true,
+        fallback: 'gold_gemini_2_5_flash'
     },
-    'gold_gemini_3_flash': {
-        id: 'gold_gemini_3_flash',
-        name: 'Gemini 3 Flash',
+    'gold_gemini_2_5_flash': {
+        id: 'gold_gemini_2_5_flash',
+        name: 'Gemini 2.5 Flash',
         serviceType: 'GEMINI' as any,
         taskType: 'TEXT' as any,
-        modelId: 'gemini-3-flash-preview',
-        description: 'AGENTIC TIER: Balanced speed and high-tier intelligence.',
-        passthroughEnabled: true
+        modelId: 'gemini-2.5-flash',
+        description: 'ULTRA FAST REASONING: Balanced speed and high-tier intelligence.',
+        passthroughEnabled: true,
+        fallback: 'gold_cloudflare_llama_3_1'
     },
     'gold_cloudflare_llama_3_1': {
         id: 'gold_cloudflare_llama_3_1',
         name: 'Cloudflare Llama 3.1 8B',
-        serviceType: 'MEDIA_FORGE' as any, // Dispatched via MediaForge/CloudflareLimb
+        serviceType: 'CLOUDFLARE' as any,
         taskType: 'TEXT' as any,
-        modelId: '@cf/meta/llama-3.1-8b-instruct-fp8',
-        description: 'MIDDLE TIER: Reliable cloud-free reasoning with edge latency.',
-        passthroughEnabled: true
+        modelId: '@cf/meta/llama-3.1-8b-instruct',
+        description: 'UTILITY TIER: Reliable edge logic and specialized NLP.',
+        passthroughEnabled: true,
+        fallback: 'gold_huggingface_mistral'
+    },
+    'gold_huggingface_mistral': {
+        id: 'gold_huggingface_mistral',
+        name: 'Hugging Face Mistral 7B',
+        serviceType: 'HUGGINGFACE' as any,
+        taskType: 'TEXT' as any,
+        modelId: 'mistralai/Mistral-7B-Instruct-v0.3',
+        description: 'NICHE TIER: Specialized open-source models for high accuracy.',
+        passthroughEnabled: true,
+        fallback: 'gold_qwen_2_5_coder_7b'
     },
     'gold_qwen_2_5_coder_7b': {
         id: 'gold_qwen_2_5_coder_7b',
@@ -104,6 +117,33 @@ export const StaticModelRegistry: Record<string, AICapability> = {
         taskType: 'TEXT' as any,
         modelId: 'yi-coder:9b-chat-q5_K_M',
         description: 'LOCAL TIER: Balanced local chat and code understanding.',
+        passthroughEnabled: true
+    },
+    'gold_deepseek_coder_6_7b': {
+        id: 'gold_deepseek_coder_6_7b',
+        name: 'DeepSeek Coder 6.7B',
+        serviceType: 'OLLAMA' as any,
+        taskType: 'TEXT' as any,
+        modelId: 'deepseek-coder:6.7b-instruct-q4_K_M',
+        description: 'LOCAL TIER: Robust local code generation fallback.',
+        passthroughEnabled: true
+    },
+    'side_tinyllama_latest': {
+        id: 'side_tinyllama_latest',
+        name: 'TinyLlama 1.1B',
+        serviceType: 'OLLAMA' as any,
+        taskType: 'TEXT' as any,
+        modelId: 'tinyllama:latest',
+        description: 'SIDE TIER: Ultra-fast local monitoring and classification.',
+        passthroughEnabled: true
+    },
+    'side_qwen_2_5_coder_1_5b': {
+        id: 'side_qwen_2_5_coder_1_5b',
+        name: 'Qwen 2.5 Coder 1.5B',
+        serviceType: 'OLLAMA' as any,
+        taskType: 'TEXT' as any,
+        modelId: 'qwen2.5-coder:1.5b-instruct-q4_K_M',
+        description: 'SIDE TIER: Fast local intervention and small code tasks.',
         passthroughEnabled: true
     },
 

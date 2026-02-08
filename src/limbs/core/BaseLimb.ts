@@ -11,7 +11,7 @@ import pino from 'pino';
  */
 export abstract class BaseLimb implements NeuralLimb {
     abstract id: string;
-    abstract type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud';
+    abstract type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud' | 'action' | 'experimental' | 'sensory' | 'metabolic' | 'psychic';
 
     // Strategic Affinity
     public preferredHexagrams: string[] = []; // e.g., '111111' (Creative)

@@ -629,6 +629,33 @@
       "success": true,
       "timestamp": 1770574197774,
       "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 11274,
+      "success": true,
+      "timestamp": 1770584972101,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 39,
+      "success": true,
+      "timestamp": 1770585035468,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 42,
+      "success": true,
+      "timestamp": 1770586574403,
+      "isFree": true
     }
   ],
   "version": "1.2.0"

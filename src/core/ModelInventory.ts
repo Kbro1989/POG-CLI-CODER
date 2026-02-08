@@ -29,20 +29,24 @@ export class ModelInventory {
 
             // Determine Priority & Dynamic Fallback
             let priority = id.startsWith('gold_') ? 90 : 50;
+            if (id.startsWith('side_')) priority = 70; // High priority for side-tasks
             if (id.includes('pro')) priority = 100;
             if (id.includes('flash')) priority = 80;
 
-            // Tiered Fallback Logic (Capability-aware)
+            // Tiered Fallback Logic (Trinity Substrate)
             let fallback: string | undefined;
-            if (isLocal) {
-                // Local fallback jumps to Cloudflare or Gemini based on task
-                fallback = (taskType === 'image' || taskType === 'vision') ? 'gold_cloudflare_flux_dev' : 'gold_gemini_3_flash';
+            if (isGemini) {
+                // Gemini (Reasoning) falls back to Cloudflare (Utility)
+                fallback = 'gold_cloudflare_llama_3_1';
             } else if (isCloudflare) {
-                // Cloudflare fallback jumps to Gemini Pro or Flash
-                fallback = (id.includes('flux') || id.includes('vision')) ? 'gold_gemini_3_flash' : 'gold_gemini_pro';
-            } else if (isGemini) {
-                // Gemini Pro falls back to Flash; Flash falls back to Cloudflare Llama
-                fallback = (id.includes('pro')) ? 'gold_gemini_3_flash' : 'gold_cloudflare_llama_3_1';
+                // Cloudflare (Utility) falls back to Local (Sovereign)
+                fallback = 'gold_qwen_2_5_coder_7b';
+            } else if (id.startsWith('side_')) {
+                // Side models fall back to primary local core
+                fallback = 'gold_qwen_2_5_coder_7b';
+            } else if (isLocal) {
+                // Local core is the final substrate floor
+                fallback = undefined;
             }
 
             return {
@@ -50,7 +54,7 @@ export class ModelInventory {
                 command,
                 type,
                 capabilities: [taskType, 'agentic'],
-                fallback: fallback || 'gold_gemini_3_flash', // Ultimate default
+                fallback: fallback || 'gold_qwen_2_5_coder_7b', // Final Sovereign floor
                 maxTokens: id.includes('pro') ? 128000 : 32768,
                 priority
                 // Health is determined dynamically by Router.getModelHealthGrid()

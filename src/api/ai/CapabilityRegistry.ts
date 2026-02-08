@@ -3,7 +3,7 @@ import { CloudflareModelRegistry } from './CloudflareModelRegistry.js';
 
 export { CatalogMetadata };
 
-export type AIServiceType = 'GEMINI' | 'VERTEX_AI' | 'CLOUD_VISION' | 'DOCUMENT_AI' | 'SPEECH' | 'GEOSPATIAL' | 'HEALTH_AI' | 'MEDIA_FORGE' | 'GUTENBERG' | 'VIDEO_INTELLIGENCE' | 'TRANSLATION' | 'NATURAL_LANGUAGE' | 'OLLAMA' | 'CLOUDFLARE';
+export type AIServiceType = 'GEMINI' | 'VERTEX_AI' | 'CLOUD_VISION' | 'DOCUMENT_AI' | 'SPEECH' | 'GEOSPATIAL' | 'HEALTH_AI' | 'MEDIA_FORGE' | 'GUTENBERG' | 'VIDEO_INTELLIGENCE' | 'TRANSLATION' | 'NATURAL_LANGUAGE' | 'OLLAMA' | 'CLOUDFLARE' | 'HUGGINGFACE';
 
 export type AITaskType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'MULTIMODAL' | 'EMBEDDING' | 'HEALTH' | 'GEO';
 
@@ -15,6 +15,7 @@ export interface AICapability {
     readonly modelId?: string;
     readonly description: string;
     readonly passthroughEnabled: boolean;
+    readonly fallback?: string;
 }
 
 export const CapabilityRegistry: Record<string, AICapability> = {
