@@ -88,7 +88,12 @@ function connect() {
             if (msg.data.book.styleProfile) renderStyle(msg.data.book.styleProfile);
         }
         else if (msg.type === 'storyboard') { renderStoryboard(msg.data.storyboard); }
-        else if (msg.type === 'intentExecuted') { addLog(msg.data.output, "stdout"); addIntent(msg.data); }
+        else if (msg.type === 'intentExecuted') { 
+            addLog(msg.data.output, "stdout"); 
+            addIntent(msg.data);
+            window.lastNeuralLatency = msg.data.executionTime;
+            pulseMatrix();
+        }
         else if (msg.type === 'state') {
             updateStateUI(msg.data);
         }
@@ -108,7 +113,10 @@ function updateStateUI(state) {
     if (state.modelInventory) renderModelGallery(state.modelInventory);
     if (state.pinnedFiles) updatePinnedFiles(state.pinnedFiles);
     if (state.enabledServices) updateSettingsGrid(state.enabledServices);
-    if (state.limbs) renderLimbMatrix(state.limbs);
+    if (state.limbs) {
+        renderLimbMatrix(state.limbs);
+        if (!document.querySelector('.matrix-node')) initMatrix(state.limbs);
+    }
     if (state.activeHexagram) updateHexagramUI(state.activeHexagram);
     if (state.activeMemories) updateMemoryPulse(state.activeMemories);
     
@@ -125,6 +133,7 @@ function updateHealthGauges(metrics) {
     const cpu = metrics.cpu || 0;
     const mem = metrics.mem || 0;
     const disk = metrics.disk || 0;
+    const latency = metrics.latency || window.lastNeuralLatency || 0;
 
     const cpuGauge = document.getElementById('cpu-gauge');
     if (cpuGauge) cpuGauge.setAttribute('stroke-dasharray', `${(cpu / 100) * circumference} ${circumference}`);
@@ -139,6 +148,10 @@ function updateHealthGauges(metrics) {
     const diskGauge = document.getElementById('disk-gauge');
     if (diskGauge) diskGauge.setAttribute('stroke-dasharray', `${(disk / 100) * circumference} ${circumference}`);
     document.getElementById('disk-pct').innerText = disk.toFixed(0) + '%';
+
+    const latencyGauge = document.getElementById('latency-gauge');
+    if (latencyGauge) latencyGauge.setAttribute('stroke-dasharray', `${(Math.min(latency, 2000) / 2000) * circumference} ${circumference}`);
+    document.getElementById('latency-val').innerText = (latency / 1000).toFixed(1) + 's';
 }
 
 function renderLimbHealth(limbs) {
@@ -246,9 +259,15 @@ function updateMemoryPulse(memories) {
         container.innerHTML = '<span style="color:#444;font-size:0.7rem">No historical context matched.</span>';
         return;
     }
-    container.innerHTML = memories.map(m => `
-        <div class="memory-bubble" title="${m.text}">${m.type || 'Lesson'}: ${m.text.substring(0, 30)}...</div>
-    `).join('');
+    container.innerHTML = memories.map(m => {
+        const type = (m.type || 'lesson').toLowerCase();
+        let cls = 'memory-bubble';
+        if (type.includes('code') || type.includes('script')) cls += ' code';
+        else if (type.includes('strategy') || type.includes('workflow')) cls += ' strategy';
+        else if (type.includes('lore') || type.includes('fact')) cls += ' lore';
+        
+        return `<div class="${cls}" title="${m.text}">${m.type || 'Lesson'}: ${m.text.substring(0, 30)}...</div>`;
+    }).join('');
 }
 
 function renderStoryboard(beats) {
@@ -272,8 +291,21 @@ function addLog(t, s) {
     const l = document.getElementById('log-container');
     if (!l) return;
     const d = document.createElement('div');
-    d.innerHTML = `<span style="color:#444">${new Date().toLocaleTimeString()}</span> ${t}`;
+    d.className = `log-line ${(s || 'stdout').toLowerCase()}`;
+    
+    let content = t;
+    if (typeof t === 'string' && t.startsWith('{') && t.endsWith('}')) {
+        try {
+            const json = JSON.parse(t);
+            content = `<pre class="log-line json">${JSON.stringify(json, null, 2)}</pre>`;
+        } catch(e) {}
+    }
+
+    d.innerHTML = `<span style="color:#444">${new Date().toLocaleTimeString()}</span> ${content}`;
     l.prepend(d);
+    
+    // Pulse matrix on activity
+    pulseMatrix();
 }
 
 function addIntent(data) {
@@ -317,6 +349,56 @@ function forgeMedia() {
     const p = promptEl ? promptEl.value : ''; 
     const t = targetEl ? targetEl.value : 'image'; 
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'control', command: 'media_forge_request', data: { prompt: p, targetType: t } })); 
+}
+
+function updateMemoryPulse(memories) {
+    const container = document.getElementById('active-memories-list');
+    if (!container) return;
+    if (memories.length === 0) {
+        container.innerHTML = '<span style="color:#444;font-size:0.7rem">No historical context matched.</span>';
+        return;
+    }
+    container.innerHTML = memories.map(m => {
+        const type = (m.type || 'lesson').toLowerCase();
+        let cls = 'memory-bubble';
+        if (type.includes('code') || type.includes('script')) cls += ' code';
+        else if (type.includes('strategy') || type.includes('workflow')) cls += ' strategy';
+        else if (type.includes('lore') || type.includes('fact')) cls += ' lore';
+        
+        return `<div class="${cls}" title="${m.text}">${m.type || 'Lesson'}: ${m.text.substring(0, 30)}...</div>`;
+    }).join('');
+}
+
+function initMatrix(limbs) {
+    const container = document.getElementById('connectivity-matrix');
+    if (!container) return;
+    container.innerHTML = '';
+    const nodeCount = limbs.length || 5;
+    const centerX = container.offsetWidth / 2;
+    const centerY = container.offsetHeight / 2;
+    const radius = 60;
+
+    limbs.forEach((l, i) => {
+        const angle = (i / nodeCount) * Math.PI * 2;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        
+        const node = document.createElement('div');
+        node.className = 'matrix-node';
+        node.id = `node-${l.id}`;
+        node.style.left = `${x}px`;
+        node.style.top = `${y}px`;
+        node.title = l.id;
+        container.appendChild(node);
+    });
+}
+
+function pulseMatrix() {
+    const nodes = document.querySelectorAll('.matrix-node');
+    if (nodes.length === 0) return;
+    const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+    randomNode.classList.add('active');
+    setTimeout(() => randomNode.classList.remove('active'), 1000);
 }
 
 connect();

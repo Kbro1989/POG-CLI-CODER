@@ -46,7 +46,7 @@
                     <section class="panel main-panel">
                         <h3><span class="icon">👁️</span> NEURAL VIEWER</h3>
                         <div id="viewer-canvas-container" class="canvas-box premium-loader">
-                            <div class="cube-loader"><div class="cube cube1"></div><div class="cube cube2"></div><div class="cube cube3"></div><div class="cube cube4"></div></div>
+                            <div id="connectivity-matrix" class="matrix-canvas"></div>
                         </div>
                         <div id="memory-pulse" class="memory-pulse-container">
                             <div class="memory-label">MEMORY PULSE</div>
@@ -149,6 +149,16 @@
                                         <circle id="disk-gauge" class="gauge-fg disk" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
                                     </svg>
                                     <div id="disk-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">NEURAL LATENCY</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="latency-gauge" class="gauge-fg latency" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="latency-val" class="gauge-value">--</div>
                                 </div>
                             </div>
                         </div>

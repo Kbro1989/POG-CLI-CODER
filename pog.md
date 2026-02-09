@@ -28,6 +28,22 @@ If you have just cloned this repository, follow these steps to initialize the en
 - **NO MOCKS**: We operate against real project substrates.
 - **ZERO PLACEHOLDERS**: All logic is fully implemented or omitted.
 - **CLUSTER NATIVE**: Every intent is processed through a 9-node cognitive matrix (Sense-Think-Act-Reflect).
+- **SOVEREIGN STORAGE**: D:\pog-coder-vibe (Config), D:\ollama-models (AI), D:\pog-gutenberg (Knowledge).
+- **SOVEREIGN STORAGE**: D:\pog-coder-vibe (Config), D:\ollama-models (AI), D:\pog-gutenberg (Knowledge).
+
+## 🧩 Multifunctional Limb Inventory
+
+- **BioIntelligence**: Medical/Biological data analysis.
+- **Cloudflare**: Unified Edge AI (Vision, Speech, Text).
+- **Gutenberg**: Literary style ingestion and analysis.
+- **Hexagram**: I-Ching based strategic routing.
+- **MediaForge**: Creative asset generation.
+- **NeuralForge**: Code generation and analysis.
+- **Omega**: Teleological goal seeking (Experimental).
+- **Quantum**: Parallel hypothesis testing (Experimental).
+- **Relic**: RSC Archaeology and legacy data parsing.
+- **SovereignShell**: System-level execution and control.
+- **WebAppForge**: Full-stack application scaffolding.
 
 ---
 

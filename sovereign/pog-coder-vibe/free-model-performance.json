@@ -656,6 +656,15 @@
       "success": true,
       "timestamp": 1770586574403,
       "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "esoteric",
+      "extension": "",
+      "latency": 106,
+      "success": true,
+      "timestamp": 1770590916487,
+      "isFree": true
     }
   ],
   "version": "1.2.0"

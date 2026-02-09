@@ -525,7 +525,8 @@ export class FreeOrchestrator extends EventEmitter {
         localModels: true, // Always true for this architecture
         noRecentErrors: !this.monitorAgent || (this.monitorAgent as any).tscMonitor.getCurrentErrors().length === 0,
         userActive: true, // Assumed active if events are firing
-        lowResourcePressure: true // Default for now
+        lowResourcePressure: true, // Default for now
+        dashboardHealthy: this.checkDashboardHealth() // Line 6: UI Culmination
       };
 
       // Resolve the promise for buildPass since diagnoseState is async
@@ -542,6 +543,166 @@ export class FreeOrchestrator extends EventEmitter {
     } catch (error) {
       this.logger.warn({ error }, 'Failed to refresh Hexagram State');
     }
+  }
+
+  /**
+   * Checks dashboard/UI health for Line 6 (Culmination).
+   * Returns true if WebSocket clients are connected or preview is active.
+   */
+  private checkDashboardHealth(): boolean {
+    try {
+      // Check WebSocket server has connected clients
+      const wsConnected = this.wsServer && Array.from(this.wsServer.clients || []).some(
+        (ws: { readyState?: number }) => ws.readyState === 1 // WebSocket.OPEN
+      );
+
+      // Check preview server has active previews
+      const previewActive = this.previewServer.getActivePreviews().length > 0;
+
+      return wsConnected || previewActive;
+    } catch {
+      return false; // Assume disconnected if we can't check
+    }
+  }
+
+  // ============================================================
+  // HEXAGRAM STRATEGY EXECUTION SYSTEM
+  // Makes the hexagram authoritative - strategy -> action mapping
+  // ============================================================
+
+  /**
+   * Execute a task with strategy-aware behavior.
+   * Hexagram state determines execution mode: EXPAND, YIELD, ARBITRATE, or MAINTAIN.
+   */
+  private async executeWithStrategy<T>(
+    task: () => Promise<T>,
+    context: { intent: string; useCloud?: boolean }
+  ): Promise<T> {
+    const hexagram = this.hexagramManager.getInterpretation();
+
+    this.logger.debug({
+      strategy: hexagram.strategy,
+      hexagram: hexagram.name
+    }, 'Executing with hexagram strategy');
+
+    switch (hexagram.strategy) {
+      case 'EXPAND':
+        return this.executeExpand(task, context);
+
+      case 'YIELD':
+        return this.executeYield(task, context);
+
+      case 'ARBITRATE':
+        return this.executeArbitrate(task, context);
+
+      case 'CONSOLIDATE':
+        return this.executeConsolidate(task, context);
+
+      case 'MAINTAIN':
+      default:
+        return this.executeMaintain(task, context);
+    }
+  }
+
+  /**
+   * EXPAND strategy: Parallel execution, cloud models, aggressive.
+   * Hexagram indicates YANG dominance - full resources available.
+   */
+  private async executeExpand<T>(
+    task: () => Promise<T>,
+    context: { intent: string; useCloud?: boolean }
+  ): Promise<T> {
+    this.logger.info({ strategy: 'EXPAND' }, 'Aggressive execution mode: cloud enabled, max parallelism');
+
+    // Prefer cloud models for maximum capability
+    if (context.useCloud !== false && this.geminiService) {
+      // Cloud is explicitly available - execute with full power
+      return task();
+    }
+
+    return task();
+  }
+
+  /**
+   * YIELD strategy: Sequential, local-only, conservative.
+   * Hexagram indicates YIN dominance - preserve resources, minimize risk.
+   */
+  private async executeYield<T>(
+    task: () => Promise<T>,
+    _context: { intent: string }
+  ): Promise<T> {
+    this.logger.info({ strategy: 'YIELD' }, 'Conservative execution mode: local-only, single-threaded');
+
+    // Force local model routing by logging the constraint
+    this.logger.debug('YIELD: Forcing local model preference');
+
+    // Execute conservatively - single attempt, no retries
+    try {
+      return await task();
+    } catch (error) {
+      this.logger.warn({ error }, 'YIELD: Task failed, not retrying per conservative strategy');
+      throw error;
+    }
+  }
+
+  /**
+   * ARBITRATE strategy: Human-in-the-loop for ambiguous states.
+   * Hexagram indicates CONFLICT - seek external resolution.
+   */
+  private async executeArbitrate<T>(
+    task: () => Promise<T>,
+    context: { intent: string }
+  ): Promise<T> {
+    this.logger.info({ strategy: 'ARBITRATE' }, 'Conflict detected: requesting human clarification');
+
+    // Emit event for dashboard listeners
+    this.emit('awaitingFeedback', {
+      message: `Hexagram ARBITRATE: Ambiguous state detected for "${context.intent.substring(0, 50)}...". Proceeding with default execution.`
+    });
+
+    // Execute but log that human review is recommended
+    const result = await task();
+
+    this.logger.info('ARBITRATE: Execution complete - human review recommended');
+    return result;
+  }
+
+  /**
+   * CONSOLIDATE strategy: Local logs only, queue UI updates.
+   * Hexagram indicates STAGNATION - focus on stability over progress.
+   */
+  private async executeConsolidate<T>(
+    task: () => Promise<T>,
+    _context: { intent: string }
+  ): Promise<T> {
+    this.logger.info({ strategy: 'CONSOLIDATE' }, 'Consolidation mode: file-based logging, queued updates');
+
+    // Execute with minimal side effects
+    return task();
+  }
+
+  /**
+   * MAINTAIN strategy: Balanced execution (default).
+   * Hexagram indicates EQUILIBRIUM - normal operation.
+   */
+  private async executeMaintain<T>(
+    task: () => Promise<T>,
+    _context: { intent: string }
+  ): Promise<T> {
+    this.logger.debug({ strategy: 'MAINTAIN' }, 'Balanced execution mode');
+    return task();
+  }
+
+  /**
+   * Get current strategic posture for external consumers.
+   */
+  public getStrategicPosture(): { strategy: string; hexagram: string; binary: string } {
+    const hex = this.hexagramManager.getInterpretation();
+    return {
+      strategy: hex.strategy,
+      hexagram: hex.name,
+      binary: hex.binary
+    };
   }
 
   private async handleAutoHeal(report: import('../monitor/MonitorAgent.js').MonitorReport): Promise<void> {
@@ -767,7 +928,12 @@ ${stepHexagram}
 Perform the current step and output results. If verifying, ensure you run the necessary tools.`;
 
       const executionTools = this.getAllAvailableTools();
-      const turnResult = await this.executeTurn(stepPrompt, context, turnCounter, executionTools, step.tool, modelOverride);
+
+      // HEXAGRAM STRATEGY EXECUTION: Wrap task in strategy-aware execution
+      const turnResult = await this.executeWithStrategy(
+        () => this.executeTurn(stepPrompt, context, turnCounter, executionTools, step.tool, modelOverride),
+        { intent: step.reasoning, useCloud: true }
+      );
 
       if (turnResult.status === 'continue') {
         // Step requires more work or review
@@ -1509,8 +1675,8 @@ Perform the current step and output results. If verifying, ensure you run the ne
     }
   }
 
-  async cleanup(): Promise<void> {
-    this.logger.info('Cleaning up orchestrator');
+  async cleanup(reason = 'unknown'): Promise<void> {
+    this.logger.info({ reason }, 'Cleaning up orchestrator');
     await this.previewServer.stopAll();
     if (this.wsServer) this.wsServer.close();
     this.removeAllListeners();

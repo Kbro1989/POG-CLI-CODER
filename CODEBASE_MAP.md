@@ -155,17 +155,32 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 
 ---
 
-## 📂 System State (`~/.pog_coder_vibe`)
+## 📂 D:\ Sovereign Substrate
 
-**Auto-generated runtime directory:**
+**Persistent storage moved to D: for memory management.**
 
+| Directory | Size | Purpose |
+|-----------|------|---------|
+| `D:\pog-coder-vibe\` | ~300 KB | Runtime config, sessions, learning |
+| `D:\pog-gutenberg\` | 30.78 MB | Literary corpus (32 books, 5 domains) |
+| `D:\ollama-models\` | **39.86 GB** | Local LLM weights (4 models) |
+
+### D:\pog-coder-vibe\ (Runtime Root)
 | File/Directory | Purpose |
 |----------------|---------|
-| `/snapshots` | Filesystem backups for rollback |
+| `config.json` | **Master config** (links all paths, models) |
 | `vibe-learning.db` | SQLite VectorDB (RAG lessons & embeddings) |
 | `free-model-performance.json` | Historical latency & success metrics |
-| `keys.db` | Encrypted API key storage (KeyVault) |
-| `config.json` | Runtime configuration overrides |
+| `session_dashboards/` | Generated HTML/CSS/JS session UIs |
+| `snapshots/` | Filesystem backups for rollback |
+
+### D:\ollama-models\ (Local LLMs)
+| Model | Role | Config Key |
+|-------|------|------------|
+| `qwen2.5-coder` | Planning | `planningModel` |
+| `deepseek-coder` | Critique | `criticModel` |
+| `yi-coder` | Snapshots | `snapshotModel` |
+| `tinyllama` | Monitoring | `monitorModel` |
 
 ---
 

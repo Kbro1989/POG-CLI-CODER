@@ -48,6 +48,9 @@ export interface RoutingContext {
     /** Primary file extension for context */
     extension?: string;
 
+    /** File size in bytes */
+    fileSize?: number;
+
     /** Ternary complexity score (-1, 0, 1) */
     complexity?: number;
 

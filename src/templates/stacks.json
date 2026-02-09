@@ -1,35 +1,37 @@
 {
-    "react-vite-internal": {
-        "description": "Standard React + Vite + TypeScript starter",
-        "init": "npm create vite@latest . -- --template react-ts",
-        "install": "npm install",
+    "react-vite": {
+        "init": "npx -y create-vite@latest . --template react-ts",
+        "install": "npm install && npm install -D tailwindcss postcss autoprefixer && npx tailwindcss init -p",
         "devCommand": "npm run dev",
-        "defaultPort": 5173
+        "defaultPort": 5173,
+        "description": "React + Vite + TypeScript + Tailwind"
     },
     "react-vite-sovereign": {
-        "description": "High-fidelity React + Vite + Tailwind with Sovereign UI patterns",
-        "init": "npm create vite@latest . -- --template react-ts && npm install -D tailwindcss postcss autoprefixer && npx tailwindcss init -p",
+        "init": "npx -y create-vite@latest . --template react-ts",
+        "install": "npm install && npm install -D tailwindcss postcss autoprefixer @types/node",
+        "devCommand": "npm run dev",
+        "defaultPort": 5173,
+        "description": "React + Vite with Sovereign UI pre-configured"
+    },
+    "nextjs": {
+        "init": "npx -y create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm",
+        "install": "npm install",
+        "devCommand": "npm run dev",
+        "defaultPort": 3000,
+        "description": "Next.js 14 with App Router"
+    },
+    "vue-vite": {
+        "init": "npx -y create-vite@latest . --template vue-ts",
         "install": "npm install",
         "devCommand": "npm run dev",
         "defaultPort": 5173,
-        "absorbedFrom": [
-            "lovable",
-            "v0",
-            "shadcn"
-        ]
+        "description": "Vue 3 + Vite + TypeScript"
     },
-    "nextjs-vibe": {
-        "description": "Next.js 14+ with Tailwind and App Router",
-        "init": "npx -y create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\"",
+    "svelte-kit": {
+        "init": "npx -y create-svelte@latest .",
         "install": "npm install",
         "devCommand": "npm run dev",
-        "defaultPort": 3000
-    },
-    "fastify-api": {
-        "description": "High-performance Fastify API with TypeScript",
-        "init": "npm init -y && npm install fastify @fastify/autoload @fastify/sensible",
-        "install": "npm install -D typescript @types/node ts-node",
-        "devCommand": "npm start",
-        "defaultPort": 3000
+        "defaultPort": 5173,
+        "description": "SvelteKit with TypeScript"
     }
 }

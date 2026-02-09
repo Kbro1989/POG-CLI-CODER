@@ -25,6 +25,8 @@ export interface SystemState {
     noRecentErrors: boolean;
     userActive: boolean;
     lowResourcePressure: boolean;
+    /** Line 6: Dashboard/Preview/WebSocket health */
+    dashboardHealthy?: boolean;
 }
 
 export class HexagramManager {
@@ -143,10 +145,15 @@ export class HexagramManager {
             state.localModels ? 'Local Models Active' : 'Reliance on Cloud Only',
             state.localModels ? YaoState.YoungYang : YaoState.YoungYin);
 
-        // Line 6: Culmination (UI/Preview)
-        // Does not map 1:1 to state, usually reflects user perception. 
-        // We default to Yang unless specifically set otherwise.
-        // For now, we leave it as is or update if we had a specific UI metric.
+        // Line 6: Culmination (Dashboard/UI/Preview Health)
+        // Connected = Yang (Visible), Disconnected = Yin (Hidden)
+        // If dashboardHealthy is undefined, we default to Yang (optimistic)
+        const dashboardState = state.dashboardHealthy !== false
+            ? YaoState.YoungYang
+            : YaoState.OldYin; // Old Yin = moving towards recovery
+        await this.pinCard(6, 'UI Culmination',
+            state.dashboardHealthy !== false ? 'Dashboard Connected' : 'Dashboard Disconnected',
+            dashboardState);
     }
 
     /**

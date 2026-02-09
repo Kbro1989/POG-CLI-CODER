@@ -21,6 +21,8 @@ POG-CODER-VIBE is a **local-first, cloud-optional AI coding assistant** that com
 - **Zero Technical Debt**: 100% Type-Safe (TSC Tight), zero placeholders, and zero mocks.
 - **Experimental Limbs (Ghost Limbs)**: QuantumLimb, RelicLimb (RSC Archaeology), OmegaLimb
 - **RSC Data Excavation**: 14 authentic JAG/MEM archives at `./rsc-data/`
+- **Sovereign Substrate**: Persistent D:\ drive storage for models, knowledge, and config
+- **Sovereign Substrate**: Persistent D:\ drive storage for models, knowledge, and config
 
 ---
 
@@ -99,6 +101,24 @@ Research → Plan → Execute → Review
 - Result\<T\> types (Rust-style error handling)
 - Structured logging (pino with JSON)
 - Immutable data structures (`readonly` by default)
+
+### 6. **Cognitive Tooling Spine** 🦴
+
+**Centralized Capability Registry:**
+- **Zod Schema Validation**: Every tool input is strictly typed and validated at runtime.
+- **Universal Dispatch**: One spine connects 11 specialized Limbs to the Orchestrator.
+- **Self-Documenting**: Treeshakeable tool definitions for LLM context optimization.
+
+### 7. **Multifunctional Limb Matrix** 🐙
+
+Why have 50 microservices when you can have 11 high-density Limbs?
+
+| Limb | Functions | Replaces |
+|------|-----------|----------|
+| **CloudflareLimb** | Vision, Speech-to-Text, Text-to-Speech, Image Gen, Embeddings | 5 separate APIs |
+| **RelicLimb** | RS Classic Decoder, Sprite Parser, Cache Excavator, Data Normalizer | Legacy Java Tools |
+| **GutenbergLimb** | Book Ingestion, Style Analysis, Domain Taxonomy, RAG Indexing | NLP Pipeline |
+| **SovereignShell** | System Command Execution, SSH, File I/O, Network Diagnostics | DevOps Scripts |
 
 ---
 

@@ -162,8 +162,20 @@ export class CloudflareLimb extends BaseLimb {
                 handler: async (args) => this.handleVision(args.image, args.prompt)
             },
             {
-                name: 'cf_speech_synthesis',
-                description: 'Convert text to speech using Cloudflare Workers AI (Deepgram)',
+                name: 'cf_speech_to_text',
+                description: 'Convert audio to text using Cloudflare Workers AI (Whisper)',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        audio: { type: 'string', description: 'Base64 encoded audio data' }
+                    },
+                    required: ['audio']
+                },
+                handler: async (args) => this.handleSpeechToText(args.audio)
+            },
+            {
+                name: 'cf_text_to_speech',
+                description: 'Convert text to speech (Not natively supported by CF Workers AI - uses Ghost Limb Fallback)',
                 parameters: {
                     type: 'object',
                     properties: {
@@ -171,7 +183,7 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['text']
                 },
-                handler: async (args) => this.handleSpeech(args.text)
+                handler: async (args) => this.handleTextToSpeech(args.text)
             },
             {
                 name: 'cf_rsmv_model_view',
@@ -441,20 +453,32 @@ export class CloudflareLimb extends BaseLimb {
         }
     }
 
-    private async handleSpeech(text: string): Promise<Result<Uint8Array>> {
+    private async handleSpeechToText(audioBase64: string): Promise<Result<unknown>> {
         try {
             const health = this.getHealth();
             if (health.state === 'RATE_LIMITED') return { ok: false, error: new Error('Rate limited') };
 
             const model = MODELS.WHISPER;
-            this.logger.info({ model, text: text.substring(0, 50) }, 'Speech synthesis via Cloudflare AI Hub');
+            this.logger.info({ model }, 'Speech transcription via Cloudflare AI Hub');
 
-            const result = await this.services.runAi<Buffer>(model, { text });
-            if (!result.ok) return result;
-            return { ok: true, value: new Uint8Array(result.value) };
+            // Whisper accepts audio bytes
+            const audioBytes = Buffer.from(audioBase64, 'base64');
+            return await this.services.runAi(model, audioBytes); // Whisper takes raw bytes usually
         } catch (error) {
             return { ok: false, error: error as Error };
         }
+    }
+
+    private async handleTextToSpeech(text: string): Promise<Result<Uint8Array>> {
+        // Cloudflare Workers AI doesn't have a native TTS model in the standard catalog usually,
+        // so we explicitly use the Ghost Limb fallback pattern described in docs.
+        this.logger.info({ text: text.substring(0, 50) }, 'TTS request - delegating to Ghost Limb');
+
+        const ghostResult = await this.services.runGhostLimb<any>('tts-generation', { text });
+        if (ghostResult.ok) {
+            return { ok: true, value: new Uint8Array(Buffer.from(ghostResult.value.audio, 'base64')) };
+        }
+        return { ok: false, error: new Error('TTS not available on this substrate') };
     }
 
     private async handleRsmv(gameSource: string, category: string, id?: string): Promise<Result<unknown>> {

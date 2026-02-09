@@ -58,13 +58,8 @@ export class WebAppForgeLimb extends BaseLimb {
 
         this.logger.debug({ adversarialEnabled: !!this.adversarialOrchestrator }, 'WebAppForgeLimb initialized');
 
-        // Load templates
-        const potentialPaths = [
-            join(this.config.projectRoot, 'src/templates/stacks.json'),
-            'C:\\Users\\Destiny\\Desktop\\ai-archetect\\templates\\templates.json',
-            join(this.config.pogDir, 'stacks.json'),
-            join(process.cwd(), 'src/templates/stacks.json')
-        ];
+        // Load templates using distributed path resolution
+        const potentialPaths = this.resolveSovereignPaths();
 
         this.templates = {};
         for (const tp of potentialPaths) {
@@ -336,7 +331,13 @@ npm run dev
         const appTsxPath = join(projectDir, 'src', 'App.tsx');
         if (!fs.existsSync(appTsxPath)) return;
 
-        const codeGenPrompt = `Generate a production-ready React component for App.tsx. ROLE: UX Architect. REQUIREMENT: NO PLACEHOLDERS. REQUEST: ${userPrompt}. FEATURES: ${blueprint.features.join(', ')}`;
+        let codeGenPrompt = `Generate a production-ready React component for App.tsx. ROLE: UX Architect. REQUIREMENT: NO PLACEHOLDERS. REQUEST: ${userPrompt}. FEATURES: ${blueprint.features.join(', ')}`;
+
+        // Gutenberg Augmentation
+        const literaryContext = await this.queryGutenbergCache('fantasy', userPrompt);
+        if (literaryContext) {
+            codeGenPrompt += `\n\nLITERARY CONTEXT (Distilled from Gutenberg Corpus):\n${literaryContext}\n\nUse this tone and style in the UI copy/theme.`;
+        }
 
         const codeResult = await this.modelExecutor.callModel(this.config.planningModel || 'gemini-2.0-flash', codeGenPrompt);
 
@@ -416,6 +417,52 @@ npm run dev
         if (template.install) {
             await execAsync(template.install, { cwd: dir });
         }
+    }
+
+    private resolveSovereignPaths(): string[] {
+        const home = process.env['USERPROFILE'] || process.env['HOME'];
+        const drives = ['C:', 'D:']; // Check both drives
+
+        const potentialPaths = [];
+
+        for (const drive of drives) {
+            potentialPaths.push(
+                join(drive, 'pog-coder-vibe', 'templates', 'stacks.json'),
+                join(drive, 'ai-archetect', 'templates', 'templates.json'),
+                join(home || '', '.pog-coder-vibe', 'stacks.json'),
+                join(this.config.projectRoot, 'src', 'templates', 'stacks.json'),
+                join(process.cwd(), 'src', 'templates', 'stacks.json')
+            );
+        }
+
+        return potentialPaths;
+    }
+
+
+
+    private async queryGutenbergCache(domain: string, query: string): Promise<string | null> {
+        const gutenbergPath = `D:\\pog-gutenberg\\domains\\${domain}`;
+
+        if (!fs.existsSync(gutenbergPath)) return null;
+
+        try {
+            // Simple semantic match - could be enhanced with vector search
+            // If D: drive is active, we assume the corpus exists.
+            const files = fs.readdirSync(gutenbergPath).filter(f => f.endsWith('.txt'));
+
+            // Check first 3 files for relevance as a lightweight heuristic
+            for (const file of files.slice(0, 3)) {
+                const content = fs.readFileSync(join(gutenbergPath, file), 'utf8');
+                // Extract relevant passage (simplified)
+                const terms = query.toLowerCase().split(' ').filter(w => w.length > 4);
+                if (terms.some(t => content.toLowerCase().includes(t))) {
+                    return content.substring(0, 2000); // Return first 2k chars as context
+                }
+            }
+        } catch (e) {
+            this.logger.warn({ error: e }, 'Gutenberg cache query failed');
+        }
+        return null;
     }
 }
 

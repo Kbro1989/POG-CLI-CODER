@@ -137,7 +137,7 @@ class VibeCLI {
 
         // Allow Ctrl+C to still work despite raw mode
         if (key.ctrl && key.name === 'c') {
-          void this.shutdown();
+          void this.shutdown('ctrl-c-hotkey');
           process.exit(0);
         }
       });
@@ -242,14 +242,14 @@ class VibeCLI {
     });
 
     this.rl.on('close', (): void => {
-      void this.shutdown();
+      void this.shutdown('readline-close');
     });
 
     process.on('SIGINT', (): void => {
       // eslint-disable-next-line no-console
       console.log('\n\n👋 Shutting down gracefully...');
       void (async (): Promise<void> => {
-        await this.shutdown();
+        await this.shutdown('sigint');
         process.exit(0);
       })();
     });
@@ -330,12 +330,17 @@ class VibeCLI {
   private async generateGreeting(): Promise<void> {
     const greetingIntent = "Greet the user in your new 'Ready to Take on the World' persona. Briefly mention your versatility (code, books, creative partner, complex apps) and invite them to start something amazing. Stay brilliant and straight up.";
     try {
+      logger.info('Generating initial AI greeting...');
       const result = await this.orchestrator.executeIntent(greetingIntent);
       if (result.ok) {
         drawMessage('POG', result.value.output);
+      } else {
+        this.bufferReport('warn', `Greeting failed: ${result.error.message}`);
+        logger.warn({ error: result.error }, 'Initial greeting failed (continuing normally)');
       }
     } catch (error) {
       // Silently fail if greeting fails, don't block startup
+      this.bufferReport('warn', `Greeting interface error: ${(error as Error).message}`);
       logger.debug({ error }, 'Failed to generate initial greeting');
     }
   }
@@ -704,14 +709,18 @@ class VibeCLI {
     }
   }
 
-  private async shutdown(): Promise<void> {
-    logger.info('Shutting down CLI');
+  private async shutdown(reason = 'user-requested'): Promise<void> {
+    logger.info({ reason }, 'Shutting down CLI');
     this.running = false;
 
-    await Promise.resolve(this.orchestrator.cleanup());
+    try {
+      await Promise.resolve(this.orchestrator.cleanup());
+    } catch (err) {
+      logger.error({ err }, 'Error during orchestrator cleanup');
+    }
 
     // eslint-disable-next-line no-console
-    console.log('💾 Session saved');
+    console.log(`\n💾 Session saved (Reason: ${reason})`);
     // eslint-disable-next-line no-console
     console.log(`📊 Total intents: ${this.orchestrator.getIntentHistory().length} `);
     // eslint-disable-next-line no-console
@@ -736,7 +745,7 @@ class VibeCLI {
     await this.handleInput(intent);
 
     // Shutdown after direct intent execution
-    await this.shutdown();
+    await this.shutdown('direct-command-complete');
   }
 }
 

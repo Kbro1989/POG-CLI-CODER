@@ -66,10 +66,14 @@ export class DashboardLimb extends BaseLimb {
 
     async activate(): Promise<Result<Execution>> {
         try {
+            this.logger.info({ dashboardDir: this.dashboardDir }, 'Activating dashboard substrate');
+
             if (!fs.existsSync(this.dashboardDir)) {
+                this.logger.debug('Dashboard directory missing, creating...');
                 fs.mkdirSync(this.dashboardDir, { recursive: true });
             }
 
+            // Always regenerate assets on activation to ensure they exist
             this.generateAssets();
 
             const port = this.config.wsPort + 1;
@@ -80,7 +84,10 @@ export class DashboardLimb extends BaseLimb {
                 port
             );
 
-            if (!result.ok) return { ok: false, error: result.error };
+            if (!result.ok) {
+                this.logger.error({ error: result.error }, 'Failed to start dashboard server');
+                return { ok: false, error: result.error };
+            }
 
             return {
                 ok: true,
@@ -90,6 +97,7 @@ export class DashboardLimb extends BaseLimb {
                 }
             };
         } catch (error) {
+            this.logger.error({ error }, 'Critical failure during dashboard activation');
             return { ok: false, error: error as Error };
         }
     }
@@ -902,8 +910,16 @@ function pulseMatrix() {
 connect();
 `;
 
-        fs.writeFileSync(join(this.dashboardDir, 'index.html'), html);
-        fs.writeFileSync(join(this.dashboardDir, 'styles.css'), css);
-        fs.writeFileSync(join(this.dashboardDir, 'main.js'), js);
+        try {
+            if (!fs.existsSync(this.dashboardDir)) {
+                fs.mkdirSync(this.dashboardDir, { recursive: true });
+            }
+            fs.writeFileSync(join(this.dashboardDir, 'index.html'), html);
+            fs.writeFileSync(join(this.dashboardDir, 'styles.css'), css);
+            fs.writeFileSync(join(this.dashboardDir, 'main.js'), js);
+            this.logger.debug('Dashboard assets written to disk successfully');
+        } catch (err) {
+            this.logger.error({ err }, 'Failed to write dashboard assets to disk substrate');
+        }
     }
 }

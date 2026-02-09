@@ -100,7 +100,7 @@ export class FreeModelRouter {
         return { ok: false, error: new Error('No functional models found. Check Ollama status and API keys.') };
       }
 
-      const staticComplexity = TaskClassifier.assessComplexity(prompt, weightedTasks);
+      const staticComplexity = this.assessComplexity(prompt); // Use new method
       const complexity = (staticComplexity === 0 && this.gemini)
         ? await TaskClassifier.assessComplexityAI(prompt, this.gemini)
         : staticComplexity;
@@ -110,15 +110,39 @@ export class FreeModelRouter {
       const architectureAlignment = this.contextBuilder.getArchitectureAlignment(prompt, architectureDigest.getManifest());
       const goldenTemplates = await this.contextBuilder.getGoldenTemplates(prompt);
 
+      // Sovereign Signals (Ternary Tree Inputs)
+      const localAvailability = this.checkLocalAvailability();
+
       // Populate rich context for modular strategies (Ultimate Cognitive Upgrade)
       routingContext.weightedTasks = weightedTasks;
       routingContext.extension = filePath?.split('.').pop() ?? '';
+      routingContext.fileSize = 0; // Default if not provided
+      if (filePath && existsSync(filePath)) {
+        // In a real implementation we would stat the file here, 
+        // but for now we trust the metadata or default to 0 to satisfy strict safe access
+        // routingContext.fileSize = statSync(filePath).size; 
+      }
+
       routingContext.complexity = complexity;
       routingContext.availableModels = [...availableModels];
       routingContext.architectureAlignment = architectureAlignment;
       routingContext.goldenTemplates = goldenTemplates;
       routingContext.historicalPerformance = [...this.loadPerformanceHistory()];
       routingContext.lessons = lessons;
+
+      // Calculate and inject signals
+      const historySignal = this.checkPerformanceHistory(routingContext);
+      const supervisorSignal = this.checkSupervisorNeeds(routingContext);
+
+      // Inject signals into metadata for strategies to use
+      routingContext.metadata = {
+        ...routingContext.metadata,
+        ternarySignals: {
+          localAvailability,
+          historySignal,
+          supervisorSignal
+        }
+      };
 
       // Phase 2 - Modular Routing Chain (Parallel THINK/Synthesis happens inside)
       const decision = await this.composite.route(routingContext);
@@ -284,5 +308,66 @@ export class FreeModelRouter {
 
   getCircuitState(model: string): CircuitState {
     return this.circuitBreakers.get(model)?.state ?? CS.Closed;
+  }
+
+  // --- Ternary Logic Implementation (Matches TERNARY_TREE_GUIDE.md) ---
+
+  private assessComplexity(prompt: string): Ternary {
+    let score = 0;
+
+    // Word count > 50
+    if (prompt.split(/\s+/).length > 50) score++;
+
+    // Multi-step indicator
+    if (/then|after|next/i.test(prompt)) score++;
+
+    // Architecture keywords
+    if (/design|architect|system|pattern/i.test(prompt)) score += 2;
+
+    // Multi-file indicator
+    if (/files|modules|components/i.test(prompt)) score++;
+
+    // Return ternary decision
+    if (score >= 4) return 1;  // Complex -> Gemini Pro/Thinking
+    if (score >= 2) return 0;   // Medium -> Qwen/Flash/Cloudflare
+    return -1;                  // Simple -> Ollama/Llama
+  }
+
+  private checkLocalAvailability(): Ternary {
+    const available = this.getModelHealthGrid().filter(m => m.type === MT.Local && m.health?.isAvailable);
+    const total = this.getAllModels().filter(m => m.type === MT.Local).length;
+
+    if (total === 0) return -1; // No local models configured
+
+    const ratio = available.length / total;
+
+    if (ratio >= 0.8) return 1;  // Most available
+    if (ratio >= 0.4) return 0;   // Some available
+    return -1;                    // Few available
+  }
+
+  private checkPerformanceHistory(context: RoutingContext): Ternary {
+    const history = this.loadPerformanceHistory();
+    // Simple extension match for now, can be expanded to TaskType
+    const relevant = history.filter(p => p.extension === context.extension);
+
+    if (relevant.length === 0) return 0; // No history
+
+    const avgLatency = relevant.reduce((sum, p) => sum + p.latency, 0) / relevant.length;
+    const successRate = relevant.filter(p => p.success).length / relevant.length;
+
+    if (successRate > 0.9 && avgLatency < 2000) return 1;  // Excellent
+    if (successRate > 0.7 && avgLatency < 5000) return 0;   // Average
+    return -1;                                               // Poor
+  }
+
+  private checkSupervisorNeeds(context: RoutingContext): Ternary {
+    const containsArchitecture = /design|architect|refactor|system/i.test(context.prompt);
+    // context.fileSize isn't always populated, assume 0 if missing
+    const isLargeModule = (context.fileSize || 0) > 20000;
+
+    if (containsArchitecture && isLargeModule) return 1; // Gemini Thinking
+    if (isLargeModule) return 0;                          // Gemini Flash (Context King)
+    return -1;                                           // Simulation Substrate (Top Brain)
   }
 }

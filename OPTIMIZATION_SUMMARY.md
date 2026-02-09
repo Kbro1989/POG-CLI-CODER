@@ -352,7 +352,7 @@ export VIBE_CB_THRESHOLD=5
 export VIBE_LOG_LEVEL=debug
 export POG_DIR=/custom/path
 
-// Or config file: ~/.pog-coder-vibe/config.json
+// Or config file: D:\pog-coder-vibe\config.json
 {
   "circuitBreakerThreshold": 5,
   "logLevel": "debug"
@@ -741,6 +741,19 @@ Speedup: 2.71x ⚡
 - Need maintainability
 
 **Recommendation: Use optimized version.** The 15-minute migration is worth it for the long-term benefits.
+
+---
+
+## Multifunctional Efficiency 🐙
+
+A key optimization in Phase 13 was the consolidation of capabilities into **Multifunctional Limbs**. Instead of managing 50 disparate microservices or API clients, POG-CODER-VIBE condenses them into 11 high-density, type-safe modules.
+
+### The "Ternary" Advantage
+1.  **Reduced Overhead**: 1 Limb instantiation vs 5 Service inits.
+2.  **Unified Context**: A single `CloudflareLimb` shares authentication and configuration across Vision, Speech, and Chat.
+3.  **Atomic Updates**: Improving the `BaseLimb` class instantly upgrades all 11 limbs.
+
+This architecture reduces memory footprint and cognitive load, adhering to the **Sovereign** principle of high capability per unit of complexity.
 
 ---
 

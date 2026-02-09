@@ -8,9 +8,9 @@
  */
 
 import sqlite3 from 'sqlite3';
-import { join } from 'path';
 import pino from 'pino';
 import type { Result, VibeConfig, Lesson } from '../core/models.js';
+import { getLearningDbPath } from '../utils/SovereignPathResolver.js';
 
 const logger = pino({
   name: 'VectorDB',
@@ -21,8 +21,10 @@ export class VectorDB {
   private db?: sqlite3.Database;
   private readonly dbPath: string;
 
-  constructor(config: VibeConfig) {
-    this.dbPath = join(config.pogDir, 'vibe-learning.db');
+  constructor(_config: VibeConfig) {
+    // Use SovereignPathResolver for ternary-aware path resolution
+    // Priority: D:\pog-coder-vibe\vibe-learning.db (Sovereign) → ~/.pog-coder-vibe/vibe-learning.db (Home) → .pog/vibe-learning.db (ProjectLocal)
+    this.dbPath = getLearningDbPath();
   }
 
   async initialize(): Promise<Result<void>> {

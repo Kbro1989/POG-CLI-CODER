@@ -23,6 +23,9 @@ ollama pull qwen2.5-coder:14b-instruct-q5_K_M   # Power (complex tasks)
 ollama pull tinyllama:latest                    # Monitor (enabled by default)
 # Recommended for Cloud Fallback
 # Ensure GOOGLE_API_KEY is defined in your secure .env for Gemini 2.0 Flash usage
+# Note: Models are stored in D:\ollama-models\blobs for sovereign persistence
+# Note: Models are stored in D:\ollama-models\blobs for sovereign persistence
+# Note: Models are stored in D:\ollama-models\blobs for sovereign persistence
 ```
 
 ### Step 3: Clone and Install Project
@@ -158,7 +161,7 @@ export SESSION_ID=alpha-test-01
 
 ### Config File
 
-Create `~/.pog-coder-vibe/config.json`:
+Create `D:\pog-coder-vibe\config.json`:
 ```json
 {
   "wsPort": 9000,
@@ -233,7 +236,7 @@ vibe> state
 npm run dev
 
 [14:23:15.123] INFO (Router): Router initialized
-    pogDir: "/home/user/.pog-coder-vibe"
+    pogDir: "D:\\pog-coder-vibe"
     models: 5
 
 # Production (JSON)

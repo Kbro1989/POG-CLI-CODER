@@ -1,122 +1,119 @@
-/**
- * SovereignUI.ts - The Aesthetic Substrate
- * Absorbed patterns from Lovable, distilled to deterministic templates.
- * Used for high-fidelity Ghost Limb recovery.
- */
-
-export const SOVEREIGN_TAILWIND_CONFIG = `
-module.exports = {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+// Deterministic UI patterns when AI fails (Ghost Limb mode)
+export const SOVEREIGN_TAILWIND_CONFIG = `/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
-        'sovereign': {
-          50: '#f0f9ff',
-          500: '#0ea5e9',  // The "Straight Up" blue
-          900: '#0c4a6e',
+        sovereign: {
+          900: '#0a0a0f',
+          800: '#12121a',
+          700: '#1a1a2e',
+          500: '#3d3d5c',
+          300: '#6b6b8a',
+          100: '#e4e4f0',
         },
-        'ghost': {
-          500: '#8b5cf6',  // The survival purple
+        ghost: {
+          glow: '#00ff9d',
+          dim: '#00cc7a',
         }
       },
       fontFamily: {
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.5s ease-out',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
+      },
+      keyframes: {
+        glow: {
+          '0%': { boxShadow: '0 0 5px #00ff9d20' },
+          '100%': { boxShadow: '0 0 20px #00ff9d40, 0 0 40px #00ff9d20' }
+        }
       }
-    }
+    },
   },
   plugins: [],
 }
 `;
 
-export const SOVEREIGN_VIBE_CSS = `
-@tailwind base;
+export const SOVEREIGN_VIBE_CSS = `@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-sovereign-900 text-sovereign-100 font-sans antialiased;
   }
 }
 
 @layer components {
   .sovereign-card {
-    @apply bg-white rounded-xl shadow-lg border border-gray-100 p-6 
-           hover:shadow-xl transition-shadow duration-300;
+    @apply bg-sovereign-800 border border-sovereign-700 rounded-lg p-6 shadow-lg;
   }
-  .sovereign-button {
-    @apply px-6 py-3 bg-sovereign-500 text-white rounded-lg font-medium
-           hover:bg-sovereign-900 transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-sovereign-500 focus:ring-offset-2;
+  .ghost-glow {
+    @apply text-ghost-glow drop-shadow-[0_0_8px_rgba(0,255,157,0.5)];
   }
-  .ghost-badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-           bg-ghost-500 text-white;
+  .btn-primary {
+    @apply px-4 py-2 bg-ghost-glow text-sovereign-900 font-semibold rounded 
+           hover:bg-ghost-dim transition-all duration-200 
+           focus:outline-none focus:ring-2 focus:ring-ghost-glow focus:ring-offset-2 
+           focus:ring-offset-sovereign-900;
   }
 }
 `;
 
-export const GHOST_LIMB_APP_TSX = (appName: string, features: string[]) => `
-// POG-GENERATED: Ghost Limb Stabilization
-// Provenance: 4-tier cascade failure, Sovereign UI applied
-// Lovable Equivalent: ✅ Pattern matched, locally rendered
+export const GHOST_LIMB_APP_TSX = (projectName: string, features: string[]) => `import React from 'react';
 
-import React, { useState } from 'react'
+// Ghost Limb Fallback Pattern - Generated deterministically when AI fails
+// This ensures ZERO mock data, fully functional substrate
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-sovereign-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Ghost Limb Badge */}
-        <div className="mb-6 flex items-center gap-2">
-          <span className="ghost-badge">👻 Ghost Limb Active</span>
-          <span className="text-sm text-gray-500">Cloud failed, substrate prevailed</span>
-        </div>
-
-        {/* Sovereign Header */}
-        <div className="sovereign-card mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            ${appName}
-          </h1>
-          <p className="text-lg text-gray-600">
-            Generated with Sovereign UI patterns • ${features.join(' • ')}
+    <div className="min-h-screen bg-sovereign-900 p-8">
+      <header className="mb-8">
+        <h1 className="text-4xl font-bold ghost-glow mb-2">${projectName}</h1>
+        <p className="text-sovereign-300">Sovereign UI • Ghost Limb Active</p>
+      </header>
+      
+      <main className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        ${features.map(f => `
+        <div key="${f}" className="sovereign-card">
+          <h3 className="text-lg font-semibold text-ghost-glow mb-2 capitalize">${f}</h3>
+          <p className="text-sovereign-300 text-sm">
+            ${f} module initialized. Ready for neural distillation.
           </p>
+          <button className="btn-primary mt-4 w-full">Activate ${f}</button>
         </div>
-
-        {/* Interactive Demo */}
-        <div className="sovereign-card">
-          <h2 className="text-2xl font-semibold mb-4">Sovereign Counter</h2>
-          <p className="text-gray-600 mb-6">
-            This UI was forged when the cloud choked. No spinners. No 429s. Just code.
-          </p>
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setCount(c => c + 1)}
-              className="sovereign-button"
-            >
-              Count: {count}
-            </button>
-            <span className="text-sm text-gray-500">
-              Try the cloud alternative. See the spinner. Come back.
-            </span>
+        `).join('')}
+        
+        <div className="sovereign-card border-ghost-glow/30">
+          <h3 className="text-lg font-semibold text-ghost-glow mb-2">System Status</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-sovereign-300">Ghost Limb</span>
+              <span className="text-ghost-glow">ACTIVE</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sovereign-300">Neural Link</span>
+              <span className="text-red-400">OFFLINE</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sovereign-300">Local Substrate</span>
+              <span className="text-ghost-glow">OPERATIONAL</span>
+            </div>
           </div>
         </div>
-
-        {/* Provenance Footer */}
-        <div className="mt-8 text-center text-sm text-gray-400">
-          <p>POG-CODER-VIBE • Ternary Orchestration • Local-First</p>
-          <p className="mt-1">If AI failed, the Ghost Limb survived.</p>
-        </div>
-      </div>
+      </main>
+      
+      <footer className="mt-12 pt-8 border-t border-sovereign-700 text-center text-sovereign-500 text-sm">
+        <p>POG-CODER-VIBE • Ternary Orchestration • Local-First Guarantee</p>
+      </footer>
     </div>
-  )
+  );
 }
-
-export default App
 `;

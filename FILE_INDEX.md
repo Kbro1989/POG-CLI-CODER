@@ -52,13 +52,13 @@ This index catalogs all source files, documentation, and artifacts in the produc
 - ✅ **`webapp/WebAppForgeLimb.ts`** - Full-stack project scaffolding
 - ✅ **`media/MediaForgeLimb.ts`** - Creative media generation
 - ✅ **`bio/BioIntelligenceLimb.ts`** - Bio-medical intelligence
-- ✅ **`gutenberg/GutenbergLimb.ts`** - Literary corpus ingestion
+- ✅ **`gutenberg/GutenbergLimb.ts`** - **Literary Corpus**: Book Ingestion, Style Analysis, Domain Taxonomy, RAG Indexing
 - ✅ **`webapp/tools/definitions.ts`** - Tool schemas for WebApp Forge
 - ✅ **`api/ai/AILimb.ts`** - Path-based AI capability dispatcher
 - ✅ **`api/ai/Dispatcher.ts`** - Vertex AI & Cloud REST bridge
-- ✅ **`cloud/CloudflareLimb.ts`** - Unified Cloudflare AI capabilities (Image, Chat, Embeddings)
+- ✅ **`cloud/CloudflareLimb.ts`** - **Unified Edge AI**: Vision Analysis, Speech Recognition, TTS, Image Generation, Text Embeddings
 - ✅ **`experimental/QuantumLimb.ts`** - Superposition-based parallel hypothesis testing
-- ✅ **`experimental/RelicLimb.ts`** - RSC Archaeology (JAG archive excavation)
+- ✅ **`experimental/RelicLimb.ts`** - **RSC Archaeology**: JAG Archive Decoding, Sprite Parsing, Cache Excavation, Data Normalization
 - ✅ **`experimental/OmegaLimb.ts`** - Teleological goal-driven planning
 - ✅ **`experimental/rsc/JagArchive.ts`** - Jagex Archive decompression and parsing
 - ✅ **`experimental/rsc/JagBuffer.ts`** - Binary buffer utilities for JAG files
@@ -114,7 +114,7 @@ This index catalogs all source files, documentation, and artifacts in the produc
 - ✅ **[PROJECT_SUMMARY.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/PROJECT_SUMMARY.md)** - Complete feature summary
 - ✅ **[QUICK_REFERENCE.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/QUICK_REFERENCE.md)** - Command cheat sheet
 - ✅ **[QUICKSTART.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/QUICKSTART.md)** - 5-minute setupguide
-- ✅ **[CODEBASE_MAP.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/CODEBASE_MAP.md)** - Complete architectural guide
+- ✅ **[CODEBASE_MAP.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/CODEBASE_MAP.md)** - Complete architectural guide (incl. D:\ Substrate) (incl. D:\ Substrate)
 - ✅ **[EXECUTIVE_SUMMARY.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/EXECUTIVE_SUMMARY.md)** - Phase 3 completion overview
 - ✅ **[TERNARY_TREE_GUIDE.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/TERNARY_TREE_GUIDE.md)** - Routing algorithm explained
 - ✅ **[GEMINI.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/GEMINI.md)** - Gemini SDK integration status
