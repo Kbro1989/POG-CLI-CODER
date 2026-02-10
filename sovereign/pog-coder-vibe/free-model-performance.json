@@ -665,6 +665,69 @@
       "success": true,
       "timestamp": 1770590916487,
       "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "diagnostic",
+      "extension": "",
+      "latency": 91,
+      "success": true,
+      "timestamp": 1770713237932,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 18,
+      "success": true,
+      "timestamp": 1770713475226,
+      "isFree": true
+    },
+    {
+      "model": "gutenberg_knowledge",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 13024,
+      "success": true,
+      "timestamp": 1770714021788,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 16,
+      "success": true,
+      "timestamp": 1770714073666,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "diagnostic",
+      "extension": "",
+      "latency": 20,
+      "success": true,
+      "timestamp": 1770714338532,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "test",
+      "extension": "",
+      "latency": 19,
+      "success": true,
+      "timestamp": 1770714730170,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 91,
+      "success": true,
+      "timestamp": 1770753613991,
+      "isFree": true
     }
   ],
   "version": "1.2.0"
