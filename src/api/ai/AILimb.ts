@@ -14,6 +14,19 @@ const logger = pino({
     level: process.env['VIBE_LOG_LEVEL'] || 'info'
 });
 
+interface MediaFile {
+    mimeType: string;
+    base64: string;
+}
+
+interface StepData {
+    [key: string]: unknown;
+}
+
+interface MultiPathData {
+    chainResults: StepData[];
+}
+
 export class AILimb implements NeuralLimb {
     id = 'ai_limb';
     type = 'analytical' as const;
@@ -78,22 +91,25 @@ export class AILimb implements NeuralLimb {
         if (p.includes(' and then ') || p.includes(' followed by ')) {
             const steps = p.split(/ and then | followed by /);
             logger.info({ steps }, 'Detected Composite Intent Chain');
-            const results: any[] = [];
+            const results: StepData[] = [];
             let cumulativeOutput = '';
 
             for (const step of steps) {
                 const stepIntent: Intent = { ...intent, prompt: step.trim() };
                 const stepResult = await this.executeSingleIntent(stepIntent);
                 if (!stepResult.ok) return stepResult;
-                results.push(stepResult.value.data);
+
+                const stepData = stepResult.value.data as StepData;
+                results.push(stepData);
                 cumulativeOutput += `\n--- Step: ${step.trim()} ---\n${stepResult.value.output}\n`;
             }
 
+            const data: MultiPathData = { chainResults: results };
             return {
                 ok: true,
                 value: {
                     output: `Multi-Path Execution Completed:${cumulativeOutput}`,
-                    data: { chainResults: results }
+                    data
                 }
             };
         }
@@ -124,7 +140,7 @@ export class AILimb implements NeuralLimb {
         const capability = CapabilityRegistry[capabilityId];
         if (!capability) return { ok: false, error: new Error('Capability not found') };
 
-        let payload: any = prompt;
+        let payload: string | Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = prompt;
 
         // 1. Multimodal Orchestration
         if (capability.taskType === 'IMAGE' || capability.taskType === 'VIDEO') {
@@ -145,12 +161,8 @@ export class AILimb implements NeuralLimb {
 
         logger.info({ capabilityId, serviceType: capability.serviceType }, 'Dispatching specialized AI task via ModelExecutor');
 
-        // Use ModelExecutor to handle the service-specific call
-        // For Gemini/Vertex, we use callModel (which handles Gemini fallback logic)
-        // For others, we can use callCloudflareAI or direct service calls
-        let result: Result<any>;
+        let result: Result<unknown>;
         if (capability.serviceType === 'GEMINI' || capability.serviceType === 'VERTEX_AI') {
-            // Map to capability model if possible, otherwise use standard router decision
             let model = capability.modelId;
             if (!model) {
                 const modelResult = await this.router.route(prompt);
@@ -158,7 +170,6 @@ export class AILimb implements NeuralLimb {
             }
             result = await this.modelExecutor.callModel(model, typeof payload === 'string' ? payload : JSON.stringify(payload));
         } else {
-            // For specialized cloud services, use the professional Cloudflare sidecar if available
             const model = this.router.routeByAbility(capability.taskType as any);
             result = await this.modelExecutor.callCloudflareAI(model, payload);
         }
@@ -167,30 +178,34 @@ export class AILimb implements NeuralLimb {
             return { ok: false, error: result.error };
         }
 
+        const outputData = result.value;
         return {
             ok: true,
             value: {
-                output: `Specialized AI Result:\n${typeof result.value === 'string' ? result.value : JSON.stringify(result.value.response || result.value, null, 2)}`,
-                data: result.value
+                output: `Specialized AI Result:\n${typeof outputData === 'string' ? outputData : JSON.stringify(outputData, null, 2)}`,
+                data: outputData as Record<string, unknown>
             }
         };
     }
 
-    private findMediaFiles(type: 'IMAGE' | 'VIDEO'): Array<{ mimeType: string; base64: string }> {
+    private findMediaFiles(type: 'IMAGE' | 'VIDEO'): MediaFile[] {
         const extensions = type === 'IMAGE' ? ['.jpg', '.jpeg', '.png', '.webp'] : ['.mp4', '.mov', '.avi'];
-        const results: Array<{ mimeType: string; base64: string }> = [];
+        const results: MediaFile[] = [];
 
         try {
             const dir = process.cwd();
+            // Optimization: Filter at the readdir level if possible or just use a more efficient loop
             const filenames = readdirSync(dir);
 
             for (const name of filenames) {
-                if (extensions.some(ext => name.toLowerCase().endsWith(ext))) {
+                const lowerName = name.toLowerCase();
+                if (extensions.some(ext => lowerName.endsWith(ext))) {
                     const fileAbsPath = join(dir, name);
                     try {
                         const buffer = readFileSync(fileAbsPath);
+                        const ext = name.split('.').pop() || '';
                         results.push({
-                            mimeType: type === 'IMAGE' ? `image/${name.split('.').pop()}` : `video/${name.split('.').pop()}`,
+                            mimeType: type === 'IMAGE' ? `image/${ext}` : `video/${ext}`,
                             base64: buffer.toString('base64')
                         });
                         if (results.length >= 3) break;
@@ -226,3 +241,4 @@ export class AILimb implements NeuralLimb {
         return null;
     }
 }
+

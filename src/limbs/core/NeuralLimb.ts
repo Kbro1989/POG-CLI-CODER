@@ -6,7 +6,7 @@ export type { Result, Intent, Execution, TernaryDecision };
 
 export interface NeuralLimb {
     id: string;
-    type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud' | 'action' | 'experimental' | 'sensory' | 'metabolic' | 'psychic';
+    type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud' | 'action' | 'experimental' | 'sensory' | 'metabolic' | 'psychic' | 'metaphysical' | 'system';
     capabilities: string[];
 
     /**

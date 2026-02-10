@@ -8,6 +8,7 @@ import { StyleAnalyzer } from './StyleAnalyzer.js';
 import { GeminiService } from '../../core/GeminiService.js';
 import { ModelExecutor } from '../../core/ModelExecutor.js';
 import { getGutenbergPath } from '../../utils/SovereignPathResolver.js';
+import { VectorDB } from '../../learning/VectorDB.js';
 
 // Domain taxonomy for intelligent book categorization
 export const GUTENBERG_DOMAINS = {
@@ -62,13 +63,13 @@ export class GutenbergLimb extends BaseLimb {
     private readonly GUTENDEX_API = 'https://gutendex.com/books';
     private readonly RATE_LIMIT_MS = 1000;
     private lastRequestTime = 0;
-    private vectorDB: any;
+    private vectorDB: VectorDB | undefined;
     private gemini: GeminiService | undefined;
     private modelExecutor: ModelExecutor | undefined;
 
     constructor(
         config: VibeConfig,
-        vectorDB?: any,
+        vectorDB?: VectorDB,
         gemini?: GeminiService,
         modelExecutor?: ModelExecutor
     ) {
@@ -311,7 +312,6 @@ Return as JSON array of objects.`;
                             const response = await this.gemini.generateContent(prompt);
                             if (response.ok) {
                                 try {
-                                    // Extract JSON block if present
                                     const jsonStr = response.value.response.match(/\[[\s\S]*\]/)?.[0] || response.value.response;
                                     storyboardResult = JSON.parse(jsonStr);
                                 } catch (e) {
@@ -321,13 +321,19 @@ Return as JSON array of objects.`;
                             }
                         }
 
-                        // Learning Mechanism: Save this to VectorDB
-                        if (this.vectorDB && typeof this.vectorDB.addLesson === 'function') {
+                        if (this.vectorDB && typeof this.vectorDB.addLesson === 'function' && this.gemini) {
+                            const text = JSON.stringify(storyboardResult);
+                            const embeddingRes = await this.gemini.embed(text);
+                            const embedding = (embeddingRes.ok && embeddingRes.value) ? embeddingRes.value : new Float32Array(768);
+
                             await this.vectorDB.addLesson({
                                 id: `storyboard-${Date.now()}`,
-                                text: JSON.stringify(storyboardResult),
+                                text,
+                                embedding,
                                 sessionId: 'storyboarding',
                                 projectId: 'global',
+                                errorType: 'none',
+                                createdAt: Date.now(),
                                 metadata: { source: `gutenberg:${book.id}`, styleProfile, type: 'storyboard' }
                             });
                         }
@@ -342,6 +348,35 @@ Return as JSON array of objects.`;
                     } catch (err) {
                         return { ok: false, error: err as Error };
                     }
+                }
+            },
+            {
+                name: 'rag_ingest_book',
+                description: 'Ingests a book into the RAG memory system (Chunk -> Embed -> Store).',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        bookId: { type: 'number', description: 'ID of the book to ingest' }
+                    },
+                    required: ['bookId']
+                },
+                handler: async (args: any) => {
+                    return this.ingestBookIntoMemory(args.bookId);
+                }
+            },
+            {
+                name: 'retrieve_context',
+                description: 'Semantic search for literary context based on a query.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        query: { type: 'string', description: 'The semantic query (e.g., "Lovecraftian description of a variable")' },
+                        limit: { type: 'number', description: 'Max number of chunks to retrieve' }
+                    },
+                    required: ['query']
+                },
+                handler: async (args: any) => {
+                    return this.retrieveLiteraryContext(args.query, args.limit);
                 }
             }
         ]);
@@ -382,17 +417,17 @@ Return as JSON array of objects.`;
         if (userIntent.includes('search') || userIntent.includes('find') || userIntent.includes('retrieve') || userIntent.includes('get') || userIntent.includes('fetch')) {
             const params = this.parseSearchParams(userIntent);
             const result = await this.spine.handleCall('gutenberg_search', params);
-            if (result.ok) return { ok: true, value: result.value };
-            return { ok: false, error: result.error };
+            if (result.ok === true) return { ok: true, value: (result as { value: any }).value };
+            return { ok: false, error: (result as { error: any }).error };
         } else if (userIntent.includes('ingest') || userIntent.includes('download')) {
             const params = this.parseSearchParams(userIntent);
             const result = await this.spine.handleCall('gutenberg_ingest', params);
-            if (result.ok) return { ok: true, value: result.value };
-            return { ok: false, error: result.error };
+            if (result.ok === true) return { ok: true, value: (result as { value: any }).value };
+            return { ok: false, error: (result as { error: any }).error };
         } else if (userIntent.includes('styles') || userIntent.includes('authors')) {
             const result = await this.spine.handleCall('gutenberg_styles', {});
-            if (result.ok) return { ok: true, value: result.value };
-            return { ok: false, error: result.error };
+            if (result.ok === true) return { ok: true, value: (result as { value: any }).value };
+            return { ok: false, error: (result as { error: any }).error };
         }
 
         // Fallback to Sovereign Cognitive Response instead of failing
@@ -598,6 +633,127 @@ Return as JSON array of objects.`;
         }
 
         this.lastRequestTime = Date.now();
+    }
+
+    // ============================================================
+    // RAG PIPELINE IMPLEMENTATION
+    // ============================================================
+
+    /**
+     * Ingests a book into the vector database for RAG.
+     */
+    private async ingestBookIntoMemory(bookId: number): Promise<Result<void>> {
+        if (!this.vectorDB || !this.gemini) {
+            return { ok: false, error: new Error('VectorDB or GeminiService not available') };
+        }
+
+        const books = this.loadMetadataCache();
+        const book = books.find(b => b.id === bookId);
+        if (!book) return { ok: false, error: new Error(`Book ${bookId} not found in local library`) };
+
+        try {
+            this.logger.info({ bookId, title: book.title }, 'Starting RAG ingestion...');
+
+            // 1. Read Content
+            // Try explicit path first, then fallback to cache pattern
+            let contentPath = book.path;
+            if (!contentPath || !existsSync(contentPath)) {
+                contentPath = join(this.GUTENBERG_CACHE, `top_100_${bookId}.txt`);
+            }
+
+            if (!existsSync(contentPath)) {
+                return { ok: false, error: new Error(`Content file not found for book ${bookId}`) };
+            }
+
+            const content = readFileSync(contentPath, 'utf8');
+
+            // 2. Chunk Content (Sliding Window)
+            const chunks = this.chunkText(content, 1000, 100);
+            this.logger.info({ chunks: chunks.length }, 'Content chunked');
+
+            // 3. Generate Embeddings (Batch Process)
+            const storedChunks = [];
+            for (let i = 0; i < chunks.length; i++) {
+                const chunkText = chunks[i];
+                if (!chunkText) continue;
+
+                // Generate embedding using Gemini
+                const embeddingResult = await this.gemini.embed(chunkText);
+
+                if (embeddingResult.ok && embeddingResult.value) {
+                    storedChunks.push({
+                        id: `${bookId}_${i}`,
+                        bookId: bookId,
+                        chunkIndex: i,
+                        content: chunkText,
+                        embedding: new Float32Array(embeddingResult.value),
+                        metadata: { title: book.title, author: book.author }
+                    });
+                }
+
+                // Rate limit protection
+                if (i % 10 === 0) await new Promise(r => setTimeout(r, 200));
+            }
+
+            // 4. Store in VectorDB
+            await this.vectorDB.storeGutenbergChunks(storedChunks);
+
+            this.logger.info({ bookId, count: storedChunks.length }, 'RAG ingestion complete');
+            return { ok: true, value: undefined };
+
+        } catch (error) {
+            this.logger.error({ error, bookId }, 'RAG ingestion failed');
+            return { ok: false, error: error as Error };
+        }
+    }
+
+    /**
+     * Retrieves semantic context from the literary memory.
+     */
+    private async retrieveLiteraryContext(query: string, limit: number = 5): Promise<Result<string[]>> {
+        if (!this.vectorDB || !this.gemini) {
+            return { ok: false, error: new Error('VectorDB or GeminiService not available') };
+        }
+
+        try {
+            // 1. Embed Query
+            const queryEmbedding = await this.gemini.embed(query);
+            if (!queryEmbedding.ok || !queryEmbedding.value) {
+                return { ok: false, error: new Error('Failed to generate query embedding') };
+            }
+
+            // 2. Vector Search
+            const results = await this.vectorDB.searchGutenberg(new Float32Array(queryEmbedding.value), limit);
+
+            if (!results.ok) return { ok: false, error: results.error };
+
+            // 3. Format Output
+            const context = results.value.map((r: any) =>
+                `[Source: ${r.metadata.title} by ${r.metadata.author}]\n${r.content}`
+            );
+
+            return { ok: true, value: context };
+
+        } catch (error) {
+            return { ok: false, error: error as Error };
+        }
+    }
+
+    /**
+     * Sliding window text chunking.
+     */
+    private chunkText(text: string, windowSize: number, overlap: number): string[] {
+        const words = text.split(/\s+/);
+        const chunks = [];
+        let index = 0;
+
+        while (index < words.length) {
+            const chunk = words.slice(index, index + windowSize).join(' ');
+            chunks.push(chunk);
+            index += (windowSize - overlap);
+        }
+
+        return chunks;
     }
 
     private loadMetadataCache(): Array<{ id: number; title: string; author: string; domain: string; path: string }> {

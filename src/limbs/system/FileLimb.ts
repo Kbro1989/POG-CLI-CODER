@@ -37,7 +37,7 @@ export class FileLimb extends BaseLimb {
                     required: ['message']
                 },
                 schema: z.object({ message: z.string() }),
-                handler: async (args) => this.gitCommit(args.message)
+                handler: async (args: any) => this.gitCommit(args['message'])
             },
             {
                 name: 'npm_install',
@@ -50,7 +50,7 @@ export class FileLimb extends BaseLimb {
                     }
                 },
                 schema: z.object({ packages: z.array(z.string()).optional(), saveDev: z.boolean().optional() }),
-                handler: async (args) => this.npmInstall(args.packages, args.saveDev)
+                handler: async (args: any) => this.npmInstall(args['packages'], args['saveDev'])
             },
             {
                 name: 'git_push',
@@ -76,7 +76,7 @@ export class FileLimb extends BaseLimb {
                     required: ['name', 'type']
                 },
                 schema: z.object({ name: z.string(), type: z.enum(['worker', 'component', 'minimal']) }),
-                handler: async (args) => this.scaffold(args.name, args.type)
+                handler: async (args: any) => this.scaffold(args['name'], args['type'])
             }
         ]);
     }

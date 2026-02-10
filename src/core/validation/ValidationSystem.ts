@@ -20,7 +20,7 @@ export class ValidationSystem {
      * Run all validators against the output.
      * Returns the first failure encountered or ok: true.
      */
-    async validateAll(output: string, context?: any): Promise<ValidationResult> {
+    async validateAll(output: string, context?: unknown): Promise<ValidationResult> {
         for (const validator of this.validators) {
             const result = await validator.validate(output, context);
             if (!result.ok) {
@@ -33,7 +33,7 @@ export class ValidationSystem {
     /**
      * Run all validators and return all failures (for comprehensive feedback).
      */
-    async validateComprehensive(output: string, context?: any): Promise<ValidationResult[]> {
+    async validateComprehensive(output: string, context?: unknown): Promise<ValidationResult[]> {
         return Promise.all(this.validators.map(v => v.validate(output, context)));
     }
 }

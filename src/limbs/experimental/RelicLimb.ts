@@ -5,9 +5,10 @@ import type { ModelExecutor } from '../../core/ModelExecutor.js';
 import { hashFilename, JagArchive } from './rsc/JagArchive.js';
 import * as fs from 'fs';
 import { join } from 'path';
+import { resolveSovereignPath } from '../../utils/SovereignPathResolver.js';
 
 // Stub for Cloudflare manifest
-const manifestJSON: any = {};
+const manifestJSON: string | Record<string, string> = {};
 
 const KNOWN_RSC_FILENAMES = [
     'jagex.txt', 'jagex.dat', 'index.dat',
@@ -32,7 +33,7 @@ export class RelicLimb extends BaseLimb {
     private hashLookup: Map<number, string> = new Map();
 
     // Stub environment for Cloudflare compatibility layer
-    private env: any = {};
+    private env: Record<string, any> = {};
 
     constructor(
         config: VibeConfig,
@@ -69,7 +70,7 @@ export class RelicLimb extends BaseLimb {
                     },
                     required: ['path']
                 },
-                handler: async (args) => {
+                handler: async (args: Record<string, any>) => {
                     const res = await this.read_record(args);
                     return { ok: true, value: res };
                 }
@@ -84,7 +85,7 @@ export class RelicLimb extends BaseLimb {
                         limit: { type: 'number', description: 'Max items to return' }
                     }
                 },
-                handler: async (args) => {
+                handler: async (args: Record<string, any>) => {
                     const res = await this.explore_museum(args);
                     return { ok: true, value: res };
                 }
@@ -95,9 +96,10 @@ export class RelicLimb extends BaseLimb {
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = intent.prompt.toLowerCase();
 
+        const context = intent.context as Record<string, any>;
         // +1: Explicit relic/archaeology keywords or direct action
         if (p.includes('relic') || p.includes('rsc archaeology') ||
-            (intent.context?.action !== undefined && intent.context.action.startsWith('relic_'))) {
+            (context?.['action'] !== undefined && (context['action'] as string).startsWith('relic_'))) {
             return 1;
         }
 
@@ -110,8 +112,9 @@ export class RelicLimb extends BaseLimb {
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
         // Dispatcher for Ported Methods
-        const action = intent.context?.action;
-        const params = intent.context || {};
+        const context = intent.context as Record<string, any>;
+        const action = context?.['action'] as string | undefined;
+        const params = context || {};
 
         // Simulating the "enforceCapability" check via BaseLimb structure
         // In POG-Ultimate this checked permissions. Here we assume authorization via Orchestrator.
@@ -134,14 +137,16 @@ export class RelicLimb extends BaseLimb {
             // Fallback to legacy dispatcher if tool not found or no action
             let result: any;
 
-            if (action === 'relic_excavate_cache' || params.op === 'excavate') {
+            if (action === 'relic_excavate_cache' || params['op'] === 'excavate') {
                 result = await this.excavate_cache(params);
-            } else if (action === 'relic_index' || params.op === 'index') {
+            } else if (action === 'relic_index' || params['op'] === 'index') {
                 result = await this.synchronize_relic_index(params);
-            } else if (action === 'relic_read_record' || params.op === 'read') {
+            } else if (action === 'relic_read_record' || params['op'] === 'read') {
                 result = await this.read_record(params);
-            } else if (action === 'relic_explore' || params.op === 'explore') {
+            } else if (action === 'relic_explore_museum' || params['op'] === 'explore') {
                 result = await this.explore_museum(params);
+            } else if (action === 'relic_status' || params['op'] === 'status') {
+                result = await this.get_state(params);
             } else {
                 // Default behaviors based on prompts if no explicit action
                 if (intent.prompt.includes("excavate")) {
@@ -157,26 +162,30 @@ export class RelicLimb extends BaseLimb {
                 }
             }
 
+            const outputText = typeof result === 'object' && result !== null && 'message' in result && typeof result.message === 'string'
+                ? result.message
+                : JSON.stringify(result);
+
             return {
                 ok: true,
                 value: {
-                    output: typeof result.message === 'string' ? result.message : JSON.stringify(result),
+                    output: outputText,
                     data: result
                 }
             };
-
-        } catch (e: any) {
-            return { ok: false, error: e };
+        } catch (e) {
+            const error = e instanceof Error ? e : new Error(String(e));
+            return { ok: false, error };
         }
     }
 
     // --- PORTED METHODS FROM POG-ULTIMATE ---
 
-    async excavate_cache(params: any) {
+    async excavate_cache(params: Record<string, any>) {
         const { id: _cacheId = 0, major: _major = 0 } = params || {};
 
         // --- REAL CACHE DETECTION ---
-        const rscDataPath = join(this.config.projectRoot, 'rsc-data');
+        const rscDataPath = resolveSovereignPath('rsc-data');
         const keyArchives = ['config85.jag', 'entity24.jag', 'models36.jag', 'jagex.jag'];
 
         const foundArchives: string[] = [];
@@ -190,14 +199,21 @@ export class RelicLimb extends BaseLimb {
 
         // Cloud check (for future Cloudflare integration)
         let foundCloud = false;
-        if (this.env?.ASSETS_BUCKET) {
-            const r2Prefix = 'cache/runescape';
+        if (this.env['RELIC_DO']) {
+            const globalIndex = await this.env['RELIC_DO'].getIndex();
             const indicators = ['config.jag', 'models.jag'];
             for (const indicator of indicators) {
-                const obj = await this.env.ASSETS_BUCKET.head(`${r2Prefix}/${indicator}`);
-                if (obj) {
+                if (globalIndex.has(indicator)) {
                     foundCloud = true;
                     break;
+                }
+            }
+        }
+        if (this.env['ASSETS_BUCKET']) {
+            const objects = await this.env['ASSETS_BUCKET'].list();
+            for (const obj of objects.objects) {
+                if (keyArchives.some(k => obj.key.endsWith(k))) {
+                    foundArchives.push(obj.key);
                 }
             }
         }
@@ -214,8 +230,8 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async synchronize_relic_index(_params: any) {
-        if (!this.env?.RELIC_DO) {
+    async synchronize_relic_index(_params: Record<string, any>) {
+        if (!this.env?.['RELIC_DO']) {
             // Local Simulation
             return { status: 'warning', message: 'RELIC_DO not bound (Local Mode). Indexing simulated.' };
         }
@@ -224,18 +240,23 @@ export class RelicLimb extends BaseLimb {
     }
 
     // Adapted read_record for Local Access
-    async read_record(params: any) {
+    async read_record(params: Record<string, any>) {
         const { path: filePath, base64 } = params || {};
         if (!filePath) throw new Error("Missing path for read_record");
 
         // 1. Try Sovereign RelicDO (Fastest + Resolved)
-        if (this.env?.RELIC_DO) {
-            // ... Cloud logic
+        if (this.env['RELIC_DO']) {
+            return await this.env['RELIC_DO'].get(filePath, base64);
         }
 
-        // 2. Try R2 (Direct)
-        if (this.env?.ASSETS_BUCKET) {
-            // ... Cloud logic
+        // --- CLOUDFLARE SUBSTRATE (Fallback) ---
+        if (this.env['ASSETS_BUCKET']) {
+            const obj = await this.env['ASSETS_BUCKET'].get(filePath);
+            if (obj) {
+                const buffer = await obj.arrayBuffer();
+                const content = base64 ? Buffer.from(buffer).toString('base64') : Buffer.from(buffer).toString('utf-8');
+                return { status: 'success', content, source: 'r2_bucket' };
+            }
         }
 
         // 3. Try Local Filesystem (Maximal Operational Code)
@@ -252,7 +273,7 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async scan_game_needs(params: any) {
+    async scan_game_needs(params: Record<string, any>) {
         // Cloud Native Mastery: Use __STATIC_CONTENT_MANIFEST stub
         let manifest: Record<string, string> = {};
         try {
@@ -266,7 +287,7 @@ export class RelicLimb extends BaseLimb {
             .filter(key => key.includes('data204/') && key.endsWith('.jag'))
             .map(key => ({
                 id: key.split('/').pop()?.replace('.jag', '') || 'unknown',
-                type: params.platform || 'rsc',
+                type: params['platform'] || 'all',
                 status: 'available',
                 priority: 'stored_in_kv'
             }));
@@ -279,7 +300,7 @@ export class RelicLimb extends BaseLimb {
     }
 
     async index_jag_archive_contents(_params: any) {
-        if (!this.env?.RELIC_DO && !fs.existsSync(join(this.config.projectRoot, 'rsc-data'))) {
+        if (!this.env?.['RELIC_DO'] && !fs.existsSync(join(this.config.projectRoot, 'rsc-data'))) {
             return { status: 'error', message: 'RELIC_DO not bound and no local rsc-data found.' };
         }
 
@@ -290,7 +311,7 @@ export class RelicLimb extends BaseLimb {
         ];
 
         let totalIndexed = 0;
-        const rscPath = join(this.config.projectRoot, 'rsc-data');
+        const rscPath = resolveSovereignPath('rsc-data');
 
         for (const archiveName of archives) {
             const archivePath = join(rscPath, archiveName);
@@ -313,11 +334,11 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async get_state(_params: any) {
+    async get_state(_params: Record<string, any>) {
         return { status: 'active', mode: 'local_hybrid' };
     }
 
-    async link_cache(params: any) {
+    async link_cache(params: Record<string, any>) {
         const { path: _cachePath } = params || {};
         // Stub for RSMV link
         return {
@@ -327,13 +348,13 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async salvage_relic(params: any) {
+    async salvage_relic(params: Record<string, any>) {
         const { relicId, relicType: _relicType } = params || {};
         // Stub for salvage
         return { status: 'success', type: 'rsc_salvage', url: `rsc://${relicId}`, message: 'Artifact salvaged (Simulated)' };
     }
 
-    async modify_relic(params: any) {
+    async modify_relic(params: Record<string, any>) {
         const { id: modId, changes, currentData } = params || {};
         const updatedData = { ...currentData, ...changes };
         return {
@@ -343,19 +364,19 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async load_stage(params: any) {
-        return { status: 'success', stageId: params.stageId };
+    async load_stage(params: Record<string, any>) {
+        return { status: 'success', stageId: params['stageId'] };
     }
 
-    async commit_cache(_params: any) {
+    async commit_cache(_params: Record<string, any>) {
         return { status: 'success', message: 'Commit successful (Simulated)' };
     }
 
-    async fork_relic(_params: any) {
+    async fork_relic(_params: Record<string, any>) {
         return { status: 'success', message: 'Fork successful (Simulated)' };
     }
 
-    async fetch_relic_content(params: any) {
+    async fetch_relic_content(params: Record<string, any>) {
         const { path: relativePath } = params || {};
         const localPath = join(this.config.projectRoot, relativePath);
         if (fs.existsSync(localPath)) {
@@ -408,7 +429,7 @@ export class RelicLimb extends BaseLimb {
         };
 
         const archiveName = archiveMap[category] ?? 'config85.jag';
-        const archivePath = join(this.config.projectRoot, 'rsc-data', archiveName);
+        const archivePath = join(resolveSovereignPath('rsc-data'), archiveName);
 
         if (!fs.existsSync(archivePath)) {
             return {

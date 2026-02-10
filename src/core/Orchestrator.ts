@@ -88,6 +88,7 @@ import { ProjectPulse } from '../utils/ProjectPulse.js';
 import { QuantumLimb } from '../limbs/experimental/QuantumLimb.js';
 import { RelicLimb } from '../limbs/experimental/RelicLimb.js';
 import { OmegaLimb } from '../limbs/experimental/OmegaLimb.js';
+import { GhostLimb } from '../limbs/core/GhostLimb.js';
 
 // Note: Component logger is initialized in the constructor for dynamic identity.
 
@@ -140,6 +141,9 @@ export class FreeOrchestrator extends EventEmitter {
   private readonly endpointStatus: Map<string, 'ACTIVE' | 'INACTIVE' | 'PARTIAL'> = new Map();
   private readonly intentVerifier: IntentVerifier;
   private activeMemories: Lesson[] = [];
+  private currentNarrative: string = 'The substrate is quiet, observing the void.';
+  private cachedHealth: { cpu: number; mem: number; disk: number } = { cpu: 0, mem: 0, disk: 0 };
+  private toolUsageHeatmap: Record<string, number> = {};
 
 
 
@@ -241,6 +245,7 @@ export class FreeOrchestrator extends EventEmitter {
     const cognitionLimb = new CognitionLimb(config, this.modelExecutor);
 
     // Phase 14: Ghost Limb Synthesis
+    const ghostLimb = new GhostLimb(config, this.modelExecutor);
     const quantumLimb = new QuantumLimb(config, this.modelExecutor);
     const relicLimb = new RelicLimb(config, this.modelExecutor);
     const omegaLimb = new OmegaLimb(config, this.modelExecutor);
@@ -271,6 +276,7 @@ export class FreeOrchestrator extends EventEmitter {
       voiceLimb,
       dashboardLimb,
       sovereignShellLimb,
+      ghostLimb,
       quantumLimb,
       relicLimb,
       omegaLimb
@@ -392,7 +398,16 @@ export class FreeOrchestrator extends EventEmitter {
       this.logger.info({ port: this.config.wsPort }, 'WebSocket server started');
 
       // Heartbeat for dashboard telemetry
-      setInterval(() => this.broadcastState(), 30000);
+      setInterval(() => {
+        void this.refreshSystemHealth();
+        this.broadcastState();
+        void this.broadcastPulse();
+      }, 5000); // More frequent heartbeat for high-fidelity pulse
+
+      // Sovereign Voice Narrative Loop (Rhythmic introspection)
+      setInterval(() => {
+        void this.generateSovereignVoice();
+      }, 60000); // Narrate vibe every minute
 
       return { ok: true, value: undefined };
     } catch (error) {
@@ -809,8 +824,9 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
           this.recordSuccessMetadata(limb.id, prompt, Date.now() - context.startTime, filePath);
 
           // Special case for WebAppForge preview events
-          if (limb.id === 'webapp_forge' && result.value.data?.previewUrl) {
-            const previewMetadata = (await this.previewServer.getActivePreviews()).find(p => p.url === result.value.data.previewUrl);
+          const resultData = result.value.data as Record<string, any>;
+          if (limb.id === 'webapp_forge' && resultData?.['previewUrl']) {
+            const previewMetadata = (await this.previewServer.getActivePreviews()).find(p => p.url === resultData['previewUrl']);
             if (previewMetadata) {
               this.emit('previewStarted', previewMetadata);
             }
@@ -977,7 +993,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
         prompt: `Review the following output for goal completion: ${prompt}`,
         context: { complexity: TaskClassifier.assessComplexity(prompt, TaskClassifier.analyzeProbabilities(prompt)) }
       });
-      if (omegaResult.ok && omegaResult.value.data?.done) {
+      if (omegaResult.ok && (omegaResult.value.data as Record<string, any>)?.['done']) {
         this.logger.info('Omega Sequence: Project Converged at Omega Point.');
         totalResponse += `\n\n--- OMEGA VERIFICATION ---\n${omegaResult.value.output}`;
       }
@@ -1082,6 +1098,25 @@ Perform the current step and output results. If verifying, ensure you run the ne
         selectedModel,
         { fileName: context.filePath }
       );
+
+      // Phase 12: Quantum Escalation on failure (Maximal Complexity)
+      if (!callResult.ok) {
+        this.logger.warn('Adversarial Loop failed to reach consensus. Escalating to Quantum Superposition...');
+        const quantum = this.limbs.find(l => l.id === 'quantum_superposition');
+        if (quantum) {
+          const qResult = await quantum.execute({ prompt: augmentedPrompt });
+          if (qResult.ok) {
+            callResult = {
+              ok: true,
+              value: {
+                response: qResult.value.output,
+                model: 'quantum-superposition',
+                latency: Date.now() - context.startTime
+              }
+            };
+          }
+        }
+      }
     } else {
       // Standard Research/Verify: Direct Executor call
       callResult = await this.modelExecutor.callModel(selectedModel, augmentedPrompt, tools);
@@ -1091,7 +1126,9 @@ Perform the current step and output results. If verifying, ensure you run the ne
       this.logger.error({ error: callResult.error.message, model: selectedModel }, 'Primary model call failed - checking for Sovereign Shell fallback');
 
       this.router.recordFailure(selectedModel);
-      this.recordFailureMetadata(selectedModel, augmentedPrompt, callResult.error.message, context.filePath);
+      const error = (callResult as { error: Error }).error;
+      const contextObj = context as any;
+      this.recordFailureMetadata(selectedModel, augmentedPrompt, error.message, contextObj['filePath']);
 
       // Sovereign Shell Fallback Logic
       if (selectedModel.includes('gemini')) {
@@ -1148,7 +1185,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
    * Maps text-based command extraction to formal Function Calls
    * Wraps Sandbox.execute logic
    */
-  private async processFunctionCalls(modelResponse: ModelResponse, plan?: any): Promise<AgentTurnResult> {
+  private async processFunctionCalls(modelResponse: ModelResponse, plan?: ExecutionPlan): Promise<AgentTurnResult> {
     const { response, functionCalls } = modelResponse;
     const commands = this.sandbox.extractCommands(response);
 
@@ -1179,7 +1216,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
         for (const limb of this.limbs) {
           if (limb.getTools && limb.handleToolCall) {
             const tools = limb.getTools();
-            const hasTool = tools.some((group: any) => group.functionDeclarations.some((f: any) => f.name === call.name));
+            const hasTool = tools.some(group => group.functionDeclarations.some((f: any) => f.name === call.name));
             if (hasTool) {
               result = await limb.handleToolCall(call.name, call.args);
               handled = true;
@@ -1244,7 +1281,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
   /**
    * Checks background health and interrupts if critical errors are found.
    */
-  private async checkMonitorInterference(plan?: any): Promise<AgentTurnResult | null> {
+  private async checkMonitorInterference(plan?: ExecutionPlan): Promise<AgentTurnResult | null> {
     if (!this.monitorAgent) return null;
 
     const result = await this.monitorAgent.diagnoseState(plan);
@@ -1367,7 +1404,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
   // Removed local classifyTaskType to use TaskClassifier
 
-  private recordIntent(context: ExecutionContext, model: string, success: boolean, time: number, output?: string, data?: any): void {
+  private recordIntent(context: ExecutionContext, model: string, success: boolean, time: number, output?: string, data?: unknown): void {
     this.intentHistory.push({
       sessionId: context.sessionId || '',
       query: context.prompt || '',
@@ -1386,6 +1423,16 @@ Perform the current step and output results. If verifying, ensure you run the ne
     }
 
     this.emit('intentExecuted', this.intentHistory[this.intentHistory.length - 1] as any);
+
+    // Neural Heatmap: Track success patterns
+    if (success && output?.includes('Tool result:')) {
+      const toolMatch = output.match(/Tool result: (\w+)/);
+      const tn = toolMatch ? toolMatch[1] : null;
+      if (tn) {
+        this.toolUsageHeatmap[tn] = (this.toolUsageHeatmap[tn] || 0) + 1;
+      }
+    }
+
     if (this.intentHistory.length > 1000) this.intentHistory.shift();
   }
 
@@ -1412,38 +1459,112 @@ Perform the current step and output results. If verifying, ensure you run the ne
       envStatus: this.envStatus,
       systemHealth: this.getSystemHealth(),
       activeHexagram: this.hexagramManager.getInterpretation(),
-      activeMemories: this.activeMemories.map(m => ({ text: m['text'], projectId: m.projectId, type: m.metadata?.['type'] }))
+      hexagramLines: (this.hexagramManager as any).lines || [],
+      activeMemories: this.activeMemories.map(m => ({ text: m['text'], projectId: m.projectId, type: m.metadata?.['type'] })),
+      sovereignVoice: this.currentNarrative,
+      neuralHeatmap: this.toolUsageHeatmap
     };
   }
 
-  private getSystemHealth(): { cpu: number; mem: number; disk: number } {
-    const totalMem = os.totalmem();
-    const freeMem = os.freemem();
-    const memUsage = ((totalMem - freeMem) / totalMem) * 100;
+  private async broadcastPulse(): Promise<void> {
+    if (!this.wsServer) return;
 
-    const cpus = os.cpus();
-    let totalIdle = 0;
-    let totalTick = 0;
+    const hex = this.hexagramManager.getInterpretation();
+    // Intensity weighted by hexagram strategy (MAINTAIN=0.3, EXPAND=0.9, etc.)
+    const strategyWeight = hex.strategy === 'EXPAND' ? 0.9 :
+      hex.strategy === 'MAINTAIN' ? 0.6 :
+        hex.strategy === 'ARBITRATE' ? 0.75 : 0.4;
 
-    cpus.forEach(core => {
-      for (const type in core.times) {
-        totalTick += (core.times as any)[type];
-      }
-      totalIdle += core.times.idle;
-    });
+    // Metabolic spark probability weighted by CPU load and hexagram
+    const sparkProb = (this.cachedHealth.cpu / 100) * strategyWeight;
 
-    const cpuUsage = 100 - (100 * totalIdle / totalTick);
-
-    // Disk usage: Simplified to avoid placeholders as requested.
-    // Real cross-platform disk I/O requires child_process or a library like 'diskusage'.
-    // We will leave it as 0 for now to avoid false metrics.
-    let diskUsage = 0;
-
-    return {
-      cpu: cpuUsage,
-      mem: memUsage,
-      disk: diskUsage
+    const pulse = {
+      timestamp: Date.now(),
+      intensity: 0.5 + (0.5 * strategyWeight),
+      spark: Math.random() < sparkProb,
+      health: this.getSystemHealth()
     };
+
+    const payload = JSON.stringify({ type: 'pulse', data: pulse });
+    this.wsServer.clients.forEach(client => {
+      if (client.readyState === 1) client.send(payload);
+    });
+  }
+
+  private async generateSovereignVoice(): Promise<void> {
+    if (!this.geminiService) return;
+
+    const hex = this.hexagramManager.getInterpretation();
+    const metrics = this.getSystemHealth();
+
+    const prompt = `You are the Sovereign Voice of POG-CODER-VIBE.
+Current Hexagram: ${hex.name} (${hex.binary})
+Meaning: ${hex.description}
+Strategy: ${hex.strategy}
+System Health: CPU ${metrics.cpu.toFixed(1)}%, RAM ${metrics.mem.toFixed(1)}%, Disk ${metrics.disk.toFixed(1)}%
+
+Provide a short, 1-sentence "Sovereign Narrative" about the current system vibe. 
+Use a high-tier, sophisticated, yet straight-up tone. Avoid generic AI fluff.`;
+
+    const response = await this.geminiService.generateContent(prompt, {
+      model: 'gemini:gemini-2.0-flash',
+      maxOutputTokens: 60
+    } as any);
+
+    if (response.ok) {
+      this.currentNarrative = response.value.response.trim();
+      this.logger.info({ narrative: this.currentNarrative }, 'Sovereign Voice updated');
+      this.broadcastState(); // Broadcast immediately to update UI
+    }
+  }
+
+  private async refreshSystemHealth(): Promise<void> {
+    try {
+      const totalMem = os.totalmem();
+      const freeMem = os.freemem();
+      const memUsage = ((totalMem - freeMem) / totalMem) * 100;
+
+      const cpus = os.cpus();
+      let totalIdle = 0;
+      let totalTick = 0;
+
+      cpus.forEach(core => {
+        for (const type in core.times) {
+          totalTick += (core.times as any)[type];
+        }
+        totalIdle += core.times.idle;
+      });
+
+      const cpuUsage = 100 - (100 * totalIdle / totalTick);
+
+      // Real Disk Usage (Windows specific as per OS metadata)
+      const diskUsage = await new Promise<number>((resolve) => {
+        const cmd = `powershell -Command "Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DeviceID -eq 'C:' } | Select-Object @{Name='Pct';Expression={($_.FreeSpace / $_.Size) * 100}}"`;
+        const { exec } = require('child_process');
+        exec(cmd, (error: any, stdout: string) => {
+          if (error) return resolve(0);
+          const dmatch = stdout.match(/(\d+\.?\d*)/);
+          if (dmatch && dmatch[1]) {
+            // Percent free, so 100 - free = used
+            resolve(100 - parseFloat(dmatch[1]));
+          } else {
+            resolve(0);
+          }
+        });
+      });
+
+      this.cachedHealth = {
+        cpu: cpuUsage,
+        mem: memUsage,
+        disk: diskUsage
+      };
+    } catch (e) {
+      this.logger.error({ error: e }, 'Failed to refresh system health metrics');
+    }
+  }
+
+  private getSystemHealth(): { cpu: number; mem: number; disk: number } {
+    return this.cachedHealth;
   }
 
   public async switchWorkspace(newRoot: string): Promise<Result<void>> {
@@ -1490,97 +1611,149 @@ Perform the current step and output results. If verifying, ensure you run the ne
     }
   }
 
-  private handleControlMessage(payload: any, ws: import('ws').WebSocket): void {
+  private handleControlMessage(payload: { command: string; data: Record<string, any> }, ws: import('ws').WebSocket): void {
     const { command, data } = payload;
-    this.logger.info({ command, data }, 'Dashboard control message received');
+    this.logger.info({ command, data }, 'Dashboard control message dispatch initiating');
 
-    switch (command) {
-      case 'requestState':
-        ws.send(JSON.stringify({ type: 'state', data: this.getCurrentState() }));
-        break;
-      case 'toggleService':
-        const { service, enabled } = data;
-        let services = [...this.config.enabledServices];
-        if (enabled && !services.includes(service)) {
-          services.push(service);
-        } else if (!enabled && services.includes(service)) {
-          services = services.filter(s => s !== service);
+    // MAPPING: Commands -> Logical Tools in limbs
+    // This adheres to the rule "any tools must be added to spine"
+    const commandMap: Record<string, { limbId: string; toolName: string }> = {
+      'requestState': { limbId: 'dashboard', toolName: 'show_dashboard' }, // Shows dashboard state too
+      'toggleService': { limbId: 'dashboard', toolName: 'toggle_service' },
+      'switchWorkspace': { limbId: 'dashboard', toolName: 'switch_workspace' },
+      'pinFile': { limbId: 'dashboard', toolName: 'pin_file' },
+      'unpinFile': { limbId: 'dashboard', toolName: 'unpin_file' },
+      'media_forge_request': { limbId: 'neural_forge', toolName: 'forge_media' },
+      'requestBooks': { limbId: 'gutenberg_knowledge', toolName: 'get_library' },
+      'readBook': { limbId: 'gutenberg_knowledge', toolName: 'read_book' },
+      'narrateBook': { limbId: 'gutenberg_knowledge', toolName: 'narrate_book' },
+      'transcribeAudiobook': { limbId: 'gutenberg_knowledge', toolName: 'audiobook_transcribe' },
+      'forge_storyboard': { limbId: 'gutenberg_knowledge', toolName: 'generate_storyboard' },
+      'invoke_limb_tool': {
+        limbId: (data as Record<string, any>)['limbId'] || 'unknown',
+        toolName: (data as Record<string, any>)['toolName'] || 'unknown'
+      }
+    };
+
+    const mapped = commandMap[command];
+
+    // SOVEREIGN VIGILANCE: Audit command against hexagram strategy
+    // This adds a deep intelligence layer to the control plane.
+    const vigilance = this.auditCommandVigilance(command, data);
+    if (vigilance.decision === -1) {
+      this.logger.warn({ command, reason: vigilance.reason }, 'Command blocked by Sovereign Vigilance Engine');
+      ws.send(JSON.stringify({
+        type: 'intentExecuted',
+        data: {
+          query: `Dashboard: ${command}`,
+          selectedModel: 'VigilanceEngine',
+          success: false,
+          output: `VIGILANCE BLOCK (Strategy: ${this.hexagramManager.getInterpretation().strategy}): ${vigilance.reason}`,
+          data: { blocked: true, strategy: this.hexagramManager.getInterpretation().strategy }
         }
-        (this.config as any).enabledServices = services;
-        this.logger.info({ service, enabled }, 'Service status toggled via Dashboard');
-        this.broadcastState();
-        break;
-      case 'switchWorkspace':
-        this.switchWorkspace(data.path);
-        break;
-      case 'pinFile':
-        this.pinFile(data.path);
-        break;
-      case 'unpinFile':
-        this.unpinFile(data.path);
-        break;
-      case 'media_forge_request':
-        this.logger.info({ prompt: data.prompt, targetType: data.targetType }, 'Media forge request from dashboard - executing as intent');
-        void this.executeIntent(`forge ${data.targetType}: ${data.prompt}`);
-        break;
-      case 'requestBooks':
-        const gutenLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
-        if (gutenLimb && gutenLimb.handleToolCall) {
-          void gutenLimb.handleToolCall('get_library', {}).then(res => {
-            if (res.ok) ws.send(JSON.stringify({ type: 'books', data: res.value.data.books }));
-          });
-        }
-        break;
-      case 'readBook':
-        const gLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
-        if (gLimb && gLimb.handleToolCall) {
-          void gLimb.handleToolCall('read_book', { bookId: data.bookId }).then(res => {
-            if (res.ok) ws.send(JSON.stringify({ type: 'bookContent', data: res.value.data }));
-          });
-        }
-        break;
-      case 'narrateBook':
-        const nLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
-        if (nLimb && nLimb.handleToolCall) {
-          void nLimb.handleToolCall('narrate_book', { bookId: data.bookId, style: data.style }).then(res => {
-            if (res.ok) ws.send(JSON.stringify({ type: 'intentExecuted', data: { query: `narrate ${data.bookId}`, selectedModel: 'GutenbergNarrator', success: true, output: res.value.output, data: res.value.data } }));
-          });
-        }
-        break;
-      case 'transcribeAudiobook':
-        const tLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
-        if (tLimb && tLimb.handleToolCall) {
-          void tLimb.handleToolCall('audiobook_transcribe', { fileName: data.fileName }).then(res => {
-            if (res.ok) ws.send(JSON.stringify({ type: 'intentExecuted', data: { query: `transcribe ${data.fileName}`, selectedModel: 'GutenbergTranscriber', success: true, output: res.value.output, data: res.value.data } }));
-          });
-        }
-        break;
-      case 'forge_storyboard':
-        const sLimb = this.limbs.find(l => l.id === 'gutenberg_knowledge');
-        if (sLimb && sLimb.handleToolCall) {
-          void sLimb.handleToolCall('generate_storyboard', { bookId: data.bookId, premise: data.premise }).then(res => {
-            if (res.ok) ws.send(JSON.stringify({ type: 'storyboard', data: res.value.data }));
-          });
-        }
-        break;
-      case 'invoke_limb_tool':
-        const { limbId, toolName, args } = data;
-        const targetLimb = this.limbs.find(l => l.id === limbId);
-        if (targetLimb && targetLimb.handleToolCall) {
-          void targetLimb.handleToolCall(toolName, args || {}).then(res => {
+      }));
+      return;
+    }
+
+    if (vigilance.decision === 0) {
+      this.logger.info({ command, reason: vigilance.reason }, 'Command cautionary via Sovereign Vigilance');
+      // We proceed but could inject a warning note in logs or separate events
+    }
+
+    // CASE: requestState is a special internal state request (Shortcut)
+    if (command === 'requestState') {
+      ws.send(JSON.stringify({ type: 'state', data: this.getCurrentState() }));
+      return;
+    }
+
+    if (mapped) {
+      const targetLimb = this.limbs.find(l => l.id === mapped.limbId);
+      if (targetLimb && targetLimb.handleToolCall) {
+        void targetLimb.handleToolCall(mapped.toolName, data || {}).then(res => {
+          // Secondary Side Effects based on tool result
+          if (res.ok && res.value.action) {
+            if (res.value.action === 'switch_workspace') this.switchWorkspace(res.value.data.path);
+            if (res.value.action === 'pin_file') this.pinFile(res.value.data.path);
+            if (res.value.action === 'unpin_file') this.unpinFile(res.value.data.path);
+          }
+
+          // Broadcast updates to all clients
+          this.broadcastState();
+
+          // If it was a forge or complex task, send back as intent execution
+          if (['media_forge_request', 'narrateBook', 'transcribeAudiobook', 'invoke_limb_tool'].includes(command)) {
             const intentData = {
-              query: `Direct Tool Call: ${toolName}`,
-              selectedModel: `Limb:${limbId}`,
+              query: `Dashboard Command: ${command}`,
+              selectedModel: `Limb:${mapped.limbId}`,
               success: res.ok,
-              output: res.ok ? res.value.output : `Error: ${res.error.message}`,
+              output: res.ok ? (res.value.output || 'Action completed') : `Error: ${res.error.message}`,
               data: res.ok ? res.value.data : null
             };
             ws.send(JSON.stringify({ type: 'intentExecuted', data: intentData }));
-            this.broadcastState();
-          });
-        }
-        break;
+          } else if (command === 'readBook' && res.ok) {
+            ws.send(JSON.stringify({ type: 'bookContent', data: res.value.data }));
+          } else if (command === 'requestBooks' && res.ok) {
+            ws.send(JSON.stringify({ type: 'books', data: res.value.data.books }));
+          }
+        });
+      } else {
+        this.logger.warn({ command, mapped }, 'Target limb not found for mapped command');
+      }
+    } else {
+      this.logger.warn({ command }, 'Received unmapped control command');
     }
+  }
+
+  /**
+   * VigilanceEngine: Audits control plane commands via Ternary logic and Hexagram Strategy.
+   * Ensures high-risk actions align with the system's current archetypal directive.
+   * Logic is expanded to avoid "minimalism" and maximize safety.
+   */
+  private auditCommandVigilance(command: string, data: any): { decision: number; reason: string } {
+    const hex = this.hexagramManager.getInterpretation();
+    const strategy = hex.strategy;
+
+    // Risk Categorization Matrix
+    const highRisk = ['switchWorkspace', 'toggleService', 'media_forge_request', 'invoke_limb_tool'];
+    const destructive = ['toggleService']; // Disabling services is destructive
+    const creative = ['media_forge_request', 'forge_storyboard'];
+
+    const isHighRisk = highRisk.includes(command);
+    const isDestructive = destructive.includes(command) && data?.enabled === false;
+    const isCreative = creative.includes(command);
+
+    // Policy 1: YIELD Strategy blocks all High-Risk mutations
+    if (strategy === 'YIELD' && isHighRisk) {
+      return {
+        decision: -1,
+        reason: `Substrate is in YIELD mode (Archetype: ${hex.name}). Critical mutations are frozen to prevent entropy.`
+      };
+    }
+
+    // Policy 2: ARBITRATE Strategy requires caution for Destructive actions
+    if (strategy === 'ARBITRATE' && isDestructive) {
+      return {
+        decision: 0,
+        reason: `System is ARBITRATING. Disabling services during conflict state is discouraged but allowed.`
+      };
+    }
+
+    // Policy 3: EXPAND Strategy boosts Creative actions and allows all mutations
+    if (strategy === 'EXPAND') {
+      return {
+        decision: 1,
+        reason: `Expansion directive active. ${isCreative ? 'Creative forging optimized for OMEGA state.' : 'Structural evolution permitted.'}`
+      };
+    }
+
+    // Policy 4: MAINTAIN Strategy allows non-destructive structural change
+    if (strategy === 'MAINTAIN') {
+      if (isDestructive) return { decision: 0, reason: `Maintaining equilibrium. Service disruption should be minimized.` };
+      return { decision: 1, reason: `System equilibrium nominal.` };
+    }
+
+    // Default: Nominal All Clear
+    return { decision: 1, reason: `Command ${command} assessed as low-risk for current archetype ${hex.name}.` };
   }
 
   public getIntentHistory(): IntentHistory[] { return [...this.intentHistory]; }
@@ -1648,7 +1821,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
   }
 
 
-  private async handleAudioInput(base64Data: string, ws: any): Promise<void> {
+  private async handleAudioInput(base64Data: string, ws: import('ws').WebSocket): Promise<void> {
     try {
       this.logger.info('Received audio input from dashboard - transcribing...');
       const buffer = Buffer.from(base64Data, 'base64');

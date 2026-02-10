@@ -33,8 +33,8 @@ export class NeuralForgeLimb extends BaseLimb {
                     },
                     required: ['forgeType', 'prompt']
                 },
-                handler: async (args) => {
-                    const targetForge = args.forgeType;
+                handler: async (args: any) => {
+                    const targetForge = args['forgeType'];
                     let persona = 'Architectural Engineer';
 
                     if (targetForge === 'SQL') persona = 'SQL Architect';
@@ -42,7 +42,7 @@ export class NeuralForgeLimb extends BaseLimb {
                     else if (targetForge === 'UI') persona = 'Sovereign UI/UX Architect';
                     else if (targetForge === 'PatternScope') persona = 'Code Provenance Auditor';
 
-                    const specializedPrompt = this.wrapForgePrompt(persona, args.prompt);
+                    const specializedPrompt = this.wrapForgePrompt(persona, args['prompt']);
                     this.logger.info({ targetForge }, 'Executing specialized forge loop (Adversarial)');
 
                     const result = await this.adversarialOrchestrator.generateValidatedCode(

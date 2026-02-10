@@ -118,7 +118,10 @@ export class DashboardLimb extends BaseLimb {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="vibe-theme">
-    <div class="glass-container">
+    <div id="bloom-substrate-container" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0.4;">
+        <canvas id="bloom-substrate"></canvas>
+    </div>
+    <div class="glass-container" style="position:relative;z-index:2;">
         <header>
             <div class="logo">POG-VIBE <span>CORE</span></div>
             <div class="workspace-selector">
@@ -138,6 +141,7 @@ export class DashboardLimb extends BaseLimb {
                 <button class="tab-btn" data-tab="settings">Config</button>
             </nav>
             <div class="status-indicator">
+                <div id="sovereign-narrative" class="sovereign-narrative">The substrate is quiet...</div>
                 <button id="mic-btn" class="mic-btn" title="Speak">🎙️</button>
                 <span id="ws-status" class="status-dot"></span>
                 <span id="ws-text">Neural Link</span>
@@ -158,14 +162,20 @@ export class DashboardLimb extends BaseLimb {
                             <div id="connectivity-matrix" class="matrix-canvas"></div>
                         </div>
                         <div id="memory-pulse" class="memory-pulse-container">
-                            <div class="memory-label">MEMORY PULSE</div>
-                            <div id="active-memories-list" class="memory-bubbles"></div>
+                            <div class="memory-label">HEXAGRAM METABOLISM</div>
+                            <div id="hexagram-viz" class="hexagram-viz-box"></div>
                             <div id="active-hexagram-info" class="hexagram-badge">Unknown Archetype</div>
+                            <div class="memory-label mt-10">MEMORY PULSE</div>
+                            <div id="active-memories-list" class="memory-bubbles"></div>
                         </div>
                     </section>
                     <section class="panel side-panel">
                         <h3><span class="icon">🧠</span> RECENT INTENTS</h3>
                         <div id="intent-list" class="scroll-box"></div>
+                        <h3 class="mt-20"><span class="icon">🔥</span> NEURAL HEATMAP</h3>
+                        <div id="neural-heatmap" class="heatmap-container">
+                            <p class="muted">No activity data...</p>
+                        </div>
                     </section>
                 </div>
             </div>
@@ -381,8 +391,19 @@ export class DashboardLimb extends BaseLimb {
                 <div class="model-tag gemini">Gemini: <span id="gemini-status">IDLE</span></div>
                 <div class="model-tag ollama">Ollama: <span id="ollama-status">IDLE</span></div>
             </div>
-            <div class="terminal-stats">
-                 CPU: <span id="cpu-load-footer">--</span> | MEM: <span id="mem-usage-footer">--</span>
+            <div class="orb-telemetry">
+                <div class="orb-unit" title="CPU Phase">
+                    <svg viewBox="0 0 36 36"><path class="orb-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="path-cpu" class="orb-fg cpu" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <span class="orb-val" id="cpu-load-footer">--</span>
+                </div>
+                <div class="orb-unit" title="Memory Flux">
+                    <svg viewBox="0 0 36 36"><path class="orb-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="path-mem" class="orb-fg mem" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <span class="orb-val" id="mem-usage-footer">--</span>
+                </div>
+                <div class="orb-unit" title="Disk Substrate">
+                    <svg viewBox="0 0 36 36"><path class="orb-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="path-disk" class="orb-fg disk" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <span class="orb-val" id="disk-val-footer">--</span>
+                </div>
             </div>
         </footer>
     </div>
@@ -398,8 +419,10 @@ export class DashboardLimb extends BaseLimb {
     --text-main: #e0e0e0;
     --text-muted: #666;
     --border-radius: 12px;
+    --pulse-intensity: 0;
 }
-body { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; overflow: hidden; }
+body { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; overflow: hidden; transition: 0.3s; }
+body.pulse { background: radial-gradient(circle at center, rgba(0, 242, 255, calc(var(--pulse-intensity) * 0.05)), var(--bg-dark)); }
 .vibe-theme { background: radial-gradient(circle at top right, #1a0033, #050505 60%), radial-gradient(circle at bottom left, #001a1a, #050505 60%); height: 100vh; }
 .glass-container { display: flex; flex-direction: column; height: 100vh; padding: 15px; box-sizing: border-box; }
 header { display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--border-radius); margin-bottom: 15px; }
@@ -467,6 +490,18 @@ h3 { margin: 0 0 12px 0; font-size: 0.75rem; color: var(--accent-primary); lette
 input:checked + .slider { background-color: var(--accent-primary); }
 input:checked + .slider:before { transform: translateX(16px); }
 
+/* RADIAL TELEMETRY ORBS */
+.orb-telemetry { display: flex; gap: 20px; align-items: center; }
+.orb-unit { position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.orb-unit svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.orb-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 3; }
+.orb-fg { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1); }
+.orb-fg.cpu { stroke: var(--accent-primary); filter: drop-shadow(0 0 5px var(--accent-primary)); }
+.orb-fg.mem { stroke: var(--accent-secondary); filter: drop-shadow(0 0 5px var(--accent-secondary)); }
+.orb-fg.disk { stroke: #00ff00; filter: drop-shadow(0 0 5px #00ff00); }
+.orb-val { font-size: 0.45rem; font-weight: 800; color: var(--text-main); position: relative; z-index: 1; pointer-events: none; }
+#bloom-substrate { width: 100%; height: 100%; display: block; }
+
 /* LIMB MATRIX */
 .limb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; padding: 10px; }
 .limb-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; transition: 0.3s; }
@@ -498,10 +533,34 @@ input:checked + .slider:before { transform: translateX(16px); }
 .gauge-fg.latency { stroke: #ffcc00; }
 .memory-bubble.strategy { border-color: var(--accent-secondary); color: var(--accent-secondary); background: rgba(255, 0, 234, 0.05); }
 .memory-bubble.code { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(0, 242, 255, 0.05); }
-.memory-bubble.lore { border-color: #00ff00; color: #00ff00; background: rgba(0, 255, 0, 0.05); }
+.sovereign-narrative { font-size: 0.7rem; font-style: italic; color: var(--accent-primary); max-width: 300px; text-align: right; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-right: 15px; opacity: 0.8; transition: 0.5s; }
+.sovereign-narrative:hover { white-space: normal; position: absolute; top: 50px; right: 20px; background: var(--glass-bg); padding: 10px; border: 1px solid var(--accent-primary); border-radius: 8px; z-index: 100; opacity: 1; }
+.status-indicator { display: flex; align-items: center; }
 .log-line.stdout { border-left: 2px solid var(--accent-primary); padding-left: 5px; margin-bottom: 2px; }
 .log-line.stderr { border-left: 2px solid #ff4444; padding-left: 5px; color: #ff8888; margin-bottom: 2px; }
 .log-line.json { color: #88ccff; font-family: 'JetBrains Mono', monospace; }
+
+/* HEXAGRAM VIZ */
+.hexagram-viz-box { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; perspective: 500px; }
+.yao-line { height: 6px; width: 120px; position: relative; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.yao-line.yang { background: linear-gradient(90deg, transparent, var(--accent-primary), transparent); border-radius: 3px; }
+.yao-line.yin { display: flex; justify-content: space-between; background: transparent; }
+.yao-line.yin::before, .yao-line.yin::after { content: ""; height: 100%; width: 55px; background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent); border-radius: 3px; }
+.yao-line.moving-yang { animation: moveYang 2s infinite alternate; }
+.yao-line.moving-yin { animation: moveYin 2s infinite alternate; }
+@keyframes moveYang { from { filter: brightness(1) drop-shadow(0 0 2px var(--accent-primary)); } to { filter: brightness(1.5) drop-shadow(0 0 10px var(--accent-primary)); } }
+@keyframes moveYin { from { filter: brightness(1) drop-shadow(0 0 2px var(--accent-secondary)); } to { filter: brightness(1.5) drop-shadow(0 0 10px var(--accent-secondary)); } }
+.yao-label { position: absolute; left: -140px; top: -5px; width: 130px; text-align: right; font-size: 0.6rem; color: #444; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+
+/* NEURAL HEATMAP */
+.heatmap-container { display: flex; flex-direction: column; gap: 8px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); }
+.heatmap-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.65rem; }
+.heatmap-bar-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; margin: 0 10px; overflow: hidden; }
+.heatmap-bar-fg { height: 100%; background: var(--accent-primary); box-shadow: 0 0 5px var(--accent-primary); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.heatmap-label { color: var(--text-muted); width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.heatmap-val { color: var(--accent-primary); font-weight: 800; width: 20px; text-align: right; }
 `;
 
         const js = `
@@ -603,6 +662,9 @@ function connect() {
         else if (msg.type === 'state') {
             updateStateUI(msg.data);
         }
+        else if (msg.type === 'pulse') {
+            triggerPulseUI(msg.data);
+        }
     };
     ws.onclose = () => {
         const dot = document.getElementById('ws-status');
@@ -623,9 +685,15 @@ function updateStateUI(state) {
         renderLimbMatrix(state.limbs);
         if (!document.querySelector('.matrix-node')) initMatrix(state.limbs);
     }
-    if (state.activeHexagram) updateHexagramUI(state.activeHexagram);
+    if (state.activeHexagram) updateHexagramUI(state.activeHexagram, state.hexagramLines);
     if (state.activeMemories) updateMemoryPulse(state.activeMemories);
+    if (state.neuralHeatmap) renderNeuralHeatmap(state.neuralHeatmap);
     
+    if (state.sovereignVoice) {
+        const narr = document.getElementById('sovereign-narrative');
+        if (narr) narr.innerText = state.sovereignVoice;
+    }
+
     // Update footer statuses
     if (document.getElementById('gemini-status')) {
         const gem = state.envStatus?.find(e => e.service === 'gemini');
@@ -635,6 +703,7 @@ function updateStateUI(state) {
 
 function updateHealthGauges(metrics) {
     const circumference = 2 * Math.PI * 45;
+    const orbCircum = 2 * Math.PI * 15.9155; // For footer orbs
     
     const cpu = metrics.cpu || 0;
     const mem = metrics.mem || 0;
@@ -644,21 +713,102 @@ function updateHealthGauges(metrics) {
     const cpuGauge = document.getElementById('cpu-gauge');
     if (cpuGauge) cpuGauge.setAttribute('stroke-dasharray', \`\${(cpu / 100) * circumference} \${circumference}\`);
     document.getElementById('cpu-pct').innerText = cpu.toFixed(0) + '%';
-    document.getElementById('cpu-load-footer').innerText = cpu.toFixed(0) + '%';
+    
+    // Update Radial Orbs in Footer
+    const cpuPath = document.getElementById('path-cpu');
+    if (cpuPath) cpuPath.setAttribute('stroke-dasharray', \`\${(cpu / 100) * 100}, 100\`);
+    const cpuFooter = document.getElementById('cpu-load-footer');
+    if (cpuFooter) cpuFooter.innerText = cpu.toFixed(0);
 
     const memGauge = document.getElementById('mem-gauge');
     if (memGauge) memGauge.setAttribute('stroke-dasharray', \`\${(mem / 100) * circumference} \${circumference}\`);
     document.getElementById('mem-pct').innerText = mem.toFixed(0) + '%';
-    document.getElementById('mem-usage-footer').innerText = mem.toFixed(0) + '%';
+    
+    const memPath = document.getElementById('path-mem');
+    if (memPath) memPath.setAttribute('stroke-dasharray', \`\${(mem / 100) * 100}, 100\`);
+    const memFooter = document.getElementById('mem-usage-footer');
+    if (memFooter) memFooter.innerText = mem.toFixed(0);
 
     const diskGauge = document.getElementById('disk-gauge');
     if (diskGauge) diskGauge.setAttribute('stroke-dasharray', \`\${(disk / 100) * circumference} \${circumference}\`);
     document.getElementById('disk-pct').innerText = disk.toFixed(0) + '%';
+    
+    const diskPath = document.getElementById('path-disk');
+    if (diskPath) diskPath.setAttribute('stroke-dasharray', \`\${(disk / 100) * 100}, 100\`);
+    const diskFooter = document.getElementById('disk-val-footer');
+    if (diskFooter) diskFooter.innerText = disk.toFixed(0);
 
     const latencyGauge = document.getElementById('latency-gauge');
     if (latencyGauge) latencyGauge.setAttribute('stroke-dasharray', \`\${(Math.min(latency, 2000) / 2000) * circumference} \${circumference}\`);
     document.getElementById('latency-val').innerText = (latency / 1000).toFixed(1) + 's';
+
+    // Boost bloom based on combined intensity
+    if (bloom) bloom.setIntensity((cpu + mem) / 200);
 }
+
+/* SOVEREIGN BLOOM - PARTICLE SUBSTRATE */
+class SovereignBloom {
+    constructor() {
+        this.canvas = document.getElementById('bloom-substrate');
+        if (!this.canvas) return;
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.intensity = 0.2;
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.animate();
+    }
+    resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+    }
+    setIntensity(v) { this.intensity = Math.max(0.1, Math.min(1.0, v)); }
+    spawn() {
+        if (this.particles.length > 300) return;
+        this.particles.push({
+            x: Math.random() * this.canvas.width,
+            y: Math.random() * this.canvas.height,
+            size: Math.random() * 2 + 1,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            life: 0.8 + Math.random() * 0.2,
+            color: Math.random() > 0.5 ? '#00f2ff' : '#ff00ea'
+        });
+    }
+    animate() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (Math.random() < this.intensity / 2) this.spawn();
+        
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.x += p.vx * (1 + this.intensity * 3);
+            p.y += p.vy * (1 + this.intensity * 3);
+            p.life -= 0.002;
+            
+            if (p.life <= 0) {
+                this.particles.splice(i, 1);
+                continue;
+            }
+            
+            this.ctx.globalAlpha = p.life * 0.4;
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            // Subtle aura for moving yang/yin
+            if (this.intensity > 0.6) {
+                this.ctx.shadowBlur = 10;
+                this.ctx.shadowColor = p.color;
+            } else {
+                this.ctx.shadowBlur = 0;
+            }
+        }
+        requestAnimationFrame(() => this.animate());
+    }
+}
+let bloom = null;
+window.addEventListener('DOMContentLoaded', () => { bloom = new SovereignBloom(); });
 
 function renderLimbHealth(limbs) {
     const container = document.getElementById('cluster-health');
@@ -750,11 +900,30 @@ function toggleService(service, enabled) {
     if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'control', command: 'toggleService', data: { service, enabled } }));
 }
 
-function updateHexagramUI(hex) {
+function updateHexagramUI(hex, lines) {
     const el = document.getElementById('active-hexagram-info');
     if (el) {
         el.innerText = \`HEX: \${hex.name} (\${hex.binary})\`;
         el.title = hex.strategy;
+    }
+    
+    const viz = document.getElementById('hexagram-viz');
+    if (viz && lines) {
+        viz.innerHTML = lines.map((line, i) => {
+            const state = line.state; // 0=OldYang, 1=YoungYin, 2=YoungYang, 3=OldYin
+            let cls = 'yao-line';
+            if (state === 0 || state === 2) cls += ' yang';
+            else cls += ' yin';
+            
+            if (state === 0) cls += ' moving-yang';
+            if (state === 3) cls += ' moving-yin';
+            
+            return \`
+                <div class="\${cls}">
+                    <div class="yao-label" title="\${line.content}">\${line.title}</div>
+                </div>
+            \`;
+        }).reverse().join(''); // Bottom-to-top order in UI
     }
 }
 
@@ -784,6 +953,26 @@ function renderStoryboard(beats) {
             <h4>\${b.title || 'Scene Beat'}</h4>
             <p>\${b.beat || b.narrative}</p>
             <div class="visual-prompt">Forge Prompt: \${b.visual || b.prompt || 'Atmospheric scene'}</div>
+        </div>
+    \`).join('');
+}
+
+function renderNeuralHeatmap(data) {
+    const container = document.getElementById('neural-heatmap');
+    if (!container) return;
+    const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+    if (entries.length === 0) {
+        container.innerHTML = '<p class="muted">Waiting for activity...</p>';
+        return;
+    }
+    const max = Math.max(...entries.map(e => e[1]));
+    container.innerHTML = entries.map(([name, val]) => \`
+        <div class="heatmap-row">
+            <span class="heatmap-label" title="\${name}">\${name}</span>
+            <div class="heatmap-bar-bg">
+                <div class="heatmap-bar-fg" style="width: \${(val / max) * 100}%"></div>
+            </div>
+            <span class="heatmap-val">\${val}</span>
         </div>
     \`).join('');
 }
@@ -905,6 +1094,22 @@ function pulseMatrix() {
     const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
     randomNode.classList.add('active');
     setTimeout(() => randomNode.classList.remove('active'), 1000);
+}
+
+function triggerPulseUI(data) {
+    document.documentElement.style.setProperty('--pulse-intensity', data.intensity);
+    document.body.classList.add('pulse');
+    
+    if (data.spark) {
+         const logo = document.querySelector('.logo span');
+         if (logo) {
+             logo.style.color = 'var(--accent-secondary)';
+             setTimeout(() => logo.style.color = 'var(--accent-primary)', 500);
+         }
+    }
+    
+    updateHealthGauges(data.health);
+    setTimeout(() => document.body.classList.remove('pulse'), 500);
 }
 
 connect();

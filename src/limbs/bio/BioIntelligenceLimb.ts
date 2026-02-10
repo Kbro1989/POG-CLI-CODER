@@ -55,7 +55,7 @@ export class BioIntelligenceLimb extends BaseLimb {
                 required: ['prompt']
             },
             handler: async (args: any) => {
-                return this.handleBioCall(tool.id, args.prompt);
+                return this.handleBioCall(tool.id, args['prompt']);
             }
         })));
     }
@@ -96,8 +96,8 @@ export class BioIntelligenceLimb extends BaseLimb {
         return {
             ok: true,
             value: {
-                output: result.value.output,
-                data: result.value.data
+                output: (result.value as any)['output'],
+                data: (result.value as any)['data']
             }
         };
     }

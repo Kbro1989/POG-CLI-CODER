@@ -203,8 +203,9 @@ export class CloudflareServices {
             ]
         });
 
-        if (!result.ok) {
-            logger.warn({ model: primaryModel, error: result.error.message }, 'Edge-Bake primary model failed - falling back to 8B');
+        if (result.ok === false) {
+            const error = (result as { error: Error }).error;
+            logger.warn({ model: primaryModel, error: error.message }, 'Edge-Bake primary model failed - falling back to 8B');
             result = await this.runAi(fallbackModel, {
                 messages: [
                     { role: 'system', content: systemPrompt },
@@ -213,8 +214,9 @@ export class CloudflareServices {
             });
         }
 
-        if (!result.ok) return result;
-        return { ok: true, value: result.value.response || '' };
+        if (result.ok === false) return result;
+        const value = (result as { value: any }).value;
+        return { ok: true, value: value.response || '' };
     }
 
     /**

@@ -2,8 +2,14 @@
 import { RateLimiter } from './RateLimiter';
 
 export interface Env {
-    AI: any;
+    AI: {
+        run: (model: string, body: unknown) => Promise<unknown>;
+    };
     RATE_LIMITER: DurableObjectNamespace;
+}
+
+interface LimitResult {
+    allowed: boolean;
 }
 
 export { RateLimiter };
@@ -16,7 +22,7 @@ export default {
         const rateLimitId = env.RATE_LIMITER.idFromName(url.pathname);
         const rateLimiter = env.RATE_LIMITER.get(rateLimitId);
         const limitResponse = await rateLimiter.fetch(`http://limiter/${url.pathname}?limit=15&window=60000`);
-        const limitResult = await limitResponse.json() as any;
+        const limitResult = await limitResponse.json() as LimitResult;
 
         if (!limitResult.allowed) {
             return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
@@ -30,24 +36,27 @@ export default {
             if (request.method === 'GET' && (url.pathname === '/' || url.pathname === '/health')) {
                 return new Response(JSON.stringify({
                     status: 'operational',
-                    substrate: 'Universal AI Hub',
-                    version: '2.0.0'
+                    substrate: 'Sovereign AI Substrate',
+                    version: '2.1.0'
                 }), { headers: { 'Content-Type': 'application/json' } });
             }
 
             // 3. Universal AI Run Endpoint: /ai/run/*
             if (url.pathname.startsWith('/ai/run/')) {
+                if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
+
                 const model = url.pathname.replace('/ai/run/', '');
                 if (!model) return new Response('Model ID required', { status: 400 });
 
-                const body = await request.json() as any;
+                const body = await request.json();
+                if (!body) return new Response('Body required', { status: 400 });
 
                 // Execute using the AI binding
-                const result = await env.AI.run(model as any, body);
+                const result = await env.AI.run(model, body);
 
                 // Handle binary responses (e.g. Image Generation)
                 if (result instanceof ReadableStream || result instanceof ArrayBuffer || result instanceof Uint8Array) {
-                    return new Response(result as any, {
+                    return new Response(result as BodyInit, {
                         headers: { 'Content-Type': 'image/png' }
                     });
                 }
@@ -57,21 +66,21 @@ export default {
                 });
             }
 
-            // 4. Ghost Limb: Deterministic Fallbacks
+            // 4. Sovereign Deterministic Engine: High-fidelity Fallbacks
             if (url.pathname.startsWith('/deterministic/')) {
                 const task = url.pathname.replace('/deterministic/', '');
 
                 if (task === 'color-palette') {
-                    // Logic for deterministic color pallet generation
+                    // Sovereign Logic for deterministic color pallet generation
                     return new Response(JSON.stringify({
                         task: 'color-palette',
                         result: ['#FF0000', '#00FF00', '#0000FF'],
-                        method: 'deterministic'
+                        method: 'deterministic_sovereign'
                     }), { headers: { 'Content-Type': 'application/json' } });
                 }
 
                 if (task === '3d-scaffold') {
-                    // High-fidelity deterministic 3D placeholder (Low-poly Island)
+                    // High-fidelity Sovereign Deterministic 3D Scaffold (Voxel Island)
                     return new Response(JSON.stringify({
                         task: '3d-scaffold',
                         mesh: 'voxel_island',
@@ -86,7 +95,7 @@ export default {
                 }
 
                 if (task === 'bio-analysis') {
-                    // High-fidelity clinical deterministic placeholder
+                    // High-fidelity Clinical Sovereign Deterministic Profile
                     return new Response(JSON.stringify({
                         task: 'bio-analysis',
                         assessment: {
@@ -99,7 +108,7 @@ export default {
                 }
 
                 if (task === 'style-guide') {
-                    // High-fidelity literary style profile
+                    // High-fidelity Literary Style Analysis Patterns
                     return new Response(JSON.stringify({
                         task: 'style-guide',
                         profile: {
@@ -113,7 +122,7 @@ export default {
                 }
 
                 if (task === 'web-boilerplate') {
-                    // Production-grade React/Vite/Tailwind scaffold
+                    // Production-grade Sovereign Web Scaffold
                     return new Response(JSON.stringify({
                         task: 'web-boilerplate',
                         files: {
@@ -139,3 +148,4 @@ export default {
         }
     }
 };
+

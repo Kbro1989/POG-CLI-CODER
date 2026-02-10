@@ -11,7 +11,7 @@ import pino from 'pino';
  */
 export abstract class BaseLimb implements NeuralLimb {
     abstract id: string;
-    abstract type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud' | 'action' | 'experimental' | 'sensory' | 'metabolic' | 'psychic';
+    abstract type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud' | 'action' | 'experimental' | 'sensory' | 'metabolic' | 'psychic' | 'metaphysical';
 
     // Strategic Affinity
     public preferredHexagrams: string[] = []; // e.g., '111111' (Creative)
@@ -129,14 +129,15 @@ User Intent: ${this.getUserIntent(intent)}`;
      * Get detailed diagnostic/contextual status of the limb.
      */
     public getStatus(): Record<string, any> {
+        const tools = this.getTools();
         return {
             id: this.id,
             type: this.type,
             capabilities: this.capabilities,
-            toolCount: this.spine.getGeminiDeclarations().length,
-            tools: this.spine.getGeminiDeclarations().map(t => ({
-                name: t.name,
-                description: t.description
+            toolCount: tools.length,
+            tools: tools.map((t: any) => ({
+                name: t.function?.name || t.name,
+                description: t.function?.description || t.description
             }))
         };
     }

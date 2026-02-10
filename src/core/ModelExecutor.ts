@@ -50,8 +50,8 @@ export class ModelExecutor {
 
         // 2. Resource Health Checks (Local Stability)
         const storageCheck = await this.checkStorageHealth(STORAGE_THRESHOLD_GB);
-        if (!storageCheck.ok) {
-            this.logger.warn({ error: storageCheck.error, action: 'forcing_cloud_fallback' }, 'Local storage critical');
+        if (storageCheck.ok === false) {
+            this.logger.warn({ error: (storageCheck as { error: Error }).error, action: 'forcing_cloud_fallback' }, 'Local storage critical');
             return this.callGeminiFallback(prompt, undefined, tools);
         }
 
@@ -79,8 +79,9 @@ export class ModelExecutor {
                     provenance: { tiers, finalModel: model, latency: Date.now() - startTime, generationMode, failureCount }
                 }
             };
-        } catch (ollamaError: any) {
-            tiers.push({ name: 'Local Ollama', status: 'failure', error: ollamaError.message, timestamp: Date.now() });
+        } catch (ollamaError) {
+            const errorMessage = ollamaError instanceof Error ? ollamaError.message : String(ollamaError);
+            tiers.push({ name: 'Local Ollama', status: 'failure', error: errorMessage, timestamp: Date.now() });
             failureCount++;
 
             // Try Cloudflare as Primary Backup
@@ -103,7 +104,7 @@ export class ModelExecutor {
             try {
                 const geminiResult = await this.callGeminiFallback(prompt, undefined, tools, true);
                 tiers.push({ name: 'Gemini Cloud', status: 'success', timestamp: Date.now() });
-                const val = (geminiResult as any).value;
+                const val = (geminiResult as { value: ModelResponse }).value; // Now strictly typed Result<ModelResponse>
                 return {
                     ok: true,
                     value: {
@@ -111,8 +112,9 @@ export class ModelExecutor {
                         provenance: { tiers, finalModel: val.model, latency: Date.now() - startTime, generationMode, failureCount }
                     }
                 };
-            } catch (geminiError: any) {
-                tiers.push({ name: 'Gemini Cloud', status: 'failure', error: geminiError.message, timestamp: Date.now() });
+            } catch (geminiError) {
+                const errorMessage = geminiError instanceof Error ? geminiError.message : String(geminiError);
+                tiers.push({ name: 'Gemini Cloud', status: 'failure', error: errorMessage, timestamp: Date.now() });
                 failureCount++;
                 generationMode = 'CLI-Fallback';
 
@@ -143,7 +145,7 @@ export class ModelExecutor {
                         ok: true,
                         value: {
                             model: `ghost:${task}`,
-                            response: ghostResult.value.result || JSON.stringify(ghostResult.value),
+                            response: (ghostResult.value['result'] as string) || JSON.stringify(ghostResult.value),
                             latency: Date.now() - startTime,
                             provenance: { tiers, finalModel: `ghost:${task}`, latency: Date.now() - startTime, generationMode, failureCount }
                         }
@@ -158,7 +160,7 @@ export class ModelExecutor {
     /**
      * Generic Cloudflare AI call (Used for Media/Image Gen)
      */
-    async callCloudflareAI(model: string, input: any, isBinaryInput = false): Promise<Result<any>> {
+    async callCloudflareAI(model: string, input: unknown, isBinaryInput = false): Promise<Result<unknown>> {
         const gatewayUrl = this.config.cloudflareGatewayUrl;
         if (!gatewayUrl) {
             return { ok: false, error: new Error('Cloudflare AI Gateway URL not configured') };
@@ -181,7 +183,7 @@ export class ModelExecutor {
             const response = await fetch(finalUrl, {
                 method: 'POST',
                 headers,
-                body: isBinaryInput ? input : JSON.stringify(input)
+                body: (isBinaryInput ? (input as any) : JSON.stringify(input)) as any
             });
 
             const latency = Date.now() - startTime;
@@ -202,8 +204,8 @@ export class ModelExecutor {
                 const buffer = await response.arrayBuffer();
                 return { ok: true, value: Buffer.from(buffer) };
             }
-        } catch (error: any) {
-            return { ok: false, error };
+        } catch (error) {
+            return { ok: false, error: error as Error };
         }
     }
 
@@ -212,9 +214,9 @@ export class ModelExecutor {
         this.logger.info({ model }, 'Calling Cloudflare Whisper for transcription');
 
         const result = await this.callCloudflareAI(model, audioBuffer, true);
-        if (!result.ok) return result;
+        if (!result.ok) return result as unknown as Result<string>;
 
-        const data = result.value;
+        const data = result.value as { result?: { text?: string }; text?: string };
         if (data.result && data.result.text) {
             return { ok: true, value: data.result.text };
         }
@@ -225,7 +227,7 @@ export class ModelExecutor {
     /**
      * Call a deterministic "Ghost Limb" fallback in the Cloudflare Worker
      */
-    async callGhostLimb(task: string, input: any): Promise<Result<any>> {
+    async callGhostLimb(task: string, input: unknown): Promise<Result<Record<string, unknown>>> {
         const gatewayUrl = this.config.cloudflareGatewayUrl;
         if (!gatewayUrl) return { ok: false, error: new Error('Cloudflare AI Gateway URL not configured') };
 
@@ -241,7 +243,7 @@ export class ModelExecutor {
             });
 
             if (!response.ok) throw new Error(`Ghost Limb failed (${response.status})`);
-            return { ok: true, value: await response.json() };
+            return { ok: true, value: await response.json() as Record<string, unknown> };
         } catch (error) {
             return { ok: false, error: error as Error };
         }
@@ -278,7 +280,7 @@ export class ModelExecutor {
                 throw new Error(`Cloudflare Hub failed (${response.status}): ${errorText}`);
             }
 
-            const data = await response.json() as any;
+            const data = await response.json() as { response?: string; result?: { response?: string } };
             return {
                 ok: true,
                 value: {
@@ -287,9 +289,10 @@ export class ModelExecutor {
                     latency: Date.now() - startTime
                 }
             };
-        } catch (error: any) {
-            this.logger.error({ error: error.message || error }, 'Cloudflare Universal Hub call failed critically');
-            return { ok: false, error: error as Error };
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            this.logger.error({ error: err.message }, 'Cloudflare Universal Hub call failed critically');
+            return { ok: false, error: err };
         }
     }
 
@@ -306,7 +309,7 @@ export class ModelExecutor {
             }
 
             const result = await this.geminiService.generateContent(prompt, modelOverride, tools);
-            if (!result.ok) throw result.error;
+            if (!result.ok) throw (result as any).error;
 
             return result;
         } catch (geminiError) {
@@ -347,8 +350,8 @@ export class ModelExecutor {
 
             return { ok: false, error: new Error(`Sovereign CLI produced no output. Stderr: ${stderr}`) };
 
-        } catch (error: any) {
-            return { ok: false, error: new Error(`Sovereign CLI execution failed: ${error.message}`) };
+        } catch (error) {
+            return { ok: false, error: new Error(`Sovereign CLI execution failed: ${error instanceof Error ? error.message : String(error)}`) };
         }
     }
 

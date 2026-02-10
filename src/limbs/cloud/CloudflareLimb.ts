@@ -103,8 +103,8 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['prompt']
                 },
-                handler: async (args) => {
-                    const result = await this.generateImage(args.prompt, args.negativePrompt, args.width || 1024, args.height || 1024);
+                handler: async (args: any) => {
+                    const result = await this.generateImage(args['prompt'], args['negativePrompt'], args['width'] || 1024, args['height'] || 1024);
                     if (result.ok) return { ok: true, value: { imageBase64: Buffer.from(result.value).toString('base64') } };
                     return result;
                 }
@@ -130,7 +130,7 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['messages']
                 },
-                handler: async (args) => this.chatCompletion(args.messages, args.maxTokens || 1024)
+                handler: async (args: any) => this.chatCompletion(args['messages'], args['maxTokens'] || 1024)
             },
             {
                 name: 'cf_text_embedding',
@@ -142,8 +142,8 @@ export class CloudflareLimb extends BaseLimb {
                         texts: { type: 'array', items: { type: 'string' }, description: 'Multiple texts to embed' }
                     }
                 },
-                handler: async (args) => {
-                    const input = args.texts || (args.text ? [args.text] : []);
+                handler: async (args: any) => {
+                    const input = args['texts'] || (args['text'] ? [args['text']] : []);
                     if (input.length === 0) throw new Error('No text provided for embedding');
                     return this.generateEmbeddings(input);
                 }
@@ -159,7 +159,7 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['image', 'prompt']
                 },
-                handler: async (args) => this.handleVision(args.image, args.prompt)
+                handler: async (args: any) => this.handleVision(args['image'], args['prompt'])
             },
             {
                 name: 'cf_speech_to_text',
@@ -171,7 +171,7 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['audio']
                 },
-                handler: async (args) => this.handleSpeechToText(args.audio)
+                handler: async (args: any) => this.handleSpeechToText(args['audio'])
             },
             {
                 name: 'cf_text_to_speech',
@@ -183,7 +183,7 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['text']
                 },
-                handler: async (args) => this.handleTextToSpeech(args.text)
+                handler: async (args: any) => this.handleTextToSpeech(args['text'])
             },
             {
                 name: 'cf_rsmv_model_view',
@@ -197,7 +197,7 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['gameSource', 'category']
                 },
-                handler: async (args) => this.handleRsmv(args.gameSource, args.category, args.id)
+                handler: async (args: any) => this.handleRsmv(args['gameSource'], args['category'], args['id'])
             },
             {
                 name: 'cf_save_asset',
@@ -212,10 +212,10 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['key', 'data', 'contentType']
                 },
-                handler: async (args) => {
-                    const bucket = args.bucket || 'workspace-bucketsespreview';
-                    const buffer = Buffer.from(args.data, 'base64');
-                    return this.services.putObject(bucket, args.key, buffer, args.contentType);
+                handler: async (args: any) => {
+                    const bucket = args['bucket'] || 'workspace-bucketsespreview';
+                    const buffer = Buffer.from(args['data'], 'base64');
+                    return this.services.putObject(bucket, args['key'], buffer, args['contentType']);
                 }
             },
             {
@@ -229,9 +229,9 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['key']
                 },
-                handler: async (args) => {
-                    const bucket = args.bucket || 'workspace-bucketsespreview';
-                    const result = await this.services.getObject(bucket, args.key);
+                handler: async (args: any) => {
+                    const bucket = args['bucket'] || 'workspace-bucketsespreview';
+                    const result = await this.services.getObject(bucket, args['key']);
                     if (result.ok) {
                         return { ok: true, value: { base64: Buffer.from(result.value).toString('base64') } };
                     }
@@ -249,7 +249,7 @@ export class CloudflareLimb extends BaseLimb {
                     },
                     required: ['task']
                 },
-                handler: async (args) => this.handlePipeline(args.task, args.pipeline || 'image_gen')
+                handler: async (args: any) => this.handlePipeline(args['task'], args['pipeline'] || 'image_gen')
             }
         ]);
     }
@@ -307,7 +307,7 @@ export class CloudflareLimb extends BaseLimb {
             this.handleApiError(result.error);
             return result;
         }
-        return { ok: true, value: result.value.data };
+        return { ok: true, value: (result.value as any)['data'] };
     }
 
     private selectOptimalModel(intent: string, prompt: string): string {
@@ -383,6 +383,10 @@ export class CloudflareLimb extends BaseLimb {
             if (!result.ok) {
                 this.handleApiError(result.error);
                 // Last ditch: Ghost Limb fallback
+                // Special case for WebAppForge preview events
+                // The provided snippet for WebAppForge is not applicable here as 'limb', 'previewServer', 'emit' are not defined in CloudflareLimb.
+                // Also, 'result.value.data' is not accessible here as 'result' is not 'ok'.
+                // This section of the instruction seems to be for a different file (e.g., Orchestrator).
                 const ghostTask = model === MODELS.CODER ? 'code-scaffold' : 'text-template';
                 const ghostResult = await this.services.runGhostLimb(ghostTask, { prompt: lastMessage });
 

@@ -36,7 +36,7 @@ export class AdversarialOrchestrator {
     async generateValidatedCode(
         prompt: string,
         modelName: string,
-        context?: any
+        context?: unknown
     ): Promise<Result<ModelResponse>> {
         this.logger.info({ model: modelName }, 'Starting 3x3x3 adversarial parallel generation loop');
 

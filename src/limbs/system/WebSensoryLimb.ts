@@ -35,7 +35,7 @@ export class WebSensoryLimb extends BaseLimb {
                     query: z.string(),
                     limit: z.number().optional()
                 }),
-                handler: async (args) => this.performSearch(args.query, args.limit || 5)
+                handler: async (args: any) => this.performSearch(args['query'], args['limit'] || 5)
             },
             {
                 name: 'web_fetch',
@@ -50,7 +50,7 @@ export class WebSensoryLimb extends BaseLimb {
                 schema: z.object({
                     url: z.string().url()
                 }),
-                handler: async (args) => this.fetchUrl(args.url)
+                handler: async (args: any) => this.fetchUrl(args['url'])
             }
         ]);
     }

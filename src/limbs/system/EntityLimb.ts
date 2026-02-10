@@ -64,15 +64,15 @@ export class EntityLimb extends BaseLimb {
 
     private async createEntity(args: any): Promise<Result<EntityDefinition>> {
         const entity: EntityDefinition = {
-            id: args.id,
-            type: args.entityType,
-            position: { x: args.position?.[0] || 0, y: args.position?.[1] || 0, z: args.position?.[2] || 0 },
+            id: args['id'],
+            type: args['entityType'],
+            position: { x: args['position']?.[0] || 0, y: args['position']?.[1] || 0, z: args['position']?.[2] || 0 },
             scale: { x: 1, y: 1, z: 1 },
             metadata: {}
         };
 
-        this.entities.set(args.id, entity);
-        this.logger.info({ entityId: args.id }, 'Entity manifested in scene');
+        this.entities.set(args['id'], entity);
+        this.logger.info({ entityId: args['id'] }, 'Entity manifested in scene');
         return { ok: true, value: entity };
     }
 

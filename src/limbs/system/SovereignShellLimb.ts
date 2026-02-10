@@ -59,7 +59,7 @@ export class SovereignShellLimb extends BaseLimb {
                     required: ['args']
                 },
                 schema: z.object({ args: z.string() }),
-                handler: async ({ args }) => this.runCommand(`gemini ${args}`)
+                handler: async (args: any) => this.runCommand(`gemini ${args['args']}`)
             },
             {
                 name: 'gcloud_global_exec',
@@ -72,7 +72,7 @@ export class SovereignShellLimb extends BaseLimb {
                     required: ['args']
                 },
                 schema: z.object({ args: z.string() }),
-                handler: async ({ args }) => this.runCommand(`gcloud -g ${args}`)
+                handler: async (args: any) => this.runCommand(`gcloud -g ${args['args']}`)
             },
             {
                 name: 'wrangler_global_exec',
@@ -85,7 +85,7 @@ export class SovereignShellLimb extends BaseLimb {
                     required: ['args']
                 },
                 schema: z.object({ args: z.string() }),
-                handler: async ({ args }) => this.runCommand(`wrangler -g ${args}`)
+                handler: async (args: any) => this.runCommand(`wrangler -g ${args['args']}`)
             },
             {
                 name: 'github_ssh_exec',
@@ -98,7 +98,7 @@ export class SovereignShellLimb extends BaseLimb {
                     required: ['args']
                 },
                 schema: z.object({ args: z.string() }),
-                handler: async ({ args }) => this.runCommand(`ssh github -g ${args}`)
+                handler: async (args: any) => this.runCommand(`ssh github -g ${args['args']}`)
             }
         ]);
     }

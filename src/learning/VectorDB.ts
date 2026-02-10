@@ -62,14 +62,18 @@ export class VectorDB {
 
       this.db.serialize(() => {
         this.db!.run(`
-          CREATE TABLE IF NOT EXISTS model_capabilities (
+          CREATE TABLE IF NOT EXISTS gutenberg_chunks (
             id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            description TEXT,
-            capabilities TEXT,
-            embedding BLOB
+            book_id INTEGER NOT NULL,
+            chunk_index INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            embedding BLOB NOT NULL,
+            metadata TEXT
           )
         `);
+
+        // Index on book_id for faster filtering
+        this.db!.run('CREATE INDEX IF NOT EXISTS idx_gutenberg_book_id ON gutenberg_chunks(book_id)');
 
         const stmt = this.db!.prepare(`
           INSERT OR REPLACE INTO model_capabilities (id, name, description, capabilities, embedding)
@@ -99,6 +103,104 @@ export class VectorDB {
           stmt.finalize();
           resolve({ ok: false, error: err as Error });
         }
+      });
+    });
+  }
+
+  /**
+   * Store literary chunks with vector embeddings.
+   */
+  async storeGutenbergChunks(chunks: Array<{
+    id: string;
+    bookId: number;
+    chunkIndex: number;
+    content: string;
+    embedding: Float32Array;
+    metadata?: any;
+  }>): Promise<Result<void>> {
+    return new Promise((resolve) => {
+      if (!this.db) {
+        resolve({ ok: false, error: new Error('Database not initialized') });
+        return;
+      }
+
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO gutenberg_chunks (id, book_id, chunk_index, content, embedding, metadata)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+
+      this.db.serialize(() => {
+        try {
+          this.db!.run('BEGIN TRANSACTION');
+
+          for (const chunk of chunks) {
+            stmt.run(
+              chunk.id,
+              chunk.bookId,
+              chunk.chunkIndex,
+              chunk.content,
+              Buffer.from(chunk.embedding.buffer),
+              JSON.stringify(chunk.metadata || {})
+            );
+          }
+
+          this.db!.run('COMMIT', (err) => {
+            stmt.finalize();
+            if (err) resolve({ ok: false, error: err });
+            else resolve({ ok: true, value: undefined });
+          });
+        } catch (err) {
+          this.db!.run('ROLLBACK');
+          stmt.finalize();
+          resolve({ ok: false, error: err as Error });
+        }
+      });
+    });
+  }
+
+  /**
+   * Semantic search for literary context using cosine similarity.
+   * NOTE: SQLite doesn't have native vector search, so we fetch all and compute in JS.
+   * For production scaling, use pgvector/vector extension. For <1GB text, this is fine.
+   */
+  async searchGutenberg(embedding: Float32Array, limit: number = 5): Promise<Result<Array<{
+    content: string;
+    bookId: number;
+    score: number;
+    metadata: any;
+  }>>> {
+    return new Promise((resolve) => {
+      if (!this.db) {
+        resolve({ ok: false, error: new Error('Database not initialized') });
+        return;
+      }
+
+      // Memory-efficient: Stream rows instead of loading all at once if possible,
+      // but for <100k chunks, loading into memory is faster than iterated I/O.
+      this.db.all('SELECT * FROM gutenberg_chunks', (err, rows: any[]) => {
+        if (err) {
+          resolve({ ok: false, error: err });
+          return;
+        }
+
+        const results = rows.map(row => {
+          const storedEmbedding = new Float32Array(
+            row.embedding.buffer,
+            row.embedding.byteOffset,
+            row.embedding.byteLength / 4
+          );
+
+          return {
+            content: row.content,
+            bookId: row.book_id,
+            score: this.cosineSimilarity(embedding, storedEmbedding),
+            metadata: JSON.parse(row.metadata || '{}')
+          };
+        });
+
+        // Sort by score descending and take top N
+        results.sort((a, b) => b.score - a.score);
+        resolve({ ok: true, value: results.slice(0, limit) });
       });
     });
   }
@@ -214,6 +316,16 @@ export class VectorDB {
             state INTEGER NOT NULL DEFAULT 2,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (line_index, projectId)
+        )`, (err) => { if (err) reject(err); });
+
+        // Create gutenberg_chunks table for RAG
+        this.db!.run(`CREATE TABLE IF NOT EXISTS gutenberg_chunks (
+            id TEXT PRIMARY KEY,
+            book_id INTEGER NOT NULL,
+            chunk_index INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            embedding BLOB NOT NULL,
+            metadata TEXT
         )`, (err) => {
           if (err) reject(err);
           else resolve();

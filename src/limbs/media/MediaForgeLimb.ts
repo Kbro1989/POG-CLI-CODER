@@ -34,18 +34,18 @@ export class MediaForgeLimb extends BaseLimb {
                     },
                     required: ['prompt', 'targetType']
                 },
-                handler: async (args) => {
+                handler: async (args: any) => {
                     let ability: MA;
-                    const target = args.targetType.toLowerCase();
+                    const target = args['targetType'].toLowerCase();
 
                     if (target === 'vision') ability = MA.Vision;
                     else if (target === 'speech') ability = MA.TTS;
                     else if (target === 'model') ability = 'RSMV' as MA;
                     else ability = MA.ImageGen;
 
-                    this.logger.info({ ability, prompt: args.prompt.substring(0, 50) + '...' }, 'Routing media task by ability');
+                    this.logger.info({ ability, prompt: args['prompt'].substring(0, 50) + '...' }, 'Routing media task by ability');
                     const model = this.router.routeByAbility(ability);
-                    const result = await this.modelExecutor.callCloudflareAI(model, { prompt: args.prompt });
+                    const result = await this.modelExecutor.callCloudflareAI(model, { prompt: args['prompt'] });
 
                     if (!result.ok) return result;
 

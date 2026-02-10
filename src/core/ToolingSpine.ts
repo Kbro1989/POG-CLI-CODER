@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Result } from './models.js';
 
+
 /**
  * LimbTool - Standardized tool definition for POG agents.
  * Includes optional Zod schema for production-grade validation.
@@ -10,11 +11,11 @@ export interface LimbTool {
     description: string;
     parameters: {
         type: 'object';
-        properties: Record<string, any>;
+        properties: Record<string, unknown>;
         required?: string[] | readonly string[];
     };
     schema?: z.ZodObject<any>;
-    handler: (args: any) => Promise<Result<any>>;
+    handler: (args: Record<string, any>) => Promise<Result<unknown>>;
 }
 
 /**
@@ -35,11 +36,11 @@ export class ToolingSpine {
     /**
      * Returns Google Gemini compatible tool declarations.
      */
-    getGeminiDeclarations(): any[] {
+    getGeminiDeclarations(): Array<{ functionDeclarations: Array<Record<string, unknown>> }> {
         const declarations = Array.from(this.tools.values()).map(tool => ({
             name: tool.name,
             description: tool.description,
-            parameters: tool.parameters
+            parameters: tool.parameters as Record<string, unknown>
         }));
 
         return [{ functionDeclarations: declarations }];
@@ -48,11 +49,13 @@ export class ToolingSpine {
     /**
      * Routes a tool call to the registered handler with validation.
      */
-    async handleCall(name: string, args: any): Promise<Result<any>> {
+    async handleCall(name: string, args: Record<string, any>): Promise<Result<unknown>> {
         const tool = this.tools.get(name);
         if (!tool) {
             return { ok: false, error: new Error(`Tool Spine: Unknown tool '${name}'`) };
         }
+
+        let parsedArgs = args;
 
         // Perform Zod validation if schema is present
         if (tool.schema) {
@@ -64,11 +67,11 @@ export class ToolingSpine {
                 };
             }
             // Use authenticated/parsed data
-            args = validationResult.data;
+            parsedArgs = validationResult.data;
         }
 
         try {
-            return await tool.handler(args);
+            return await tool.handler(parsedArgs);
         } catch (error) {
             return { ok: false, error: error as Error };
         }
@@ -81,3 +84,4 @@ export class ToolingSpine {
         return Array.from(this.tools.keys());
     }
 }
+

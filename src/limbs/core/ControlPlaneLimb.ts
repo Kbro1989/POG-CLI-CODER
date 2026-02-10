@@ -56,8 +56,8 @@ export class ControlPlaneLimb extends BaseLimb {
                         rollback: z.string().optional()
                     }))
                 }),
-                handler: async (args: { goal: string; steps: any[] }): Promise<Result<{ status: string }>> => {
-                    this.logger.info({ goal: args.goal, stepCount: args.steps.length }, 'Plan documented in Control Plane');
+                handler: async (args: any): Promise<Result<{ status: string }>> => {
+                    this.logger.info({ goal: args['goal'], stepCount: args['steps'].length }, 'Plan documented in Control Plane');
                     return { ok: true, value: { status: 'plan_recorded' } };
                 }
             },
@@ -80,15 +80,15 @@ export class ControlPlaneLimb extends BaseLimb {
                     requiresCloud: z.boolean().optional(),
                     reason: z.string()
                 }),
-                handler: async (args: { reason: string }): Promise<Result<{ selectedModel: string; reason: string }>> => {
-                    this.logger.info({ reason: args.reason }, 'Dynamic routing coordination');
+                handler: async (args: any): Promise<Result<{ selectedModel: string; reason: string }>> => {
+                    this.logger.info({ reason: args['reason'] }, 'Dynamic routing coordination');
                     // Fixed: Explicit coordination through the router instance
-                    const routeResult = await this.router.route(args.reason);
+                    const routeResult = await this.router.route(args['reason']);
                     return {
                         ok: true,
                         value: {
                             selectedModel: routeResult.ok ? routeResult.value : 'fallback',
-                            reason: args.reason
+                            reason: args['reason']
                         }
                     };
                 }
@@ -117,8 +117,8 @@ export class ControlPlaneLimb extends BaseLimb {
                     lessons: z.array(z.string()),
                     regretLikelihood: z.number().min(0).max(1)
                 }),
-                handler: async (args: { success: boolean }): Promise<Result<{ auditId: string }>> => {
-                    this.logger.info({ success: args.success }, 'Result evaluation recorded');
+                handler: async (args: any): Promise<Result<{ auditId: string }>> => {
+                    this.logger.info({ success: args['success'] }, 'Result evaluation recorded');
                     return { ok: true, value: { auditId: `AUDIT_${Date.now()}` } };
                 }
             },
@@ -154,9 +154,9 @@ export class ControlPlaneLimb extends BaseLimb {
                     payload_uri: z.string(),
                     metadata: z.record(z.unknown()).optional() // Fixed: Using unknown instead of any
                 }),
-                handler: async (args: { intent: string; payload_uri: string }): Promise<Result<{ status: string; uri: string }>> => {
-                    this.logger.info({ intent: args.intent, uri: args.payload_uri }, 'Durable memory operation');
-                    return { ok: true, value: { status: 'operation_queued', uri: args.payload_uri } };
+                handler: async (args: any): Promise<Result<{ status: string; uri: string }>> => {
+                    this.logger.info({ intent: args['intent'], uri: args['payload_uri'] }, 'Durable memory operation');
+                    return { ok: true, value: { status: 'operation_queued', uri: args['payload_uri'] } };
                 }
             },
             {
@@ -186,8 +186,8 @@ export class ControlPlaneLimb extends BaseLimb {
                     artifactPointers: z.array(z.string()).optional(),
                     lessonDerived: z.boolean().optional()
                 }),
-                handler: async (args: { intentId: string }): Promise<Result<{ manifestUri: string }>> => {
-                    this.logger.info({ intentId: args.intentId }, 'Emitting execution manifest');
+                handler: async (args: any): Promise<Result<{ manifestUri: string }>> => {
+                    this.logger.info({ intentId: args['intentId'] }, 'Emitting execution manifest');
                     return { ok: true, value: { manifestUri: `gs://pog-audit/manifests/${Date.now()}.json` } };
                 }
             },
@@ -211,8 +211,8 @@ export class ControlPlaneLimb extends BaseLimb {
                     terminal_context: z.string(),
                     proposed_action: z.string().optional()
                 }),
-                handler: async (args: { intent: string }): Promise<Result<{ status: string; advice: string }>> => {
-                    this.logger.info({ intent: args.intent }, 'Cloud Shell cognitive assist requested');
+                handler: async (args: any): Promise<Result<{ status: string; advice: string }>> => {
+                    this.logger.info({ intent: args['intent'] }, 'Cloud Shell cognitive assist requested');
                     return { ok: true, value: { status: 'assist_provided', advice: 'Review terminal history for context.' } };
                 }
             },
@@ -253,9 +253,9 @@ export class ControlPlaneLimb extends BaseLimb {
                         uri: z.string()
                     }).optional()
                 }),
-                handler: async (args: { action: string; triggerId: string }): Promise<Result<{ status: string; triggerId: string }>> => {
-                    this.logger.info({ action: args.action, triggerId: args.triggerId }, 'Event trigger management');
-                    return { ok: true, value: { status: 'trigger_configured', triggerId: args.triggerId } };
+                handler: async (args: any): Promise<Result<{ status: string; triggerId: string }>> => {
+                    this.logger.info({ action: args['action'], triggerId: args['triggerId'] }, 'Event trigger management');
+                    return { ok: true, value: { status: 'trigger_configured', triggerId: args['triggerId'] } };
                 }
             }
         ]);

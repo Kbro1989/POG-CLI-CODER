@@ -188,11 +188,11 @@ export class HexagramManager {
         output += 'The following high-priority context cards are pinned to the active hexagram:\n\n';
 
         for (let i = 1; i <= 6; i++) {
-            const card = cards.find(c => (c as any).lineIndex === i) || cards[i - 1];
+            const card = cards.find(c => c.lineIndex === i) || cards[i - 1];
             const facet = this.FACET_MAP[i];
 
             if (card) {
-                const stateStr = this.getStateString((card as any).state);
+                const stateStr = this.getStateString(card.state);
                 output += `Line ${i} [${facet}]:\n`;
                 output += `TITLE: ${card.title}\n`;
                 output += `STATE: ${stateStr}\n`;
@@ -219,17 +219,18 @@ export class HexagramManager {
                 }
 
                 if (crossProject.length > 0) {
-                    output += '=== PROJECT CONSTELLATION (Cross-Project Knowledge) ===\n';
-                    output += 'Highly relevant patterns identified from previous projects:\n\n';
+                    output += '=== PROJECT CONSTELLATION (Cross-Workspace Semantic Memory) ===\n';
+                    output += 'The following high-fidelity patterns have been identified from other sovereign workspaces:\n\n';
                     for (const lesson of crossProject) {
                         output += `[SHORTCUT FROM PROJECT: ${lesson.projectId}]\n`;
-                        output += `PATTERN: ${lesson['text'].substring(0, 500)}${lesson['text'].length > 500 ? '...' : ''}\n\n`;
+                        output += `PATTERN: ${lesson['text'].substring(0, 600)}${lesson['text'].length > 600 ? '...' : ''}\n\n`;
                     }
+                    output += '>> Acknowledge these patterns in your reasoning if they prevent regression or provide optimal shortcuts.\n\n';
                 }
             }
         }
 
-        const hasMoving = cards.some(c => (c as any).state === YaoState.OldYang || (c as any).state === YaoState.OldYin);
+        const hasMoving = cards.some(c => c.state === YaoState.OldYang || c.state === YaoState.OldYin);
 
         if (hasMoving) {
             const futureId = this.calculateHexagramId(cards, true);
@@ -251,7 +252,7 @@ export class HexagramManager {
         }
     }
 
-    private calculateHexagramId(cards: any[], future: boolean): string {
+    private calculateHexagramId(cards: ContextCard[], future: boolean): string {
         // Yang (1) = YoungYang (2) or OldYang (0)
         // Yin (0) = YoungYin (1) or OldYin (3)
         // If future is true, OldYang becomes Yin, OldYin becomes Yang.

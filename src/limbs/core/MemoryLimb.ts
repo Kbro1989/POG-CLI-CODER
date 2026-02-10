@@ -42,17 +42,17 @@ export class MemoryLimb extends BaseLimb {
                     query: z.string(),
                     limit: z.number().optional()
                 }),
-                handler: async (args: { query: string; limit?: number }): Promise<Result<{ status: string; results: any[] }>> => {
-                    this.logger.info({ query: args.query }, 'Searching memory via cognitive embedding');
+                handler: async (args: any): Promise<Result<{ status: string; results: any[] }>> => {
+                    this.logger.info({ query: args['query'] }, 'Searching memory via cognitive embedding');
 
                     // Reality Lock: 1. Generate real embedding via Gemini
-                    const embedResult = await this.gemini.embed(args.query);
+                    const embedResult = await this.gemini.embed(args['query']);
                     if (!embedResult.ok) {
                         return { ok: false, error: embedResult.error };
                     }
 
                     // 2. Search VectorDB with high-fidelity Float32Array
-                    const results = await this.vectorDB.searchSimilar(embedResult.value, args.limit || 5);
+                    const results = await this.vectorDB.searchSimilar(embedResult.value, args['limit'] || 5);
 
                     if (!results.ok) {
                         return { ok: false, error: results.error };
@@ -100,19 +100,19 @@ export class MemoryLimb extends BaseLimb {
                     errorType: z.string().optional(),
                     regretLikelihood: z.number().optional()
                 }),
-                handler: async (args): Promise<Result<void>> => {
-                    this.logger.info({ text: args.text.substring(0, 50) }, 'Injecting manual lesson into VectorDB');
+                handler: async (args: any): Promise<Result<void>> => {
+                    this.logger.info({ text: args['text'].substring(0, 50) }, 'Injecting manual lesson into VectorDB');
 
-                    const embedResult = await this.gemini.embed(args.text);
+                    const embedResult = await this.gemini.embed(args['text']);
                     if (!embedResult.ok) return { ok: false, error: embedResult.error };
 
                     const lesson = {
                         id: `manual_${Date.now()}`,
-                        text: args.text,
+                        text: args['text'],
                         embedding: embedResult.value,
                         createdAt: Date.now(),
-                        errorType: args.errorType,
-                        regretLikelihood: args.regretLikelihood || 0.5,
+                        errorType: args['errorType'],
+                        regretLikelihood: args['regretLikelihood'] || 0.5,
                         projectId: this.config.projectId || 'global',
                         sessionId: process.env['SESSION_ID'] || 'manual'
                     };

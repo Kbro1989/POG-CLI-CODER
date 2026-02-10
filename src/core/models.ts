@@ -86,7 +86,7 @@ export interface IntentHistory {
   readonly executionTime: number;
   readonly snapshotId?: string;
   readonly output: string | undefined;
-  readonly data: any;
+  readonly data?: unknown;
 }
 
 export interface CircuitBreakerState {
@@ -203,10 +203,10 @@ export function isErr<T, E>(result: Result<T, E>): result is { ok: false; error:
  * Unwrap Result or throw
  */
 export function unwrap<T, E>(result: Result<T, E>): T {
-  if (result.ok) {
-    return result.value;
+  if (result.ok === true) {
+    return (result as { ok: true; value: T }).value;
   }
-  throw result.error;
+  throw (result as { ok: false; error: E }).error;
 }
 
 /**
@@ -226,7 +226,7 @@ export function mapResult<T, U, E>(
   if (result.ok) {
     return { ok: true, value: fn(result.value) };
   }
-  return result;
+  return result as unknown as Result<U, E>;
 }
 
 /**
@@ -236,10 +236,10 @@ export function andThen<T, U, E>(
   result: Result<T, E>,
   fn: (value: T) => Result<U, E>
 ): Result<U, E> {
-  if (result.ok) {
-    return fn(result.value);
+  if (result.ok === true) {
+    return fn((result as { ok: true; value: T }).value);
   }
-  return result;
+  return result as unknown as Result<U, E>;
 }
 
 export interface LogContext {
@@ -324,13 +324,13 @@ export interface ArchitectureManifest {
 export interface Intent {
   readonly prompt: string;
   readonly files?: ReadonlyArray<string>;
-  readonly context?: any;
-  readonly tools?: ReadonlyArray<any>;
+  readonly context?: unknown;
+  readonly tools?: ReadonlyArray<unknown>;
 }
 
 export interface Execution {
   readonly output: string;
-  readonly data?: any;
+  readonly data?: unknown;
   readonly filesModified?: ReadonlyArray<string>;
   readonly commandsRun?: ReadonlyArray<string>;
 }

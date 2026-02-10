@@ -37,8 +37,8 @@ export class SubstrateLimb extends BaseLimb {
                     required: ['imageBase64']
                 },
                 schema: z.object({ imageBase64: z.string() }),
-                handler: async ({ imageBase64 }) => {
-                    const buffer = Buffer.from(imageBase64, 'base64');
+                handler: async (args: any) => {
+                    const buffer = Buffer.from(args['imageBase64'], 'base64');
                     return this.google.analyzeImage(buffer);
                 }
             },
@@ -54,7 +54,7 @@ export class SubstrateLimb extends BaseLimb {
                     required: ['text']
                 },
                 schema: z.object({ text: z.string(), target: z.string().optional() }),
-                handler: async ({ text, target }) => this.google.translateText(text, target || 'en')
+                handler: async (args: any) => this.google.translateText(args['text'], args['target'] || 'en')
             },
             {
                 name: 'entity_intent_extraction',
@@ -67,7 +67,7 @@ export class SubstrateLimb extends BaseLimb {
                     required: ['text']
                 },
                 schema: z.object({ text: z.string() }),
-                handler: async ({ text }) => this.google.analyzeEntities(text)
+                handler: async (args: any) => this.google.analyzeEntities(args['text'])
             },
             {
                 name: 'edge_bake_asset',
@@ -84,7 +84,7 @@ export class SubstrateLimb extends BaseLimb {
                     prompt: z.string(),
                     type: z.enum(['style', 'markup', 'logic'])
                 }),
-                handler: async ({ prompt, type }) => this.cloudflare.edgeBake(prompt, type)
+                handler: async (args: any) => this.cloudflare.edgeBake(args['prompt'], args['type'])
             }
         ]);
     }
@@ -99,9 +99,9 @@ export class SubstrateLimb extends BaseLimb {
 
         // 1. OCR interception (Robust weight-based check)
         const isOCRIntent = (weights['esoteric'] || 0) > 0.4 || lower.includes('screenshot') || lower.includes('ocr') || lower.includes('analyze image');
-        if (isOCRIntent && context?.imageBase64) {
+        if (isOCRIntent && context?.['imageBase64']) {
             this.logger.info('Sensory Interception: Triggering proactive OCR pre-processing');
-            const result = await this.google.analyzeImage(Buffer.from(context.imageBase64, 'base64'));
+            const result = await this.google.analyzeImage(Buffer.from(context['imageBase64'], 'base64'));
             if (result.ok) {
                 return `[SENSORY_DATA: OCR_RESULT]\n${JSON.stringify(result.value.fullTextAnnotation?.text || 'No text detected')}\n[/SENSORY_DATA]`;
             }

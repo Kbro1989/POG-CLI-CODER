@@ -36,8 +36,8 @@ export class VoiceLimb extends BaseLimb {
                         duration: { type: 'number', description: 'Duration in seconds (default 5)' }
                     }
                 },
-                handler: async (args) => {
-                    const res = await this.recordAndTranscribe(args.duration || 5);
+                handler: async (args: any) => {
+                    const res = await this.recordAndTranscribe(args['duration'] || 5);
                     if (res.ok) return { ok: true, value: { transcription: res.value } };
                     return res;
                 }
@@ -52,9 +52,9 @@ export class VoiceLimb extends BaseLimb {
                     },
                     required: ['text']
                 },
-                handler: async (args) => {
-                    const res = await this.speakText(args.text || '');
-                    if (res.ok) return { ok: true, value: { spoken: args.text } };
+                handler: async (args: any) => {
+                    const res = await this.speakText(args['text'] || '');
+                    if (res.ok) return { ok: true, value: { spoken: args['text'] } };
                     return res;
                 }
             },
@@ -68,12 +68,12 @@ export class VoiceLimb extends BaseLimb {
                         audioPath: { type: 'string', description: 'Path to local audio file (alternative to base64)' }
                     }
                 },
-                handler: async (args) => {
+                handler: async (args: any) => {
                     let audioBuffer: Buffer;
-                    if (args.audioBase64) {
-                        audioBuffer = Buffer.from(args.audioBase64, 'base64');
-                    } else if (args.audioPath && fs.existsSync(args.audioPath)) {
-                        audioBuffer = fs.readFileSync(args.audioPath);
+                    if (args['audioBase64']) {
+                        audioBuffer = Buffer.from(args['audioBase64'], 'base64');
+                    } else if (args['audioPath'] && fs.existsSync(args['audioPath'])) {
+                        audioBuffer = fs.readFileSync(args['audioPath']);
                     } else {
                         return { ok: false, error: new Error('No audio data provided') };
                     }
@@ -92,8 +92,8 @@ export class VoiceLimb extends BaseLimb {
                         timeoutSeconds: { type: 'number', description: 'How long to listen before giving up (default: 30)' }
                     }
                 },
-                handler: async (args) => {
-                    const res = await this.listenForWakeWord(args.wakeWord || 'hey vibe', args.timeoutSeconds || 30);
+                handler: async (args: any) => {
+                    const res = await this.listenForWakeWord(args['wakeWord'] || 'hey vibe', args['timeoutSeconds'] || 30);
                     if (res.ok) return { ok: true, value: res.value };
                     return res;
                 }

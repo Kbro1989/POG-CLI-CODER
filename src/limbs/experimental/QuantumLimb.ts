@@ -31,7 +31,7 @@ export class QuantumLimb extends BaseLimb {
                     },
                     required: ['prompt']
                 },
-                handler: (args) => this.executeSuperposition(args.prompt)
+                handler: (args) => this.executeSuperposition(args['prompt'])
             }
         ]);
     }
@@ -48,7 +48,8 @@ export class QuantumLimb extends BaseLimb {
         if (userIntent.includes('quantum') || userIntent.includes('superposition')) return 1;
 
         // Ternary complexity thresholds
-        const complexity = intent.context?.complexity ?? 0.5;
+        const context = intent.context as Record<string, any>;
+        const complexity = context?.['complexity'] ?? 0.5;
         if (complexity > 0.9) return 1;   // Very high complexity = escalate
         if (complexity > 0.7) return 0;   // High complexity = maybe
         return -1;                         // Normal complexity = skip

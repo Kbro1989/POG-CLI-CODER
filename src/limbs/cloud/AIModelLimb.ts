@@ -43,7 +43,7 @@ export class AIModelLimb extends BaseLimb {
                     required: ['prompt']
                 },
                 schema: z.object({ prompt: z.string() }),
-                handler: async (args) => this.suggestSmartRoute(args.prompt)
+                handler: async (args: any) => this.suggestSmartRoute(args['prompt'])
             }
         ]);
     }

@@ -33,9 +33,9 @@ export class FileSystemLimb extends BaseLimb {
                     },
                     required: ['path']
                 },
-                handler: async (args) => {
-                    const absPath = join(this.config.projectRoot, args.path);
-                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args.path}`);
+                handler: async (args: any) => {
+                    const absPath = join(this.config.projectRoot, args['path']);
+                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args['path']}`);
                     return { ok: true, value: fs.readFileSync(absPath, 'utf8') };
                 }
             },
@@ -50,10 +50,10 @@ export class FileSystemLimb extends BaseLimb {
                     },
                     required: ['path', 'content']
                 },
-                handler: async (args) => {
-                    const absPath = join(this.config.projectRoot, args.path);
-                    const snapshot = await this.sandbox.createSnapshot(`write_file: ${args.path}`);
-                    fs.writeFileSync(absPath, args.content);
+                handler: async (args: any) => {
+                    const absPath = join(this.config.projectRoot, args['path']);
+                    const snapshot = await this.sandbox.createSnapshot(`write_file: ${args['path']}`);
+                    fs.writeFileSync(absPath, args['content']);
                     return { ok: true, value: { status: 'persisted', snapshotId: snapshot.ok ? snapshot.value : 'none' } };
                 }
             },
@@ -69,14 +69,14 @@ export class FileSystemLimb extends BaseLimb {
                     },
                     required: ['path', 'search', 'replace']
                 },
-                handler: async (args) => {
-                    const absPath = join(this.config.projectRoot, args.path);
-                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args.path}`);
+                handler: async (args: any) => {
+                    const absPath = join(this.config.projectRoot, args['path']);
+                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args['path']}`);
                     const content = fs.readFileSync(absPath, 'utf8');
-                    if (!content.includes(args.search)) throw new Error('Search string not found in file - aborting patch.');
+                    if (!content.includes(args['search'])) throw new Error('Search string not found in file - aborting patch.');
 
-                    await this.sandbox.createSnapshot(`patch_file: ${args.path}`);
-                    const newContent = content.replace(args.search, args.replace);
+                    await this.sandbox.createSnapshot(`patch_file: ${args['path']}`);
+                    const newContent = content.replace(args['search'], args['replace']);
                     fs.writeFileSync(absPath, newContent);
                     return { ok: true, value: { status: 'patched' } };
                 }
@@ -90,8 +90,8 @@ export class FileSystemLimb extends BaseLimb {
                         dir: { type: 'string', description: 'Relative directory path (defaults to root).' }
                     }
                 },
-                handler: async (args) => {
-                    const dir = join(this.config.projectRoot, args.dir || '');
+                handler: async (args: any) => {
+                    const dir = join(this.config.projectRoot, args['dir'] || '');
                     const files = this.walk(dir).map(f => relative(this.config.projectRoot, f));
                     return { ok: true, value: files };
                 }
@@ -106,11 +106,11 @@ export class FileSystemLimb extends BaseLimb {
                     },
                     required: ['path']
                 },
-                handler: async (args) => {
-                    const absPath = join(this.config.projectRoot, args.path);
+                handler: async (args: any) => {
+                    const absPath = join(this.config.projectRoot, args['path']);
                     if (fs.existsSync(absPath)) return { ok: true, value: { status: 'exists' } };
                     fs.mkdirSync(absPath, { recursive: true });
-                    return { ok: true, value: { status: 'created', path: args.path } };
+                    return { ok: true, value: { status: 'created', path: args['path'] } };
                 }
             },
             {
@@ -123,11 +123,11 @@ export class FileSystemLimb extends BaseLimb {
                     },
                     required: ['path']
                 },
-                handler: async (args) => {
-                    const absPath = join(this.config.projectRoot, args.path);
-                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args.path}`);
+                handler: async (args: any) => {
+                    const absPath = join(this.config.projectRoot, args['path']);
+                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args['path']}`);
                     fs.unlinkSync(absPath);
-                    return { ok: true, value: { status: 'deleted', path: args.path } };
+                    return { ok: true, value: { status: 'deleted', path: args['path'] } };
                 }
             },
             {
@@ -141,12 +141,12 @@ export class FileSystemLimb extends BaseLimb {
                     },
                     required: ['source', 'destination']
                 },
-                handler: async (args) => {
-                    const srcAbs = join(this.config.projectRoot, args.source);
-                    const dstAbs = join(this.config.projectRoot, args.destination);
-                    if (!fs.existsSync(srcAbs)) throw new Error(`Source not found: ${args.source}`);
+                handler: async (args: any) => {
+                    const srcAbs = join(this.config.projectRoot, args['source']);
+                    const dstAbs = join(this.config.projectRoot, args['destination']);
+                    if (!fs.existsSync(srcAbs)) throw new Error(`Source not found: ${args['source']}`);
                     fs.renameSync(srcAbs, dstAbs);
-                    return { ok: true, value: { status: 'moved', from: args.source, to: args.destination } };
+                    return { ok: true, value: { status: 'moved', from: args['source'], to: args['destination'] } };
                 }
             },
             {
@@ -159,10 +159,10 @@ export class FileSystemLimb extends BaseLimb {
                     },
                     required: ['snapshotId']
                 },
-                handler: async (args) => {
-                    const rbResult = await this.sandbox.rollback(args.snapshotId);
+                handler: async (args: any) => {
+                    const rbResult = await this.sandbox.rollback(args['snapshotId']);
                     if (!rbResult.ok) throw rbResult.error;
-                    return { ok: true, value: { status: 'rolled_back', snapshotId: args.snapshotId } };
+                    return { ok: true, value: { status: 'rolled_back', snapshotId: args['snapshotId'] } };
                 }
             },
             {
@@ -175,13 +175,13 @@ export class FileSystemLimb extends BaseLimb {
                     },
                     required: ['path']
                 },
-                handler: async (args) => {
-                    const absPath = join(this.config.projectRoot, args.path);
+                handler: async (args: any) => {
+                    const absPath = join(this.config.projectRoot, args['path']);
                     if (!fs.existsSync(absPath) || !fs.statSync(absPath).isDirectory()) {
-                        throw new Error(`Directory not found: ${args.path}`);
+                        throw new Error(`Directory not found: ${args['path']}`);
                     }
                     const dirFiles = fs.readdirSync(absPath);
-                    const manifestContent = `# 📁 Pog Manifest: ${args.path}\n\nThis folder contains specialized code for the POG-VIBE system.\n\n## 📄 File Inventory\n\n${dirFiles.map(f => `- **${f}**: [Pending AI Description]`).join('\n')}\n\n---\n\n*Generated by POG-VIBE Project Portability Engine.*`;
+                    const manifestContent = `# 📁 Pog Manifest: ${args['path']}\n\nThis folder contains specialized code for the POG-VIBE system.\n\n## 📄 File Inventory\n\n${dirFiles.map(f => `- **${f}**: [Pending AI Description]`).join('\n')}\n\n---\n\n*Generated by POG-VIBE Project Portability Engine.*`;
                     const manifestPath = join(absPath, 'pog.md');
                     fs.writeFileSync(manifestPath, manifestContent);
                     return { ok: true, value: { status: 'manifest_generated', path: relative(this.config.projectRoot, manifestPath) } };

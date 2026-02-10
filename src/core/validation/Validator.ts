@@ -5,5 +5,5 @@ import { ValidationResult } from '../models.js';
  */
 export interface Validator {
     readonly name: string;
-    validate(output: string, context?: any): Promise<ValidationResult>;
+    validate(output: string, context?: unknown): Promise<ValidationResult>;
 }

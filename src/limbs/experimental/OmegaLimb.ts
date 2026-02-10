@@ -31,7 +31,7 @@ export class OmegaLimb extends BaseLimb {
                     },
                     required: ['goal']
                 },
-                handler: (args) => this.executeTeleology(args.goal)
+                handler: (args) => this.executeTeleology(args['goal'])
             }
         ]);
     }
@@ -59,7 +59,8 @@ export class OmegaLimb extends BaseLimb {
         // Gap < 0.5: 0 path (Converging)
         // Gap >= 0.5: -1 path (Diverging, needs work)
 
-        const currentComplexity = intent.context?.complexity || 0.5;
+        const context = intent.context as Record<string, any>;
+        const currentComplexity = context?.['complexity'] || 0.5;
         const targetComplexity = 1.0;
         const gap = targetComplexity - currentComplexity;
 
