@@ -728,6 +728,51 @@
       "success": true,
       "timestamp": 1770753613991,
       "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 19586,
+      "success": true,
+      "timestamp": 1770776534537,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 103,
+      "success": true,
+      "timestamp": 1770777097653,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 21,
+      "success": true,
+      "timestamp": 1770779030501,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 15,
+      "success": true,
+      "timestamp": 1770779040687,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 17,
+      "success": true,
+      "timestamp": 1770779578677,
+      "isFree": true
     }
   ],
   "version": "1.2.0"

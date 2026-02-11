@@ -27,7 +27,7 @@
     "gemini",
     "vs"
   ],
-  "cloudflareGatewayUrl": "https://pog-vibe-worker.kristain33rs.workers.dev",
+  "cloudflareGatewayUrl": "https://gateway.ai.cloudflare.com/v1/6872653edcee9c791787c1b783173793/pick-of-gods/compat",
   "monitorModel": "tinyllama",
   "snapshotModel": "yi-coder",
   "criticModel": "deepseek-coder",

@@ -9,7 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="vibe-theme">
-    <div class="glass-container">
+    <div id="bloom-substrate-container" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0.4;">
+        <canvas id="bloom-substrate"></canvas>
+    </div>
+    <div class="glass-container" style="position:relative;z-index:2;">
         <header>
             <div class="logo">POG-VIBE <span>CORE</span></div>
             <div class="workspace-selector">
@@ -29,6 +32,7 @@
                 <button class="tab-btn" data-tab="settings">Config</button>
             </nav>
             <div class="status-indicator">
+                <div id="sovereign-narrative" class="sovereign-narrative">The substrate is quiet...</div>
                 <button id="mic-btn" class="mic-btn" title="Speak">🎙️</button>
                 <span id="ws-status" class="status-dot"></span>
                 <span id="ws-text">Neural Link</span>
@@ -49,14 +53,20 @@
                             <div id="connectivity-matrix" class="matrix-canvas"></div>
                         </div>
                         <div id="memory-pulse" class="memory-pulse-container">
-                            <div class="memory-label">MEMORY PULSE</div>
-                            <div id="active-memories-list" class="memory-bubbles"></div>
+                            <div class="memory-label">HEXAGRAM METABOLISM</div>
+                            <div id="hexagram-viz" class="hexagram-viz-box"></div>
                             <div id="active-hexagram-info" class="hexagram-badge">Unknown Archetype</div>
+                            <div class="memory-label mt-10">MEMORY PULSE</div>
+                            <div id="active-memories-list" class="memory-bubbles"></div>
                         </div>
                     </section>
                     <section class="panel side-panel">
                         <h3><span class="icon">🧠</span> RECENT INTENTS</h3>
                         <div id="intent-list" class="scroll-box"></div>
+                        <h3 class="mt-20"><span class="icon">🔥</span> NEURAL HEATMAP</h3>
+                        <div id="neural-heatmap" class="heatmap-container">
+                            <p class="muted">No activity data...</p>
+                        </div>
                     </section>
                 </div>
             </div>
@@ -360,8 +370,19 @@
                 <div class="model-tag gemini">Gemini: <span id="gemini-status">IDLE</span></div>
                 <div class="model-tag ollama">Ollama: <span id="ollama-status">IDLE</span></div>
             </div>
-            <div class="terminal-stats">
-                 CPU: <span id="cpu-load-footer">--</span> | MEM: <span id="mem-usage-footer">--</span>
+            <div class="orb-telemetry">
+                <div class="orb-unit" title="CPU Phase">
+                    <svg viewBox="0 0 36 36"><path class="orb-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="path-cpu" class="orb-fg cpu" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <span class="orb-val" id="cpu-load-footer">--</span>
+                </div>
+                <div class="orb-unit" title="Memory Flux">
+                    <svg viewBox="0 0 36 36"><path class="orb-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="path-mem" class="orb-fg mem" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <span class="orb-val" id="mem-usage-footer">--</span>
+                </div>
+                <div class="orb-unit" title="Disk Substrate">
+                    <svg viewBox="0 0 36 36"><path class="orb-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="path-disk" class="orb-fg disk" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <span class="orb-val" id="disk-val-footer">--</span>
+                </div>
             </div>
         </footer>
     </div>

@@ -97,6 +97,9 @@ function connect() {
         else if (msg.type === 'state') {
             updateStateUI(msg.data);
         }
+        else if (msg.type === 'pulse') {
+            triggerPulseUI(msg.data);
+        }
     };
     ws.onclose = () => {
         const dot = document.getElementById('ws-status');
@@ -117,9 +120,15 @@ function updateStateUI(state) {
         renderLimbMatrix(state.limbs);
         if (!document.querySelector('.matrix-node')) initMatrix(state.limbs);
     }
-    if (state.activeHexagram) updateHexagramUI(state.activeHexagram);
+    if (state.activeHexagram) updateHexagramUI(state.activeHexagram, state.hexagramLines);
     if (state.activeMemories) updateMemoryPulse(state.activeMemories);
+    if (state.neuralHeatmap) renderNeuralHeatmap(state.neuralHeatmap);
     
+    if (state.sovereignVoice) {
+        const narr = document.getElementById('sovereign-narrative');
+        if (narr) narr.innerText = state.sovereignVoice;
+    }
+
     // Update footer statuses
     if (document.getElementById('gemini-status')) {
         const gem = state.envStatus?.find(e => e.service === 'gemini');
@@ -129,6 +138,7 @@ function updateStateUI(state) {
 
 function updateHealthGauges(metrics) {
     const circumference = 2 * Math.PI * 45;
+    const orbCircum = 2 * Math.PI * 15.9155; // For footer orbs
     
     const cpu = metrics.cpu || 0;
     const mem = metrics.mem || 0;
@@ -138,21 +148,102 @@ function updateHealthGauges(metrics) {
     const cpuGauge = document.getElementById('cpu-gauge');
     if (cpuGauge) cpuGauge.setAttribute('stroke-dasharray', `${(cpu / 100) * circumference} ${circumference}`);
     document.getElementById('cpu-pct').innerText = cpu.toFixed(0) + '%';
-    document.getElementById('cpu-load-footer').innerText = cpu.toFixed(0) + '%';
+    
+    // Update Radial Orbs in Footer
+    const cpuPath = document.getElementById('path-cpu');
+    if (cpuPath) cpuPath.setAttribute('stroke-dasharray', `${(cpu / 100) * 100}, 100`);
+    const cpuFooter = document.getElementById('cpu-load-footer');
+    if (cpuFooter) cpuFooter.innerText = cpu.toFixed(0);
 
     const memGauge = document.getElementById('mem-gauge');
     if (memGauge) memGauge.setAttribute('stroke-dasharray', `${(mem / 100) * circumference} ${circumference}`);
     document.getElementById('mem-pct').innerText = mem.toFixed(0) + '%';
-    document.getElementById('mem-usage-footer').innerText = mem.toFixed(0) + '%';
+    
+    const memPath = document.getElementById('path-mem');
+    if (memPath) memPath.setAttribute('stroke-dasharray', `${(mem / 100) * 100}, 100`);
+    const memFooter = document.getElementById('mem-usage-footer');
+    if (memFooter) memFooter.innerText = mem.toFixed(0);
 
     const diskGauge = document.getElementById('disk-gauge');
     if (diskGauge) diskGauge.setAttribute('stroke-dasharray', `${(disk / 100) * circumference} ${circumference}`);
     document.getElementById('disk-pct').innerText = disk.toFixed(0) + '%';
+    
+    const diskPath = document.getElementById('path-disk');
+    if (diskPath) diskPath.setAttribute('stroke-dasharray', `${(disk / 100) * 100}, 100`);
+    const diskFooter = document.getElementById('disk-val-footer');
+    if (diskFooter) diskFooter.innerText = disk.toFixed(0);
 
     const latencyGauge = document.getElementById('latency-gauge');
     if (latencyGauge) latencyGauge.setAttribute('stroke-dasharray', `${(Math.min(latency, 2000) / 2000) * circumference} ${circumference}`);
     document.getElementById('latency-val').innerText = (latency / 1000).toFixed(1) + 's';
+
+    // Boost bloom based on combined intensity
+    if (bloom) bloom.setIntensity((cpu + mem) / 200);
 }
+
+/* SOVEREIGN BLOOM - PARTICLE SUBSTRATE */
+class SovereignBloom {
+    constructor() {
+        this.canvas = document.getElementById('bloom-substrate');
+        if (!this.canvas) return;
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.intensity = 0.2;
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.animate();
+    }
+    resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+    }
+    setIntensity(v) { this.intensity = Math.max(0.1, Math.min(1.0, v)); }
+    spawn() {
+        if (this.particles.length > 300) return;
+        this.particles.push({
+            x: Math.random() * this.canvas.width,
+            y: Math.random() * this.canvas.height,
+            size: Math.random() * 2 + 1,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            life: 0.8 + Math.random() * 0.2,
+            color: Math.random() > 0.5 ? '#00f2ff' : '#ff00ea'
+        });
+    }
+    animate() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (Math.random() < this.intensity / 2) this.spawn();
+        
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.x += p.vx * (1 + this.intensity * 3);
+            p.y += p.vy * (1 + this.intensity * 3);
+            p.life -= 0.002;
+            
+            if (p.life <= 0) {
+                this.particles.splice(i, 1);
+                continue;
+            }
+            
+            this.ctx.globalAlpha = p.life * 0.4;
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            // Subtle aura for moving yang/yin
+            if (this.intensity > 0.6) {
+                this.ctx.shadowBlur = 10;
+                this.ctx.shadowColor = p.color;
+            } else {
+                this.ctx.shadowBlur = 0;
+            }
+        }
+        requestAnimationFrame(() => this.animate());
+    }
+}
+let bloom = null;
+window.addEventListener('DOMContentLoaded', () => { bloom = new SovereignBloom(); });
 
 function renderLimbHealth(limbs) {
     const container = document.getElementById('cluster-health');
@@ -244,11 +335,30 @@ function toggleService(service, enabled) {
     if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'control', command: 'toggleService', data: { service, enabled } }));
 }
 
-function updateHexagramUI(hex) {
+function updateHexagramUI(hex, lines) {
     const el = document.getElementById('active-hexagram-info');
     if (el) {
         el.innerText = `HEX: ${hex.name} (${hex.binary})`;
         el.title = hex.strategy;
+    }
+    
+    const viz = document.getElementById('hexagram-viz');
+    if (viz && lines) {
+        viz.innerHTML = lines.map((line, i) => {
+            const state = line.state; // 0=OldYang, 1=YoungYin, 2=YoungYang, 3=OldYin
+            let cls = 'yao-line';
+            if (state === 0 || state === 2) cls += ' yang';
+            else cls += ' yin';
+            
+            if (state === 0) cls += ' moving-yang';
+            if (state === 3) cls += ' moving-yin';
+            
+            return `
+                <div class="${cls}">
+                    <div class="yao-label" title="${line.content}">${line.title}</div>
+                </div>
+            `;
+        }).reverse().join(''); // Bottom-to-top order in UI
     }
 }
 
@@ -278,6 +388,26 @@ function renderStoryboard(beats) {
             <h4>${b.title || 'Scene Beat'}</h4>
             <p>${b.beat || b.narrative}</p>
             <div class="visual-prompt">Forge Prompt: ${b.visual || b.prompt || 'Atmospheric scene'}</div>
+        </div>
+    `).join('');
+}
+
+function renderNeuralHeatmap(data) {
+    const container = document.getElementById('neural-heatmap');
+    if (!container) return;
+    const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+    if (entries.length === 0) {
+        container.innerHTML = '<p class="muted">Waiting for activity...</p>';
+        return;
+    }
+    const max = Math.max(...entries.map(e => e[1]));
+    container.innerHTML = entries.map(([name, val]) => `
+        <div class="heatmap-row">
+            <span class="heatmap-label" title="${name}">${name}</span>
+            <div class="heatmap-bar-bg">
+                <div class="heatmap-bar-fg" style="width: ${(val / max) * 100}%"></div>
+            </div>
+            <span class="heatmap-val">${val}</span>
         </div>
     `).join('');
 }
@@ -399,6 +529,22 @@ function pulseMatrix() {
     const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
     randomNode.classList.add('active');
     setTimeout(() => randomNode.classList.remove('active'), 1000);
+}
+
+function triggerPulseUI(data) {
+    document.documentElement.style.setProperty('--pulse-intensity', data.intensity);
+    document.body.classList.add('pulse');
+    
+    if (data.spark) {
+         const logo = document.querySelector('.logo span');
+         if (logo) {
+             logo.style.color = 'var(--accent-secondary)';
+             setTimeout(() => logo.style.color = 'var(--accent-primary)', 500);
+         }
+    }
+    
+    updateHealthGauges(data.health);
+    setTimeout(() => document.body.classList.remove('pulse'), 500);
 }
 
 connect();

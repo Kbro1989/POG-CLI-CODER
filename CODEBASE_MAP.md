@@ -230,3 +230,347 @@ Orchestrator (Research → Plan → Execute → Review)
 ---
 
 *This map provides a complete navigation guide to the production-ready POG-CODER-VIBE architecture.* 🗺️⚡
+-------------------
+Perfect. Let’s map **POG-VIBE’s full data & control flow** visually, showing **frontend, WebSocket, agent, services, models, and visualizations**. I’ll keep it conceptual but detailed enough for debugging and architecture reference.
+
+---
+
+### **POG-VIBE System Flow Diagram**
+
+```
+┌───────────────────────────────┐
+│        Frontend UI            │
+│                               │
+│ Tabs / Views:                 │
+│ - Books / Reader              │
+│ - Storyboard                  │
+│ - Media Forge                 │
+│ - Limb Matrix                 │
+│ - Neural Heatmap              │
+│ - Logs & Memory Pulse         │
+│                               │
+│ Interactions:                 │
+│ - readBook(bookId)            │
+│ - forgeStoryboard()           │
+│ - forgeMedia()                │
+│ - invokeTool(limb, tool)     │
+│ - toggleService(service)      │
+│ - toggleNarration/TTS         │
+│                               │
+└─────────────┬─────────────────┘
+              │ WebSocket (ws://:8765)
+              ▼
+┌───────────────────────────────┐
+│        POG-VIBE Agent         │
+│                               │
+│ ┌───────────────┐             │
+│ │ Command Router│──────────────┐
+│ └───────────────┘              │
+│     │                          │
+│     ▼                          ▼
+│ ┌───────────────┐      ┌─────────────────┐
+│ │ Service Layer │      │ State Snapshot  │
+│ │  Enabled:     │      │  (yi-coder)     │
+│ │  ollama       │      └─────────────────┘
+│ │  mcp_gitkraken│
+│ │  healthcare   │
+│ │  documentai   │
+│ │  vision       │
+│ │  mediaforge   │
+│ │  gutenberg    │
+│ │  dashboard    │
+│ │  help         │
+│ │  vibe         │
+│ │  gemini       │
+│ │  vs           │
+│ └───────────────┘
+│        │
+│        ▼
+│ ┌─────────────────────────────┐
+│ │ Limb / Tool Manager          │
+│ │  - execute tool commands     │
+│ │  - manage limb health       │
+│ └─────────────────────────────┘
+│
+│ ┌─────────────────────────────┐
+│ │ Planning / Evaluation Models │
+│ │  - Planning: qwen2.5-coder  │
+│ │  - Critic: deepseek-coder   │
+│ │  - Monitor: tinyllama        │
+│ └─────────────────────────────┘
+│
+│ ┌─────────────────────────────┐
+│ │ Local LLMs / AI Resources    │
+│ │  - ollama models             │
+│ │  - Gutenberg books           │
+│ │  - Media assets (audio/img) │
+│ └─────────────────────────────┘
+│
+└─────────────▲─────────────────┘
+              │ WebSocket / Data
+              ▼
+┌───────────────────────────────┐
+│        Frontend UI Updates    │
+│                               │
+│  - renderBooks(allBooks)      │
+│  - renderStoryboard(beats)    │
+│  - renderNeuralHeatmap(data)  │
+│  - renderLimbMatrix(limbs)    │
+│  - updateMemoryPulse(memories)│
+│  - updateHealthGauges(metrics)│
+│  - pulseMatrix()               │
+│  - SovereignBloom particle UI │
+└───────────────────────────────┘
+```
+
+---
+
+### **Data Flow Notes**
+
+1. **User Interaction → WS → Agent**
+
+   * Commands (book read, forge, invoke tool, toggle service) flow through WebSocket → `Command Router`.
+
+2. **Agent → Models / Services**
+
+   * Router delegates to:
+
+     * **Local LLMs** for text generation / transcription
+     * **Service Layer** for domain-specific actions (vision, media, document AI)
+     * **Planning / Critic Models** for orchestration, evaluation, and decision-making
+
+3. **Agent → UI Updates**
+
+   * Responses (`bookContent`, `storyboard`, `state`, `pulse`, `intentExecuted`) sent back to frontend → triggers **visualizations, logs, and pulses**
+
+4. **State Persistence**
+
+   * `snapshotModel` (yi-coder) manages agent state snapshots
+   * Optional: save logs, matrix positions, and pinned files for reloads
+
+5. **Visualization / Feedback Loop**
+
+   * **SovereignBloom** intensity linked to system load
+   * **PulseMatrix** visually highlights random nodes on activity
+   * **Neural Heatmap** shows model activation/intensity
+   * **Memory Pulse** shows relevant historical data
+
+---
+-----------
+Alright—here’s a **full narrative content pipeline diagram** for POG-VIBE, showing **how a book becomes a storyboard, then media, then audio, with all WebSocket/model interactions**.
+
+---
+
+### **Book → Storyboard → Media / Audio Pipeline**
+
+```
+┌───────────────────────────────┐
+│          User UI              │
+│ - Select Book                 │
+│ - Enter Story Premise         │
+│ - Request Media / Audio       │
+└─────────────┬─────────────────┘
+              │
+              ▼
+┌───────────────────────────────┐
+│       WebSocket Command       │
+│  { type: 'control', command:  │
+│    'readBook' / 'forge_storyboard' /  │
+│    'media_forge_request' / 'transcribeAudiobook' } │
+└─────────────┬─────────────────┘
+              │
+              ▼
+┌───────────────────────────────┐
+│         POG-VIBE Agent        │
+│                               │
+│ ┌───────────────┐             │
+│ │ Command Router│─────────────┐
+│ └───────────────┘             │
+│       │                       │
+│       ▼                       ▼
+│ ┌───────────────┐       ┌─────────────────────────┐
+│ │ Gutenberg /   │       │ Storyboard Forge / LLMs │
+│ │ Book Reader   │       │  - Uses book styleProfile│
+│ │ - Load content│       │  - Planning: qwen2.5-coder │
+│ └───────────────┘       │  - Critic: deepseek-coder  │
+│                         └─────────────────────────┘
+│       │                       │
+│       ▼                       ▼
+│  Book Content ─────────────>  Beats / Scenes (storyboard)
+│                               (with visual prompts & narrative)
+│                              
+│                               │
+│                               ▼
+│                     ┌─────────────────────────┐
+│                     │  Media Forge Service    │
+│                     │ - Input: storyboard / prompt│
+│                     │ - Output: images / video │
+│                     └─────────────────────────┘
+│                               │
+│                               ▼
+│                     ┌─────────────────────────┐
+│                     │ Audiobook / Narration   │
+│                     │ - TTS via browser /     │
+│                     │   Web Speech API        │
+│                     │ - Input: book/storyboard│
+│                     └─────────────────────────┘
+│                               │
+└─────────────▲─────────────────┘
+              │
+              ▼
+┌───────────────────────────────┐
+│      Frontend Updates         │
+│ - Reader content              │
+│ - Storyboard gallery          │
+│ - Media gallery               │
+│ - Audio playback / narration  │
+│ - Logs + Memory Pulse         │
+└───────────────────────────────┘
+```
+
+---
+
+### **Key Notes / Observations**
+
+1. **Style Profiles**
+
+   * Each book may carry a `styleProfile` → storyboards inherit it for narrative tone and visual prompt generation.
+
+2. **Storyboard → Media**
+
+   * Beats contain **visual prompts** → passed to `mediaforge` → generates images/videos.
+   * Supports prompt tweaking in frontend (`media-prompt`, `media-target`).
+
+3. **Audiobook / Narration**
+
+   * Can read directly from `bookContent` or `storyboard`.
+   * Browser TTS (`SpeechSynthesis`) or imported audiobooks (`transcribeAudiobook`).
+
+4. **Feedback Loops**
+
+   * Agent sends `intentExecuted` and `pulse` updates → triggers visual matrix activity and bloom.
+   * Memory pulses show historical context → helps generate consistent story threads.
+
+5. **System Load / Visualization**
+
+   * Radial gauges (CPU/Mem/Disk/Latency) linked to bloom intensity.
+   * All interactions (book read, forge, media generation) feed into **pulseMatrix** and **SovereignBloom**, giving visual feedback of system “thinking”.
+
+---
+
+
+
+-----------------
+
+Perfect—let’s map **everything into a single master architecture diagram** for POG-VIBE. I’ll break it down into layers so it’s fully clear, then combine it visually into one coherent flow.
+
+---
+
+## **POG-VIBE Master Architecture**
+
+```
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                               User / Frontend                                 │
+│-------------------------------------------------------------------------------│
+│ Tabs & UI Elements:                                                            │
+│ - Bookshelf / Reader / Storyboard / Media / Logs / Health / Memory Pulse       │
+│ - Actions: select book, enter premise, trigger storyboard, forge media, TTS   │
+│ - Visual Feedback: bloom substrate, matrix nodes, neural heatmap, radial gauges│
+└───────────────┬───────────────────────────────────────────────────────────────┘
+                │
+                ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                        WebSocket Communication Layer                            │
+│-------------------------------------------------------------------------------│
+│ - Sends: control commands (readBook, forge_storyboard, media_forge_request,   │
+│   transcribeAudiobook, toggleService, switchWorkspace, invoke_limb_tool)     │
+│ - Receives: books, bookContent, storyboard, intentExecuted, pulse, state      │
+│ - Handles reconnects, heartbeat, and basic latency tracking                   │
+└───────────────┬───────────────────────────────────────────────────────────────┘
+                │
+                ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                             POG-VIBE Agent Core                                │
+│-------------------------------------------------------------------------------│
+│ 1. **Command Router**                                                          │
+│    - Routes control messages to correct service / model                        │
+│    - Logs intent and execution times                                           │
+│                                                                               │
+│ 2. **Services Layer**                                                          │
+│ ┌──────────────────────────┐ ┌───────────────────────────┐ ┌───────────────┐ │
+│ │ Gutenberg / Book Reader  │ │ Storyboard Forge           │ │ MediaForge    │ │
+│ │ - Load content           │ │ - Style-aware narrative    │ │ - Image/video │ │
+│ │ - Parse / segment        │ │ - Beat generation          │ │   generation  │ │
+│ └──────────────────────────┘ └───────────────────────────┘ └───────────────┘ │
+│                                                                               │
+│ ┌──────────────────────────┐ ┌───────────────────────────┐ ┌───────────────┐ │
+│ │ Audiobook / TTS          │ │ Health Monitoring / Bloom  │ │ Memory Pulse   │ │
+│ │ - Browser SpeechSynthesis│ │ - CPU/Mem/Disk gauges      │ │ - Contextual  │ │
+│ │ - Transcription import   │ │ - SovereignBloom particles │ │   memory logs │ │
+│ └──────────────────────────┘ └───────────────────────────┘ └───────────────┘ │
+│                                                                               │
+│ 3. **LLM / Model Layer**                                                      │
+│ - Planning Model: qwen2.5-coder                                              │
+│ - Critic Model: deepseek-coder                                                │
+│ - Snapshot Model: yi-coder                                                    │
+│ - Monitor Model: tinyllama                                                    │
+│ - Ollama Models: for specialized reasoning / text embeddings                  │
+└───────────────┬───────────────────────────────────────────────────────────────┘
+                │
+                ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                         Backend / File & Workspace Layer                       │
+│-------------------------------------------------------------------------------│
+│ - POG Directory: D:\pog-coder-vibe                                           │
+│ - Workspaces: projectRoot, workspaces[]                                       │
+│ - Models: Ollama, Error Tracker, Monitor, Critic                               │
+│ - Gutenberg Path: D:\pog-gutenberg                                           │
+│ - Media / Audio Storage: D:\pog-gutenberg\audio                               │
+│ - Cloudflare Gateway: API endpoint for hybrid AI inference                     │
+└───────────────────────────────────────────────────────────────────────────────┘
+                │
+                ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                           External Services / APIs                              │
+│-------------------------------------------------------------------------------│
+│ - Cloudflare AI Gateway (hybrid runtime / inference)                           │
+│ - Ollama models (local / D:\ollama-models)                                     │
+│ - MCP / GitKraken (source control integration)                                  │
+│ - Vision / MediaForge / DocumentAI (content generation & analysis)             │
+│ - Dashboard / Healthcare / Vibe / Gemini / VS (misc enabled services)          │
+└───────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### **Data Flow Highlights**
+
+1. **Book Selection → Agent → Storyboard**
+
+   * User clicks a book → `readBook` → POG-VIBE fetches `bookContent` → renders → `forgeStoryboard` → `Storyboard Forge` uses styleProfile → returns beats/scenes.
+
+2. **Storyboard → Media**
+
+   * Each beat’s `visual` / `prompt` → MediaForge → generates images/video → updates gallery in frontend.
+
+3. **Book / Storyboard → Audiobook**
+
+   * TTS or imported transcription → playback in frontend → optionally contributes to memory pulse.
+
+4. **Health / Pulse / Bloom**
+
+   * CPU/Mem/Disk + execution latency → gauges & bloom intensity → pulse matrix nodes animate → frontend displays real-time activity.
+
+5. **Memory / Contextual Awareness**
+
+   * `intentExecuted` logs query & model → memory pulse highlights context → used to maintain story/narrative consistency.
+
+6. **LLM Integration**
+
+   * qwen2.5-coder → planning & storyboard generation
+   * deepseek-coder → critique & refinement of story
+   * yi-coder → snapshotting / state logging
+   * tinyllama → lightweight monitoring / latency
+
+---
+

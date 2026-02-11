@@ -6,8 +6,10 @@
     --text-main: #e0e0e0;
     --text-muted: #666;
     --border-radius: 12px;
+    --pulse-intensity: 0;
 }
-body { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; overflow: hidden; }
+body { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; overflow: hidden; transition: 0.3s; }
+body.pulse { background: radial-gradient(circle at center, rgba(0, 242, 255, calc(var(--pulse-intensity) * 0.05)), var(--bg-dark)); }
 .vibe-theme { background: radial-gradient(circle at top right, #1a0033, #050505 60%), radial-gradient(circle at bottom left, #001a1a, #050505 60%); height: 100vh; }
 .glass-container { display: flex; flex-direction: column; height: 100vh; padding: 15px; box-sizing: border-box; }
 header { display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--border-radius); margin-bottom: 15px; }
@@ -75,6 +77,18 @@ h3 { margin: 0 0 12px 0; font-size: 0.75rem; color: var(--accent-primary); lette
 input:checked + .slider { background-color: var(--accent-primary); }
 input:checked + .slider:before { transform: translateX(16px); }
 
+/* RADIAL TELEMETRY ORBS */
+.orb-telemetry { display: flex; gap: 20px; align-items: center; }
+.orb-unit { position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.orb-unit svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.orb-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 3; }
+.orb-fg { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1); }
+.orb-fg.cpu { stroke: var(--accent-primary); filter: drop-shadow(0 0 5px var(--accent-primary)); }
+.orb-fg.mem { stroke: var(--accent-secondary); filter: drop-shadow(0 0 5px var(--accent-secondary)); }
+.orb-fg.disk { stroke: #00ff00; filter: drop-shadow(0 0 5px #00ff00); }
+.orb-val { font-size: 0.45rem; font-weight: 800; color: var(--text-main); position: relative; z-index: 1; pointer-events: none; }
+#bloom-substrate { width: 100%; height: 100%; display: block; }
+
 /* LIMB MATRIX */
 .limb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; padding: 10px; }
 .limb-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; transition: 0.3s; }
@@ -106,7 +120,31 @@ input:checked + .slider:before { transform: translateX(16px); }
 .gauge-fg.latency { stroke: #ffcc00; }
 .memory-bubble.strategy { border-color: var(--accent-secondary); color: var(--accent-secondary); background: rgba(255, 0, 234, 0.05); }
 .memory-bubble.code { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(0, 242, 255, 0.05); }
-.memory-bubble.lore { border-color: #00ff00; color: #00ff00; background: rgba(0, 255, 0, 0.05); }
+.sovereign-narrative { font-size: 0.7rem; font-style: italic; color: var(--accent-primary); max-width: 300px; text-align: right; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-right: 15px; opacity: 0.8; transition: 0.5s; }
+.sovereign-narrative:hover { white-space: normal; position: absolute; top: 50px; right: 20px; background: var(--glass-bg); padding: 10px; border: 1px solid var(--accent-primary); border-radius: 8px; z-index: 100; opacity: 1; }
+.status-indicator { display: flex; align-items: center; }
 .log-line.stdout { border-left: 2px solid var(--accent-primary); padding-left: 5px; margin-bottom: 2px; }
 .log-line.stderr { border-left: 2px solid #ff4444; padding-left: 5px; color: #ff8888; margin-bottom: 2px; }
 .log-line.json { color: #88ccff; font-family: 'JetBrains Mono', monospace; }
+
+/* HEXAGRAM VIZ */
+.hexagram-viz-box { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; perspective: 500px; }
+.yao-line { height: 6px; width: 120px; position: relative; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.yao-line.yang { background: linear-gradient(90deg, transparent, var(--accent-primary), transparent); border-radius: 3px; }
+.yao-line.yin { display: flex; justify-content: space-between; background: transparent; }
+.yao-line.yin::before, .yao-line.yin::after { content: ""; height: 100%; width: 55px; background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent); border-radius: 3px; }
+.yao-line.moving-yang { animation: moveYang 2s infinite alternate; }
+.yao-line.moving-yin { animation: moveYin 2s infinite alternate; }
+@keyframes moveYang { from { filter: brightness(1) drop-shadow(0 0 2px var(--accent-primary)); } to { filter: brightness(1.5) drop-shadow(0 0 10px var(--accent-primary)); } }
+@keyframes moveYin { from { filter: brightness(1) drop-shadow(0 0 2px var(--accent-secondary)); } to { filter: brightness(1.5) drop-shadow(0 0 10px var(--accent-secondary)); } }
+.yao-label { position: absolute; left: -140px; top: -5px; width: 130px; text-align: right; font-size: 0.6rem; color: #444; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+
+/* NEURAL HEATMAP */
+.heatmap-container { display: flex; flex-direction: column; gap: 8px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); }
+.heatmap-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.65rem; }
+.heatmap-bar-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; margin: 0 10px; overflow: hidden; }
+.heatmap-bar-fg { height: 100%; background: var(--accent-primary); box-shadow: 0 0 5px var(--accent-primary); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.heatmap-label { color: var(--text-muted); width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.heatmap-val { color: var(--accent-primary); font-weight: 800; width: 20px; text-align: right; }
