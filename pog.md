@@ -14,12 +14,16 @@ If you have just cloned this repository, follow these steps to initialize the en
 ## 📄 Core Inventory (High-Level)
 
 - **cli/**: Interactive REPL and terminal orchestration logic.
-- **src/core/**: The "Selection Guide Brain" including Ternary Routing, Adversarial Orchestration, and Cluster Intelligence.
-- **src/limbs/**: Specialized AI agents (Limbs) for FileSystem, Media, Cloud, and more.
-- **src/limbs/experimental/**: Ghost Limbs (QuantumLimb, RelicLimb, OmegaLimb) for next-gen features.
-- **rsc-data/**: 14 authentic JAG/MEM archives from POG-Ultimate (RSC Archaeology).
-- **tests/**: Sovereign verification suite (Real implementations only).
-- **docs/**: Comprehensive guides and architectural blueprints.
+- **src/core/**: The "Selection Guide Brain" with Ternary Routing, SmartEdit resilience, and Adversarial Orchestration.
+- **src/limbs/**:
+    - **core/**: Essential organs (Dashboard, Memory, Cognition, BaseLimb).
+    - **system/**: Systemic interfaces (MCPLimb, SovereignShell, FileLimb, Substrate).
+    - **cloud/**: Distributed intelligence (CloudflareLimb, AIModelLimb).
+    - **webapp/**: Full-stack construction (WebAppForge, Storyboard).
+    - **experimental/**: Ghost Limbs (Quantum, Relic, Omega).
+- **rsc-data/**: Authentic JAG/MEM archives for RSC Archaeology.
+- **tests/** / **scripts/**: Verification suites and metabolic heartbeat checks.
+- **docs/**: Comprehensive AI-Tool-Spine and architectural blueprints.
 
 ---
 
@@ -33,17 +37,19 @@ If you have just cloned this repository, follow these steps to initialize the en
 
 ## 🧩 Multifunctional Limb Inventory
 
-- **BioIntelligence**: Medical/Biological data analysis.
-- **Cloudflare**: Unified Edge AI (Vision, Speech, Text).
-- **Gutenberg**: Literary style ingestion and analysis.
-- **Hexagram**: I-Ching based strategic routing.
-- **MediaForge**: Creative asset generation.
-- **NeuralForge**: Code generation and analysis.
-- **Omega**: Teleological goal seeking (Experimental).
-- **Quantum**: Parallel hypothesis testing (Experimental).
-- **Relic**: RSC Archaeology and legacy data parsing.
-- **SovereignShell**: System-level execution and control.
-- **WebAppForge**: Full-stack application scaffolding.
+- **BioIntelligence**: Med-Gemma specialized image and pathology analysis.
+- **Cloudflare**: Unified Edge AI (Vision, Speech, Text) and R2 Storage integration.
+- **ControlPlane**: The high-level task decomposer and route-model switcher.
+- **Gutenberg**: Literary style ingestion, RAG-bridging, and Style Analysis.
+- **Hexagram**: I-Ching based strategic routing and system-state mapping.
+- **MCP (System)**: Universal Model Context Protocol substrate for dynamic tool bridging.
+- **MediaForge**: Creative asset generation (3D, Audio, Vibe).
+- **NeuralForge**: High-fidelity code generation and adversarial analysis.
+- **Omega**: Teleological goal seeking (Ghost Limb).
+- **Quantum**: Parallel hypothesis testing and superposition reasoning (Ghost Limb).
+- **Relic**: RSC Archaeology, .jag/.mem parsing, and legacy data excavation.
+- **SovereignShell**: Root-level execution, SSH Gists, and Cloud CLI control.
+- **WebAppForge**: Full-stack manifest implementation and UI/Library scaffolding.
 
 ---
 

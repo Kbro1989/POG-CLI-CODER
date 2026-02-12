@@ -1,6 +1,6 @@
 # 📂 POG-CODER-VIBE - Complete File Index
 
-## System Status: Sovereign Ready (Phase 13+ Complete)
+## System Status: Sovereign Ready (Phase 15 Complete)
 
 
 This index catalogs all source files, documentation, and artifacts in the production-ready POG-CODER-VIBE project.
@@ -23,6 +23,7 @@ This index catalogs all source files, documentation, and artifacts in the produc
 - ✅ **`Router.ts`** - Ternary decision tree (O(log₃ n)) with circuit breaker
 - ✅ **`Orchestrator.ts`** - Research → Plan → Execute → Review coordination
 - ✅ **`IntentVerifier.ts`** - Real-time task-intent drift verification
+- ✅ **`SmartEdit.ts`** - Resilient file editing engine (Exact/Flexible/Regex strategies)
 - ✅ **`GeminiService.ts`** - Gemini SDK v1.36+ client with function calling
 
 - ✅ **`SystemPrompts.ts`** - Immutable rules (NO MOCKS/NO PLACEHOLDERS policy)
@@ -63,6 +64,7 @@ This index catalogs all source files, documentation, and artifacts in the produc
 - ✅ **`experimental/rsc/JagArchive.ts`** - Jagex Archive decompression and parsing
 - ✅ **`experimental/rsc/JagBuffer.ts`** - Binary buffer utilities for JAG files
 - ✅ **`experimental/utils/Stream.ts`** - Stream utilities for legacy data formats
+- ✅ **`system/MCPLimb.ts`** - Universal Model Context Protocol Substrate (Phase 15)
 
 ---
 
@@ -70,6 +72,7 @@ This index catalogs all source files, documentation, and artifacts in the produc
 
 - ✅ **`utils/config.ts`** - Configuration management with Zod validation
 - ✅ **`utils/KeyVault.ts`** - Secure API key storage and rotation
+- ✅ **`utils/ReadManyFiles.ts`** - Batch file ingestion utility
 - ✅ **`git/GitManager.ts`** - Automated git operations
 - ✅ **`testing/TestRunner.ts`** - Test execution and auditing
 

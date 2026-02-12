@@ -43,6 +43,7 @@ import { Sandbox } from '../sandbox/Sandbox.js';
 import { GeminiService } from './GeminiService.js';
 import { KeyVault } from '../utils/KeyVault.js';
 import { WebAppForgeLimb } from '../limbs/webapp/WebAppForgeLimb.js';
+import { StoryboardLimb } from '../limbs/webapp/StoryboardLimb.js';
 import { MediaForgeLimb } from '../limbs/media/MediaForgeLimb.js';
 import { BioIntelligenceLimb } from '../limbs/bio/BioIntelligenceLimb.js';
 import { GutenbergLimb } from '../limbs/gutenberg/GutenbergLimb.js';
@@ -98,15 +99,15 @@ function expandTilde(path: string): string {
   }
   return path;
 }
-
 // Local definitions removed in favor of models.ts exports
+import { BuildStatus, HealthStatus, ResourcePressure, UserEngagement, SuccessRating, ExecutionEscalation, CostTier } from './models.js';
 
 export interface OrchestratorEvents {
   intentExecuted: (data: IntentHistory) => void;
   modelCalled: (data: { model: string; prompt: string }) => void;
   executionError: (data: { error: Error; context: ExecutionContext }) => void;
   snapshotCreated: (data: { snapshotId: string; reason: string }) => void;
-  commandExecuted: (data: { command: string; success: boolean; output: string }) => void;
+  commandExecuted: (data: { command: string; success: SuccessRating; output: string }) => void;
   reviewStarted: (data: { iteration: number }) => void;
   previewStarted: (data: PreviewMetadata) => void;
   preview_log: (data: { projectName: string; stream: 'stdout' | 'stderr'; text: string }) => void;
@@ -175,7 +176,9 @@ export class FreeOrchestrator extends EventEmitter {
     });
     const cfAuth = {
       accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || config.cloudflareAccountId || '') as string,
-      apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || config.cloudflareApiToken || '') as string
+      apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || config.cloudflareApiToken || '') as string,
+      authEmail: process.env['CLOUDFLARE_AUTH_EMAIL'],
+      gatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL']
     };
     const cloudflareServices = new CloudflareServices(cfAuth);
 
@@ -232,6 +235,7 @@ export class FreeOrchestrator extends EventEmitter {
     const voiceLimb = new VoiceLimb(config, this.modelExecutor);
     const dashboardLimb = new DashboardLimb(config, this.previewServer);
     const cloudflareLimb = new CloudflareLimb(config);
+    const storyboardLimb = new StoryboardLimb(config, this.geminiService!, this.vectorDB, this.modelExecutor);
     const neuralForgeLimb = new NeuralForgeLimb(config, this.adversarialOrchestrator);
     const sovereignShellLimb = new SovereignShellLimb(config);
     const aiModelLimb = new AIModelLimb(config);
@@ -253,7 +257,7 @@ export class FreeOrchestrator extends EventEmitter {
     cloudflareLimb.setExecutor(this.modelExecutor);
 
     // Store in collection for intent routing
-    this.limbs = [
+    const limbs: NeuralLimb[] = [
       controlPlaneLimb,
       memoryLimb,
       cognitionLimb,
@@ -267,6 +271,7 @@ export class FreeOrchestrator extends EventEmitter {
       mcpLimb,
       this.hexagramLimb,
       this.webAppForgeLimb,
+      storyboardLimb,
       mediaForgeLimb,
       bioIntelligenceLimb,
       gutenbergLimb,
@@ -281,6 +286,28 @@ export class FreeOrchestrator extends EventEmitter {
       relicLimb,
       omegaLimb
     ];
+
+    // Register all limbs to the executive spine
+    limbs.forEach(limb => {
+      // Memory Pulse Integration (Hexagram Line 2)
+      (limb.getTools?.() ?? []).forEach(() => { /* triggers tool indexing if needed */ });
+
+      // Access the internal spine of the limb to subscribe to pulses
+      // Using 'as any' since spine is protected but we are the Orchestrator (the Weaver)
+      const spine = (limb as any).spine;
+      if (spine && typeof spine.on === 'function') {
+        spine.on('pulse', (data: import('../core/ToolingSpine.js').PulseEvent) => {
+          void this.hexagramManager.pinCard(
+            2,
+            `Memory Pulse: ${data.source}`,
+            data.detail,
+            data.state
+          );
+        });
+      }
+    });
+
+    this.limbs = limbs;
 
     // 3. Global Limb Configuration
     this.limbs.forEach(limb => {
@@ -529,23 +556,22 @@ export class FreeOrchestrator extends EventEmitter {
 
       // Approximate System State
       // Resolve async metrics first
-      const buildPass = this.monitorAgent
-        ? await this.monitorAgent.diagnoseState().then(d => d.decision === 1)
-        : true;
+      const buildDecision = this.monitorAgent
+        ? await this.monitorAgent.diagnoseState().then(d => d.decision)
+        : 1;
+
+      const buildPass = buildDecision === 1 ? BuildStatus.Passed : (buildDecision === 0 ? BuildStatus.Warning : BuildStatus.Failed);
 
       // Approximate System State
       const state: import('../core/HexagramManager.js').SystemState = {
         buildPass,
-        cloudHealthy: geminiHealth.state === 'READY',
-        localModels: true, // Always true for this architecture
-        noRecentErrors: !this.monitorAgent || (this.monitorAgent as any).tscMonitor.getCurrentErrors().length === 0,
-        userActive: true, // Assumed active if events are firing
-        lowResourcePressure: true, // Default for now
+        cloudHealthy: geminiHealth.state === 'READY' ? HealthStatus.Ready : (geminiHealth.state === 'RATE_LIMITED' ? HealthStatus.Degraded : HealthStatus.Critical),
+        localModels: HealthStatus.Ready, // Always true for this architecture
+        noRecentErrors: (!this.monitorAgent || (this.monitorAgent as any).tscMonitor.getCurrentErrors().length === 0) ? HealthStatus.Ready : HealthStatus.Degraded,
+        userActive: UserEngagement.Active, // Assumed active if events are firing
+        lowResourcePressure: ResourcePressure.Optimal, // Default for now
         dashboardHealthy: this.checkDashboardHealth() // Line 6: UI Culmination
       };
-
-      // Resolve the promise for buildPass since diagnoseState is async
-      state.buildPass = await state.buildPass;
 
       await this.hexagramManager.updateLinesFromState(state);
 
@@ -562,9 +588,9 @@ export class FreeOrchestrator extends EventEmitter {
 
   /**
    * Checks dashboard/UI health for Line 6 (Culmination).
-   * Returns true if WebSocket clients are connected or preview is active.
+   * Returns HealthStatus.Ready if WebSocket clients are connected or preview is active.
    */
-  private checkDashboardHealth(): boolean {
+  private checkDashboardHealth(): HealthStatus {
     try {
       // Check WebSocket server has connected clients
       const wsConnected = this.wsServer && Array.from(this.wsServer.clients || []).some(
@@ -574,9 +600,9 @@ export class FreeOrchestrator extends EventEmitter {
       // Check preview server has active previews
       const previewActive = this.previewServer.getActivePreviews().length > 0;
 
-      return wsConnected || previewActive;
+      return (wsConnected || previewActive) ? HealthStatus.Ready : HealthStatus.Degraded;
     } catch {
-      return false; // Assume disconnected if we can't check
+      return HealthStatus.Critical; // Assume critical if we can't check
     }
   }
 
@@ -762,14 +788,15 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
   async executeIntent(promptOrOptions: string | { prompt: string; model?: string; force?: boolean }, filePath?: string): Promise<Result<Execution>> {
     const prompt = typeof promptOrOptions === 'string' ? promptOrOptions : promptOrOptions.prompt;
     const modelOverride = typeof promptOrOptions === 'string' ? undefined : promptOrOptions.model;
-    const force = typeof promptOrOptions === 'string' ? false : promptOrOptions.force;
+    const forceRaw = typeof promptOrOptions === 'string' ? false : promptOrOptions.force;
+    const force = forceRaw ? ExecutionEscalation.Aggressive : ExecutionEscalation.Standby;
 
     const context: ExecutionContext = {
       prompt,
       ...(filePath ? { filePath } : {}),
       sessionId: this.sessionId,
       startTime: Date.now(),
-      ...(force ? { force } : {})
+      ...(force !== undefined ? { force } : {})
     };
 
     // Inject Immutable System Prompt
@@ -832,7 +859,7 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
             }
           }
 
-          this.recordIntent(context, limb.id, true, Date.now() - context.startTime, result.value.output, result.value.data);
+          this.recordIntent(context, limb.id, SuccessRating.Success, Date.now() - context.startTime, result.value.output, result.value.data);
           return { ok: true, value: result.value };
         }
         return { ok: false, error: result.error };
@@ -977,7 +1004,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
     }
 
     this.recordSuccessMetadata(lastModel, prompt, Date.now() - context.startTime, filePath);
-    this.recordIntent(context, lastModel, true, Date.now() - context.startTime, totalResponse);
+    this.recordIntent(context, lastModel, SuccessRating.Success, Date.now() - context.startTime, totalResponse);
 
     // Phase 13: Update Project Pulse on Success
     ProjectPulse.updatePulse(this.config.projectRoot, {
@@ -1255,7 +1282,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
         const output = success ? resultValue.stdout : resultValue.stderr;
 
         executionResults += `\nCommand: ${cmd}\nExit Code: ${resultValue.exitCode}\nOutput: ${output}\n`;
-        this.emit('commandExecuted', { command: cmd, success, output });
+        this.emit('commandExecuted', { command: cmd, success: success ? SuccessRating.Success : SuccessRating.Failure, output });
 
         if (!success) break; // Stop on first error
       }
@@ -1337,9 +1364,9 @@ Perform the current step and output results. If verifying, ensure you run the ne
       taskType,
       extension: filePath?.split('.').pop() ?? '',
       latency,
-      success: true,
+      success: SuccessRating.Success,
       timestamp: Date.now(),
-      isFree: true
+      isFree: CostTier.Free
     };
     this.router.recordPerformance(performance);
 
@@ -1404,7 +1431,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
   // Removed local classifyTaskType to use TaskClassifier
 
-  private recordIntent(context: ExecutionContext, model: string, success: boolean, time: number, output?: string, data?: unknown): void {
+  private recordIntent(context: ExecutionContext, model: string, success: SuccessRating, time: number, output?: string, data?: unknown): void {
     this.intentHistory.push({
       sessionId: context.sessionId || '',
       query: context.prompt || '',

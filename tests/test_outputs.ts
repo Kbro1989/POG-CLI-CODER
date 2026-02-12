@@ -2,6 +2,8 @@
 import 'dotenv/config';
 import { GeminiService } from '../src/core/GeminiService.js';
 import pino from 'pino';
+import { appendFileSync, mkdirSync, existsSync } from 'fs';
+import { join } from 'path';
 
 // Simple logger
 const logger = pino({ level: 'info', transport: { target: 'pino-pretty' } });
@@ -9,9 +11,19 @@ const logger = pino({ level: 'info', transport: { target: 'pino-pretty' } });
 const OLLAMA_MODEL = 'qwen2.5-coder:14b-instruct-q5_K_M';
 const GEMINI_MODEL = 'gemini-2.0-flash-exp';
 const PROMPT = 'Write a one-sentence python function to calculate the Fibonacci sequence recursively.';
+const OUTPUT_DIR = join(process.cwd(), 'tests', 'outputs');
+const LOG_FILE = join(OUTPUT_DIR, 'test_outputs.log');
+
+if (!existsSync(OUTPUT_DIR)) mkdirSync(OUTPUT_DIR, { recursive: true });
+
+function logToFile(msg: string) {
+    appendFileSync(LOG_FILE, `${new Date().toISOString()} - ${msg}\n`);
+}
 
 async function testOllama() {
-    console.log(`\n🤖 Testing LOCAL Ollama [${OLLAMA_MODEL}]...`);
+    const msg = `🤖 Testing LOCAL Ollama [${OLLAMA_MODEL}]...`;
+    console.log(`\n${msg}`);
+    logToFile(msg);
     const start = Date.now();
     try {
         const controller = new AbortController();
@@ -35,8 +47,10 @@ async function testOllama() {
 
         console.log(`✅ Ollama Success (${duration}s):`);
         console.log('---------------------------------------------------');
-        console.log(data.response.trim());
+        const output = data.response.trim();
+        console.log(output);
         console.log('---------------------------------------------------');
+        logToFile(`Ollama response: ${output}`);
         return true;
     } catch (e: any) {
         console.error(`❌ Ollama Failed: ${e.message}`);
@@ -45,7 +59,9 @@ async function testOllama() {
 }
 
 async function testGemini() {
-    console.log(`\n☁️  Testing CLOUD Gemini [${GEMINI_MODEL}]...`);
+    const msg = `☁️  Testing CLOUD Gemini [${GEMINI_MODEL}]...`;
+    console.log(`\n${msg}`);
+    logToFile(msg);
     const start = Date.now();
     try {
         const apiKey = process.env['GOOGLE_API_KEY'];
@@ -61,8 +77,10 @@ async function testGemini() {
         if (result.ok) {
             console.log(`✅ Gemini Success (${duration}s):`);
             console.log('---------------------------------------------------');
-            console.log(result.value.trim());
+            const output = result.value.trim();
+            console.log(output);
             console.log('---------------------------------------------------');
+            logToFile(`Gemini response: ${output}`);
             return true;
         } else {
             throw result.error;

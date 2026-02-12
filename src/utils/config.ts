@@ -29,8 +29,10 @@ const ConfigSchema = z.object({
   snapshotModel: z.string().optional(),
   criticModel: z.string().optional(),
   planningModel: z.string().optional(),
+  codingModel: z.string().optional(),
   healThreshold: z.enum(['low', 'medium', 'high', 'critical']).optional(),
-  sovereignRoot: z.string().optional()
+  sovereignRoot: z.string().optional(),
+  pogApiUrl: z.string().url().optional()
 });
 
 type ConfigInput = z.input<typeof ConfigSchema>;
@@ -112,8 +114,10 @@ export class ConfigManager {
       snapshotModel: process.env['VIBE_SNAPSHOT_MODEL'] || overrides?.snapshotModel || fileConfig.snapshotModel,
       criticModel: process.env['VIBE_CRITIC_MODEL'] || overrides?.criticModel || fileConfig.criticModel,
       planningModel: process.env['VIBE_PLANNING_MODEL'] || overrides?.planningModel || fileConfig.planningModel,
+      codingModel: process.env['VIBE_CODING_MODEL'] || overrides?.codingModel || fileConfig.codingModel,
       healThreshold: (process.env['VIBE_HEAL_THRESHOLD'] as VibeConfig['healThreshold']) || overrides?.healThreshold || fileConfig.healThreshold,
-      sovereignRoot: overrides?.sovereignRoot || fileConfig.sovereignRoot
+      sovereignRoot: overrides?.sovereignRoot || fileConfig.sovereignRoot,
+      pogApiUrl: process.env['POG_API_URL'] || overrides?.pogApiUrl || fileConfig.pogApiUrl
     } as any; // Cast for now to satisfy strict Zod vs Interface drift
 
     // Validate

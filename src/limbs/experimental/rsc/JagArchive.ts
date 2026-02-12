@@ -1,5 +1,6 @@
 import { JagBuffer } from './JagBuffer.js';
-import { Bzip2 } from '@ledgerhq/compressjs';
+import compressjs from '@ledgerhq/compressjs';
+const { Bzip2 } = compressjs;
 import { Buffer } from 'buffer';
 
 // BZ header for RSC: B, Z, h, 1

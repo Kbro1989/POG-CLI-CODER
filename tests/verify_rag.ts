@@ -1,8 +1,8 @@
 
-import { GutenbergLimb } from '../src/limbs/gutenberg/GutenbergLimb';
-import { VectorDB } from '../src/learning/VectorDB';
-import { GeminiService } from '../src/core/GeminiService';
-import { VibeConfig } from '../src/core/models';
+import { GutenbergLimb } from '../src/limbs/gutenberg/GutenbergLimb.js';
+import { VectorDB } from '../src/learning/VectorDB.js';
+import { GeminiService } from '../src/core/GeminiService.js';
+import { VibeConfig } from '../src/core/models.js';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
 

@@ -101,6 +101,16 @@ export const StaticModelRegistry: Record<string, AICapability> = {
         passthroughEnabled: true,
         fallback: 'gold_qwen_2_5_coder_7b'
     },
+    'gold_qwen_2_5_coder_14b': {
+        id: 'gold_qwen_2_5_coder_14b',
+        name: 'Qwen 2.5 Coder 14B',
+        serviceType: 'OLLAMA' as any,
+        taskType: 'TEXT' as any,
+        modelId: 'qwen2.5-coder:14b-instruct-q5_K_M',
+        description: 'LOCAL TIER: High-powered on-device planning core.',
+        passthroughEnabled: true,
+        fallback: 'gold_qwen_2_5_coder_7b'
+    },
     'gold_qwen_2_5_coder_7b': {
         id: 'gold_qwen_2_5_coder_7b',
         name: 'Qwen 2.5 Coder 7B',
@@ -108,7 +118,8 @@ export const StaticModelRegistry: Record<string, AICapability> = {
         taskType: 'TEXT' as any,
         modelId: 'qwen2.5-coder:7b-instruct-q4_K_M',
         description: 'LOCAL TIER: Primary on-device coding and logic.',
-        passthroughEnabled: true
+        passthroughEnabled: true,
+        fallback: 'gold_deepseek_coder_6_7b'
     },
     'gold_yi_coder_9b': {
         id: 'gold_yi_coder_9b',
@@ -116,8 +127,9 @@ export const StaticModelRegistry: Record<string, AICapability> = {
         serviceType: 'OLLAMA' as any,
         taskType: 'TEXT' as any,
         modelId: 'yi-coder:9b-chat-q5_K_M',
-        description: 'LOCAL TIER: Balanced local chat and code understanding.',
-        passthroughEnabled: true
+        description: 'LOCAL TIER: Balanced local chat and snapshotting.',
+        passthroughEnabled: true,
+        fallback: 'gold_qwen_2_5_coder_7b'
     },
     'gold_deepseek_coder_6_7b': {
         id: 'gold_deepseek_coder_6_7b',
@@ -125,8 +137,9 @@ export const StaticModelRegistry: Record<string, AICapability> = {
         serviceType: 'OLLAMA' as any,
         taskType: 'TEXT' as any,
         modelId: 'deepseek-coder:6.7b-instruct-q4_K_M',
-        description: 'LOCAL TIER: Robust local code generation fallback.',
-        passthroughEnabled: true
+        description: 'LOCAL TIER: High-fidelity code critique and validation.',
+        passthroughEnabled: true,
+        fallback: 'gold_qwen_2_5_coder_7b'
     },
     'side_tinyllama_latest': {
         id: 'side_tinyllama_latest',
@@ -134,7 +147,7 @@ export const StaticModelRegistry: Record<string, AICapability> = {
         serviceType: 'OLLAMA' as any,
         taskType: 'TEXT' as any,
         modelId: 'tinyllama:latest',
-        description: 'SIDE TIER: Ultra-fast local monitoring and classification.',
+        description: 'SIDE TIER: Ultra-fast local monitoring and intent classification.',
         passthroughEnabled: true
     },
     'side_qwen_2_5_coder_1_5b': {

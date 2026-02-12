@@ -17,6 +17,7 @@ import { HealthRegistry } from '../core/HealthRegistry.js';
 import { SystemEnvChecker } from '../utils/SystemEnvChecker.js';
 import { SelfHealingEngine, ExecutionPlan } from './SelfHealingEngine.js';
 import type { VibeConfig, Ternary } from '../core/models.js';
+import { BuildStatus, HealthStatus } from '../core/models.js';
 
 const logger = pino({
     name: 'MonitorAgent',
@@ -202,10 +203,17 @@ Respond with ONLY: tsc, build, or ignore`;
 
         for (const serviceId of services) {
             const health = registry.getHealth(serviceId);
-            if (health.state !== 'READY') {
+            // Map ServiceHealthState to ternary HealthStatus
+            const serviceHealth = health.state === 'READY'
+                ? HealthStatus.Ready
+                : health.state === 'CRITICAL_FAILURE'
+                    ? HealthStatus.Critical
+                    : HealthStatus.Degraded;
+
+            if (serviceHealth !== HealthStatus.Ready) {
                 const report: MonitorReport = {
                     timestamp: Date.now(),
-                    severity: health.state === 'CRITICAL_FAILURE' ? 'critical' : 'high',
+                    severity: serviceHealth === HealthStatus.Critical ? 'critical' : 'high',
                     category: 'build-failure',
                     description: `Sovereign Substrate Alert: Service [${serviceId}] is ${health.state}`,
                     affectedFiles: [],
@@ -246,7 +254,7 @@ Respond with ONLY: tsc, build, or ignore`;
     async diagnoseState(plan?: ExecutionPlan): Promise<{ decision: Ternary; reasoning: string }> {
         const errors = this.tscMonitor.getCurrentErrors();
         if (errors.length === 0) {
-            return { decision: 1, reasoning: 'Substrate healthy. Zero TSC errors detected.' };
+            return { decision: BuildStatus.Passed, reasoning: 'Substrate healthy. Zero TSC errors detected.' };
         }
 
         // Diagnosing the first error found (usually the primary blocker)
@@ -258,7 +266,7 @@ Respond with ONLY: tsc, build, or ignore`;
      */
     async checkInterference(plan?: ExecutionPlan): Promise<{ decision: Ternary; reasoning: string } | null> {
         const result = await this.diagnoseState(plan);
-        if (result.decision === 1) return null; // No interference
+        if (result.decision === BuildStatus.Passed) return null; // No interference
         return result;
     }
 

@@ -1,4 +1,5 @@
 import { BaseLimb } from './BaseLimb.js';
+import { z } from 'zod';
 import type { Intent, Execution, TernaryDecision } from './NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { PreviewServer } from '../../core/PreviewServer.js';
@@ -35,6 +36,7 @@ export class DashboardLimb extends BaseLimb {
                     properties: {},
                     required: []
                 },
+                schema: z.object({}),
                 handler: async () => {
                     const result = await this.activate();
                     if (result.ok) return { ok: true, value: `Dashboard activated: ${result.value.output}` };
@@ -76,12 +78,28 @@ export class DashboardLimb extends BaseLimb {
             // Always regenerate assets on activation to ensure they exist
             this.generateAssets();
 
-            const port = this.config.wsPort + 1;
+            const basePort = this.config.wsPort + 1;
+            let targetPort = basePort;
+
+            // 1. Detect Conflict & Verify Identity
+            const isActive = await this.previewServer.isPortActive(basePort);
+            if (isActive) {
+                const isPog = await this.previewServer.isPogService(basePort);
+                if (isPog) {
+                    this.logger.info({ port: basePort }, 'POG Dashboard detected on port, reclaiming for fresh start');
+                    await this.previewServer.killProcessByPort(basePort);
+                    targetPort = basePort;
+                } else {
+                    this.logger.warn({ port: basePort }, 'Non-POG service detected on default dashboard port, finding fallback');
+                    targetPort = await this.previewServer.findAvailablePort(basePort + 1);
+                }
+            }
+
             const result = await this.previewServer.startPreview(
                 'POG-DASHBOARD',
                 this.dashboardDir,
-                `npx -y http-server . -p ${port}`,
-                port
+                `npx -y http-server . -p ${targetPort}`,
+                targetPort
             );
 
             if (!result.ok) {
@@ -93,7 +111,7 @@ export class DashboardLimb extends BaseLimb {
                 ok: true,
                 value: {
                     output: `Dashboard activated: ${result.value.url}`,
-                    data: { url: result.value.url, port }
+                    data: { url: result.value.url, port: targetPort }
                 }
             };
         } catch (error) {

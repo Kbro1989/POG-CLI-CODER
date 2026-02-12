@@ -1,4 +1,5 @@
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, ChildProcess, exec } from 'child_process';
+import { promisify } from 'util';
 import { NetConnectOpts, createConnection } from 'net';
 import { EventEmitter } from 'events';
 import pino from 'pino';
@@ -164,10 +165,52 @@ export class PreviewServer extends EventEmitter {
     }
 
     private killProcessTree(child: ChildProcess): void {
-        // Simple kill for now, but in a production environment we'd use tree-kill
-        // to ensure deep process sub-trees are cleaned up.
         child.kill();
-        // Fallback for Windows if needed: spawn('taskkill', ['/pid', String(child.pid), '/f', '/t']);
+        if (process.platform === 'win32' && child.pid) {
+            spawn('taskkill', ['/pid', String(child.pid), '/f', '/t'], { shell: true });
+        }
+    }
+
+    async killProcessByPort(port: number): Promise<void> {
+        if (process.platform !== 'win32') {
+            // macOS/Linux implementation if needed: lsof -ti:port | xargs kill -9
+            return;
+        }
+
+        try {
+            const execAsync = promisify(exec);
+            const { stdout } = await execAsync(`netstat -ano | findstr :${port} | findstr LISTENING`);
+            const lines = stdout.trim().split('\n');
+            for (const line of lines) {
+                const parts = line.trim().split(/\s+/);
+                const pid = parts[parts.length - 1];
+                if (pid && pid !== '0') {
+                    logger.info({ port, pid }, 'Killing process on port');
+                    await execAsync(`taskkill /F /PID ${pid} /T`);
+                }
+            }
+        } catch (error) {
+            logger.debug({ port }, 'No process found on port to kill');
+        }
+    }
+
+    async isPogService(port: number): Promise<boolean> {
+        try {
+            const response = await fetch(`http://localhost:${port}`, { signal: AbortSignal.timeout(2000) });
+            const text = await response.text();
+            return text.includes('POG-VIBE') || text.includes('POG-CODER-VIBE');
+        } catch {
+            return false;
+        }
+    }
+
+    async findAvailablePort(startPort: number, maxAttempts = 10): Promise<number> {
+        let port = startPort;
+        for (let i = 0; i < maxAttempts; i++) {
+            if (!(await this.isPortActive(port))) return port;
+            port++;
+        }
+        throw new Error(`Could not find an available port after ${maxAttempts} attempts starting at ${startPort}`);
     }
 
     private async waitForPort(port: number, timeoutMs = 30000): Promise<boolean> {
@@ -179,7 +222,7 @@ export class PreviewServer extends EventEmitter {
         return false;
     }
 
-    private isPortActive(port: number): Promise<boolean> {
+    public isPortActive(port: number): Promise<boolean> {
         return new Promise((resolve) => {
             const socket = createConnection({ port, host: 'localhost' } as NetConnectOpts);
             socket.on('connect', () => {

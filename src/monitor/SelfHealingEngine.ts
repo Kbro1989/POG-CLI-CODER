@@ -1,8 +1,10 @@
 import pino from 'pino';
 import { TSCError } from './TSCMonitor.js';
-import { Ternary } from '../core/models.js';
+import { Ternary, BuildStatus, HealthStatus } from '../core/models.js';
 import { ArchitectureDigest } from '../core/ArchitectureDigest.js';
 import { ModelExecutor } from '../core/ModelExecutor.js';
+import { existsSync, readdirSync, readFileSync as fsReadFileSync } from 'fs';
+import { join } from 'path';
 
 const logger = pino({
     name: 'SelfHealingEngine',
@@ -44,12 +46,18 @@ export class SelfHealingEngine {
     async diagnose(error: TSCError, plan?: ExecutionPlan): Promise<{ decision: Ternary; reasoning: string }> {
         logger.info({ code: error.code, file: error.file }, 'Diagnosing error');
 
+        // 0. Sense Test Outputs (Phase 16)
+        const testInsights = this.senseTestOutputs();
+        if (testInsights) {
+            logger.info({ insights: testInsights.substring(0, 100) }, 'Sensed test insights');
+        }
+
         // 1. Check for Planned Drift (Any Error)
         // If the file causing the error is part of the current plan, we assume the agent is fixing it.
         const isPlanned = this.isFilePlanned(error.file, plan) || this.isModulePlanned(error.message, plan);
         if (isPlanned) {
             return {
-                decision: 1,
+                decision: BuildStatus.Passed,
                 reasoning: `Planned Drift: File/Module related to [${error.file}] is referenced in future plan steps. Proceeding.`
             };
         }
@@ -64,13 +72,13 @@ export class SelfHealingEngine {
 
         if (isStructural && senseCheck.severity === 'critical') {
             return {
-                decision: -1,
+                decision: HealthStatus.Critical,
                 reasoning: `Critical Structural Break: ${error.message} in core manifest file [${error.file}]. Escalation required.`
             };
         }
 
         return {
-            decision: 0,
+            decision: BuildStatus.Warning,
             reasoning: `Correction Needed: ${senseCheck.analysis}. Triggering auto-patch turn via ${this.correctionModel}.`
         };
     }
@@ -120,6 +128,27 @@ Format: JSON { "severity": "low|medium|high|critical", "analysis": "concise expl
             };
         } catch {
             return { severity: 'medium', analysis: 'Failed to parse correction analysis.' };
+        }
+    }
+
+    /**
+     * Senses the tests/outputs directory for recent success/failure signals.
+     */
+    private senseTestOutputs(): string | undefined {
+        const outputsDir = join(this.architectureDigest.getManifest().domainModel['Tests']?.file.split('/')[0] || 'tests', 'outputs');
+        if (!existsSync(outputsDir)) return undefined;
+
+        try {
+            const files = readdirSync(outputsDir);
+            const recentLogs = files.filter(f => f.endsWith('.log') || f.endsWith('.txt')).slice(-5);
+
+            return recentLogs.map(f => {
+                const content = fsReadFileSync(join(outputsDir, f), 'utf-8').slice(-500);
+                return `[${f}]: ${content}`;
+            }).join('\n---\n');
+        } catch (err) {
+            logger.error({ err }, 'Failed to sense test outputs');
+            return undefined;
         }
     }
 }

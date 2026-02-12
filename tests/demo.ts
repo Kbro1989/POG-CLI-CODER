@@ -1,12 +1,11 @@
 import 'dotenv/config';
-import { ConfigManager } from './src/utils/config.js';
-import { FreeOrchestrator } from './src/core/Orchestrator.js';
-import { ASTWatcher } from './src/watcher/ASTWatcher.js';
-import { VectorDB } from './src/learning/VectorDB.js';
-import { Sandbox } from './src/sandbox/Sandbox.js';
-import pino from 'pino';
+import { ConfigManager } from '../src/utils/config.js';
+import { FreeOrchestrator } from '../src/core/Orchestrator.js';
+import { ASTWatcher } from '../src/watcher/ASTWatcher.js';
+import { VectorDB } from '../src/learning/VectorDB.js';
+import { Sandbox } from '../src/sandbox/Sandbox.js';
 
-const logger = pino({ name: 'DEMO' });
+
 
 async function runDemo() {
     const projectRoot = process.cwd();

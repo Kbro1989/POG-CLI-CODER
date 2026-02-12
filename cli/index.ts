@@ -351,13 +351,13 @@ class VibeCLI {
 
     const lines = auditResults.map(res => {
       const isActive = res.status === 'ACTIVE';
-      const isEnabled = res.enabled;
+      const isHealthy = res.health;
 
       const icon = isActive ? chalk.green('✔') : res.status === 'ERROR' ? chalk.red('✘') : chalk.gray('○');
       let statusText = isActive ? chalk.green(res.status) : res.status === 'ERROR' ? chalk.red(res.status) : chalk.gray(res.status);
 
-      // If service is enabled but not active, show as "Authorized" in yellow to indicate potential issue or pending setup
-      if (!isActive && isEnabled) {
+      // If service is healthy but not active, show as "Authorized" in yellow to indicate potential issue or pending setup
+      if (!isActive && isHealthy) {
         statusText = chalk.yellow('AUTHORIZED');
       }
 

@@ -1,11 +1,10 @@
-import { ConfigManager } from './src/utils/config.js';
-import { FreeOrchestrator } from './src/core/Orchestrator.js';
-import { ASTWatcher } from './src/watcher/ASTWatcher.js';
-import { VectorDB } from './src/learning/VectorDB.js';
-import { Sandbox } from './src/sandbox/Sandbox.js';
+import { ConfigManager } from '../src/utils/config.js';
+import { FreeOrchestrator } from '../src/core/Orchestrator.js';
+import { ASTWatcher } from '../src/watcher/ASTWatcher.js';
+import { VectorDB } from '../src/learning/VectorDB.js';
+import { Sandbox } from '../src/sandbox/Sandbox.js';
 import pino from 'pino';
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 
 const logger = pino({ name: 'TestRun' });
 
@@ -26,7 +25,7 @@ function loadEnv() {
 
 async function runTest() {
   loadEnv();
-  
+
   const projectRoot = process.cwd();
   const configManager = new ConfigManager(projectRoot, {
     logLevel: 'debug'
@@ -61,25 +60,25 @@ async function runTest() {
     logger.info(`\n----------------------------------------`);
     logger.info(`TESTING MODEL: ${model}`);
     logger.info(`----------------------------------------`);
-    
+
     // Force router to use this model
     (orchestrator as any).router.route = () => ({ ok: true, value: model });
 
     const prompt = `Hello ${model}, please respond with a short verification message confirming your identity.`;
-    
+
     try {
       const result = await orchestrator.executeIntent(prompt);
-      
+
       if (result.ok) {
         logger.info(`✅ ${model} SUCCESS`);
         console.log(`\nRESPONSE from ${model}:`);
-        console.log(result.value.trim());
+        console.log(result.value.output.trim());
         console.log('----------------------------------------\n');
       } else {
         logger.error(`❌ ${model} FAILED: ${result.error.message}`);
       }
     } catch (err) {
-       logger.error(`❌ ${model} EXCEPTION: ${err}`);
+      logger.error(`❌ ${model} EXCEPTION: ${err}`);
     }
   }
 

@@ -14,7 +14,8 @@ These files serve as a **knowledge base** for AI agents, providing:
 ## Files
 
 ### Cloudflare Wrangler
--`wrangler_help.txt` / `wrangler_help_utf8.txt` — General Wrangler CLI documentation
+- `CLOUDFLARE_APP.md` — **NEW** Standalone App & CLI documentation
+- `wrangler_help.txt` / `wrangler_help_utf8.txt` — General Wrangler CLI documentation
 - `wrangler_ai_help.txt` / `wrangler_ai_help_utf8.txt` — Wrangler AI-specific commands
 - `wrangler_ai_models.txt` — Available Cloudflare AI models and their capabilities (162KB reference)
 

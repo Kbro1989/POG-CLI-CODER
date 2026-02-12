@@ -1,7 +1,6 @@
-import { HexagramManager, YaoState } from './src/core/HexagramManager.js';
-import { VectorDB } from './src/learning/VectorDB.js';
-import { VibeConfig } from './src/core/models.js';
-import pino from 'pino';
+import { HexagramManager, YaoState } from '../src/core/HexagramManager.js';
+import { VectorDB } from '../src/learning/VectorDB.js';
+import { VibeConfig } from '../src/core/models.js';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
 import { homedir } from 'os';
@@ -17,16 +16,18 @@ const config: VibeConfig = {
     circuitBreakerThreshold: 5,
     circuitBreakerCooldown: 60000,
     embeddingDimensions: 768,
-    logLevel: 'info'
+    logLevel: 'info',
+    projectId: 'pog-vibe-verify',
+    enabledServices: ['ollama']
 };
 
-const logger = pino();
+// Removed unused logger
 
 async function verify() {
     const db = new VectorDB(config);
     await db.initialize();
 
-    const manager = new HexagramManager(db);
+    const manager = new HexagramManager(db, config.projectId);
 
     console.log('--- Phase 5: Hexagram Verification ---');
 

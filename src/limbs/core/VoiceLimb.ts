@@ -1,6 +1,8 @@
 import { BaseLimb } from './BaseLimb.js';
+import { z } from 'zod';
 import { Result, VibeConfig } from '../../core/models.js';
 import { ModelExecutor } from '../../core/ModelExecutor.js';
+import { YaoState } from '../../core/HexagramManager.js';
 import { spawn } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
@@ -36,9 +38,16 @@ export class VoiceLimb extends BaseLimb {
                         duration: { type: 'number', description: 'Duration in seconds (default 5)' }
                     }
                 },
+                schema: z.object({
+                    duration: z.number().optional().default(5)
+                }),
                 handler: async (args: any) => {
                     const res = await this.recordAndTranscribe(args['duration'] || 5);
-                    if (res.ok) return { ok: true, value: { transcription: res.value } };
+                    if (res.ok) {
+                        await this.pinPulse(YaoState.YoungYang, 'Speech Captured');
+                        return { ok: true, value: { transcription: res.value } };
+                    }
+                    await this.pinPulse(YaoState.YoungYin, 'Speech Capture Failed');
                     return res;
                 }
             },
@@ -52,9 +61,16 @@ export class VoiceLimb extends BaseLimb {
                     },
                     required: ['text']
                 },
+                schema: z.object({
+                    text: z.string()
+                }),
                 handler: async (args: any) => {
                     const res = await this.speakText(args['text'] || '');
-                    if (res.ok) return { ok: true, value: { spoken: args['text'] } };
+                    if (res.ok) {
+                        await this.pinPulse(YaoState.OldYang, 'Speech Emitted');
+                        return { ok: true, value: { spoken: args['text'] } };
+                    }
+                    await this.pinPulse(YaoState.OldYin, 'Speech Emission Failed');
                     return res;
                 }
             },
@@ -204,4 +220,5 @@ Start-Sleep -Seconds ${seconds}
         }
         return { ok: true, value: { detected: false } };
     }
+
 }

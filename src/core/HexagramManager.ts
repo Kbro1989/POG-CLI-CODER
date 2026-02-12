@@ -1,5 +1,5 @@
 import { VectorDB } from '../learning/VectorDB.js';
-import { Result } from './models.js';
+import { Result, BuildStatus, HealthStatus, ResourcePressure, UserEngagement } from './models.js';
 import { HEXAGRAM_REGISTRY, DEFAULT_HEXAGRAM, HexagramDefinition } from './HexagramDefinitions.js';
 
 export enum YaoState {
@@ -19,14 +19,14 @@ export interface ContextCard {
 }
 
 export interface SystemState {
-    buildPass: boolean;
-    cloudHealthy: boolean;
-    localModels: boolean;
-    noRecentErrors: boolean;
-    userActive: boolean;
-    lowResourcePressure: boolean;
+    buildPass: BuildStatus;
+    cloudHealthy: HealthStatus;
+    localModels: HealthStatus;
+    noRecentErrors: HealthStatus;
+    userActive: UserEngagement;
+    lowResourcePressure: ResourcePressure;
     /** Line 6: Dashboard/Preview/WebSocket health */
-    dashboardHealthy?: boolean;
+    dashboardHealthy?: HealthStatus;
 }
 
 export class HexagramManager {
@@ -35,7 +35,7 @@ export class HexagramManager {
 
     private readonly FACET_MAP: Record<number, string> = {
         1: 'Foundation / Structural Roots',
-        2: 'Interaction / Relationship with User',
+        2: 'Memory Pulse / Service Health',
         3: 'Transition / Current Activity',
         4: 'External Environment / Dependencies',
         5: 'Authority / Core Business Logic',
@@ -116,44 +116,56 @@ export class HexagramManager {
      */
     async updateLinesFromState(state: SystemState): Promise<void> {
         // Line 1: Foundation (Build Status)
-        // Pass = Yang (Solid), Fail = Yin (Broken)
-        await this.pinCard(1, 'Build Foundation', state.buildPass ? 'Build Passing' : 'Build Failing',
-            state.buildPass ? YaoState.YoungYang : YaoState.YoungYin);
+        // Pass = Yang (Solid), Fail = Yin (Broken), Warning/Partial = Old Yang (Change)
+        let buildYao = YaoState.YoungYin;
+        if (state.buildPass === BuildStatus.Passed) buildYao = YaoState.YoungYang;
+        else if (state.buildPass === BuildStatus.Warning) buildYao = YaoState.OldYang;
 
-        // Line 2: Interaction (User Activity)
-        // Active = Yang (Dynamic), Idle = Yin (Receptive)
-        await this.pinCard(2, 'User Interaction', state.userActive ? 'User Active' : 'User Idle',
-            state.userActive ? YaoState.YoungYang : YaoState.YoungYin);
+        await this.pinCard(1, 'Build Foundation',
+            state.buildPass === BuildStatus.Passed ? 'Build Passing' : (state.buildPass === BuildStatus.Warning ? 'Issues Detected' : 'Build Failing'),
+            buildYao);
 
         // Line 3: Transition (Recent Errors)
-        // Stable = Yang, Errors = Yin (Conflict)
-        await this.pinCard(3, 'System Stability', state.noRecentErrors ? 'Stable' : 'Recent Errors Detected',
-            state.noRecentErrors ? YaoState.YoungYang : YaoState.OldYin); // Old Yin implies moving towards change
+        // Stable = Yang, Critical = Yin, Degraded = Moving
+        let stabilityYao = YaoState.YoungYang;
+        if (state.noRecentErrors === HealthStatus.Critical) stabilityYao = YaoState.YoungYin;
+        else if (state.noRecentErrors === HealthStatus.Degraded) stabilityYao = YaoState.OldYin;
+
+        await this.pinCard(3, 'System Stability',
+            state.noRecentErrors === HealthStatus.Ready ? 'Stable' : (state.noRecentErrors === HealthStatus.Degraded ? 'Errors Detected' : 'Critical Errors'),
+            stabilityYao);
 
         // Line 4: Environment (Cloud/Resources)
-        // Healthy = Yang, Degraded = Yin
-        const resourceState = state.cloudHealthy && state.lowResourcePressure
-            ? YaoState.YoungYang
-            : YaoState.YoungYin;
+        // Optimal = Yang, Critical = Yin, High Pressure = Moving
+        let resourceYao = YaoState.YoungYang;
+        if (state.cloudHealthy === HealthStatus.Critical || state.lowResourcePressure === ResourcePressure.Critical)
+            resourceYao = YaoState.YoungYin;
+        else if (state.cloudHealthy === HealthStatus.Degraded || state.lowResourcePressure === ResourcePressure.High)
+            resourceYao = YaoState.OldYin;
+
         await this.pinCard(4, 'External Environment',
-            state.cloudHealthy ? 'Cloud Nominal' : 'Resource Pressure/Degradation',
-            resourceState);
+            state.cloudHealthy === HealthStatus.Ready ? 'Cloud Nominal' : 'Resource Pressure/Degradation',
+            resourceYao);
 
         // Line 5: Authority (Local/Cloud Models)
-        // Full Capacity = Yang, Partial = Yin
+        // Ready = Yang, Critical = Yin, Degraded = Moving
+        let cognitiveYao = YaoState.YoungYang;
+        if (state.localModels === HealthStatus.Critical) cognitiveYao = YaoState.YoungYin;
+        else if (state.localModels === HealthStatus.Degraded) cognitiveYao = YaoState.OldYang;
+
         await this.pinCard(5, 'Cognitive Authority',
-            state.localModels ? 'Local Models Active' : 'Reliance on Cloud Only',
-            state.localModels ? YaoState.YoungYang : YaoState.YoungYin);
+            state.localModels === HealthStatus.Ready ? 'Local Models Active' : 'Reliance on Cloud Only',
+            cognitiveYao);
 
         // Line 6: Culmination (Dashboard/UI/Preview Health)
-        // Connected = Yang (Visible), Disconnected = Yin (Hidden)
-        // If dashboardHealthy is undefined, we default to Yang (optimistic)
-        const dashboardState = state.dashboardHealthy !== false
-            ? YaoState.YoungYang
-            : YaoState.OldYin; // Old Yin = moving towards recovery
+        // Ready = Yang, Critical = Yin, Degraded = Moving
+        let dashboardYao = YaoState.YoungYang;
+        if (state.dashboardHealthy === HealthStatus.Critical) dashboardYao = YaoState.YoungYin;
+        else if (state.dashboardHealthy === HealthStatus.Degraded) dashboardYao = YaoState.OldYin;
+
         await this.pinCard(6, 'UI Culmination',
-            state.dashboardHealthy !== false ? 'Dashboard Connected' : 'Dashboard Disconnected',
-            dashboardState);
+            state.dashboardHealthy === HealthStatus.Ready ? 'Dashboard Connected' : 'Dashboard Disconnected',
+            dashboardYao);
     }
 
     /**

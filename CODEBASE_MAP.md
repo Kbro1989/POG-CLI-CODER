@@ -24,6 +24,7 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 | **[Orchestrator.ts](./src/core/Orchestrator.ts)** | Main execution engine with Omniscience planning loop | ✅ Production Ready (Phase 10) |
 | **[IntentVerifier.ts](./src/core/IntentVerifier.ts)** | Real-time task-intent drift detection & correction | ✅ Phase 13 Complete |
 | **[Router.ts](./src/core/Router.ts)** | Ternary decision tree with tiered legacy fallbacks | ✅ Production Ready (Phase 10) |
+| **[SmartEdit.ts](./src/core/SmartEdit.ts)** | Resilient file editing engine with flexible/regex strategies | ✅ Ported (Phase 15) |
 
 | **[GeminiService.ts](./src/core/GeminiService.ts)** | Native SDK client with stable Gemini 2.0 integration | ✅ Phase 4 Complete |
 | **[PreviewServer.ts](./src/core/PreviewServer.ts)** | Live dev-server manager for generated projects | ✅ Interactive |
@@ -62,7 +63,7 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 | **[BaseLimb.ts](./src/limbs/core/BaseLimb.ts)** | Abstract foundation with ToolingSpine integration | ✅ Foundation |
 | **[NeuralLimb.ts](./src/limbs/core/NeuralLimb.ts)** | Interface contract for agent extensions | ✅ Abstract Pattern |
 | **[DashboardLimb.ts](./src/limbs/core/DashboardLimb.ts)** | Session-specific QOL Control Plane (HTML UI) | ✅ Interactive |
-| **[FileSystemLimb.ts](./src/limbs/core/FileSystemLimb.ts)** | Atomic file operations (read/write/patch/rollback) | ✅ Sandboxed |
+| **[FileSystemLimb.ts](./src/limbs/core/FileSystemLimb.ts)** | Atomic file operations (Resilient via SmartEdit/ReadMany) | ✅ Enhanced (Phase 15) |
 | **[NeuralForgeLimb.ts](./src/limbs/core/NeuralForgeLimb.ts)** | Specialized high-tier creation (SQL, Docs, Refactor) | ✅ Adversarial |
 | **[VoiceLimb.ts](./src/limbs/core/VoiceLimb.ts)** | Audio & Speech Intelligence (Whisper, TTS, Wake Word) | ✅ Voice Chat |
 | **[YoloLimb.ts](./src/limbs/core/YoloLimb.ts)** | High-Risk Reasoning & Unrestricted Creation | ✅ Gemini CLI |
@@ -72,6 +73,7 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 | **[BioIntelligenceLimb.ts](./src/limbs/bio/BioIntelligenceLimb.ts)** | Bio-medical analysis (MedGemma, HEAR, Pathology) | ✅ Clinical Precision |
 | **[GutenbergLimb.ts](./src/limbs/gutenberg/GutenbergLimb.ts)** | Literary knowledge & styled corpus ingestion | ✅ Historical Reach |
 | **[CloudflareLimb.ts](./src/limbs/cloud/CloudflareLimb.ts)** | Unified Cloudflare AI (Image, Chat, Embeddings) | ✅ Production Ready |
+| **[MCPLimb.ts](./src/limbs/system/MCPLimb.ts)** | Universal Model Context Protocol substrate (Stdio/SSE) | ✅ Production Ready (Phase 15) |
 | **[AILimb.ts](./src/api/ai/AILimb.ts)** | Registry-pathed specialized AI dispatcher | ✅ 283 Models |
 | **[Dispatcher.ts](./src/api/ai/Dispatcher.ts)** | gcloud Auth bridge & **Simulation Substrate** | ✅ Phase 13 Complete |
 
@@ -100,7 +102,7 @@ POG-CODER-VIBE is a **Hybrid Local-Cloud Agent** with cognitive control plane ca
 
 | Directory | Purpose | Key Files |
 |-----------|---------|-----------|
-| **`/src/utils`** | Configuration & key management | `config.ts`, `KeyVault.ts` |
+| **`/src/utils`** | Configuration & key management | `config.ts`, `KeyVault.ts`, `ReadManyFiles.ts` |
 | **`/src/git`** | Version control automation | `GitManager.ts` |
 | **`/src/testing`** | Test execution & auditing | `TestRunner.ts` |
 

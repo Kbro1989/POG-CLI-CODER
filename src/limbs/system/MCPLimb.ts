@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { BaseLimb } from '../core/BaseLimb.js';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -25,7 +26,38 @@ export class MCPLimb extends BaseLimb {
 
     constructor(config: VibeConfig) {
         super(config);
+        this.registerMcpTools();
         this.initializeServers();
+    }
+
+    private registerMcpTools(): void {
+        this.registerTools([
+            {
+                name: 'connect_mcp_server',
+                description: 'Manually bridge a new MCP server via stdio.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        name: { type: 'string', description: 'Neural link name.' },
+                        command: { type: 'string', description: 'Binary command.' },
+                        args: { type: 'array', items: { type: 'string' }, description: 'Args.' }
+                    },
+                    required: ['name', 'command']
+                },
+                schema: z.object({
+                    name: z.string(),
+                    command: z.string(),
+                    args: z.array(z.string()).optional()
+                }),
+                handler: async (args: any) => {
+                    await this.connectToServer(args['name'], {
+                        command: args['command'],
+                        args: args['args'] || []
+                    });
+                    return { ok: true, value: { status: 'synchronized' } };
+                }
+            }
+        ]);
     }
 
     private initializeServers(): void {

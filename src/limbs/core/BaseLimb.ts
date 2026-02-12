@@ -155,4 +155,13 @@ User Intent: ${this.getUserIntent(intent)}`;
     protected registerTools(tools: LimbTool[]): void {
         this.spine.registerTools(tools);
     }
+
+    /**
+     * Emits a "Memory Pulse" for Hexagram Line 2.
+     * All limbs utilize this to broadcast service health and activity.
+     */
+    protected async pinPulse(state: import('../../core/HexagramManager.js').YaoState, detail: string): Promise<void> {
+        this.spine.emitPulse(state, detail, this.id);
+        this.logger.info({ state, detail }, 'Limb Pulse Emitted');
+    }
 }

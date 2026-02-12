@@ -1,4 +1,5 @@
 import { BaseLimb } from '../core/BaseLimb.js';
+import { z } from 'zod';
 import { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import type { ModelExecutor } from '../../core/ModelExecutor.js';
@@ -31,6 +32,9 @@ export class QuantumLimb extends BaseLimb {
                     },
                     required: ['prompt']
                 },
+                schema: z.object({
+                    prompt: z.string().describe('The prompt to analyze in superposition')
+                }),
                 handler: (args) => this.executeSuperposition(args['prompt'])
             }
         ]);

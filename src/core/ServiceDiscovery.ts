@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { VibeConfig } from './models.js';
-import { GeminiServices } from '../services/GeminiServices.js';
+import { VibeConfig, HealthStatus } from './models.js';
+import { GeminiService } from './GeminiService.js';
 import { CloudflareServices, CloudflareConfig } from '../services/CloudflareServices.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,7 +13,7 @@ export interface ServiceStatus {
     readonly id: string;
     readonly name: string;
     readonly status: 'ACTIVE' | 'INACTIVE' | 'ERROR';
-    readonly enabled: boolean;
+    readonly health: HealthStatus;
     readonly details?: string;
     readonly type: 'API' | 'EXTENSION' | 'MCP' | 'WORKER';
 }
@@ -25,37 +25,38 @@ export class ServiceDiscovery {
         const results: ServiceStatus[] = [];
 
         // 1. Audit APIs
-        results.push(this.withEnabled(await this.checkGemini()));
-        results.push(this.withEnabled(await this.checkOllama()));
+        results.push(this.withHealth(await this.checkGemini()));
+        results.push(this.withHealth(await this.checkOllama()));
 
         // 2. Audit Extensions (GCloud SDKs)
         const extensions = await this.checkCloudExtensions();
-        results.push(...extensions.map(ext => this.withEnabled(ext)));
+        results.push(...extensions.map(ext => this.withHealth(ext)));
 
         // 3. Audit MCP Servers
-        results.push(this.withEnabled(await this.checkMCPServers()));
+        results.push(this.withHealth(await this.checkMCPServers()));
 
         // 4. Audit Knowledge Limbs (Phase 20)
-        results.push(this.withEnabled(await this.checkKnowledgeLimbs()));
+        results.push(this.withHealth(await this.checkKnowledgeLimbs()));
 
         // 5. Audit Endpoints (Sovereign Substrate)
-        results.push(this.withEnabled(await this.checkVSCodeExtension()));
-        results.push(this.withEnabled(await this.checkCloudflareWorker()));
+        results.push(this.withHealth(await this.checkVSCodeExtension()));
+        results.push(this.withHealth(await this.checkCloudflareWorker()));
 
         return results;
     }
 
-    private isServiceAuthorized(id: string): boolean {
+    private isServiceAuthorized(id: string): HealthStatus {
         const lowerId = id.toLowerCase();
-        return (this.config.enabledServices ?? []).some(s => s.toLowerCase() === lowerId);
+        const isAuthorized = (this.config.enabledServices ?? []).some(s => s.toLowerCase() === lowerId);
+        return isAuthorized ? HealthStatus.Ready : HealthStatus.Critical;
     }
 
-    private withEnabled(status: Omit<ServiceStatus, 'enabled'>): ServiceStatus {
-        const enabled = this.isServiceAuthorized(status.id);
-        return { ...status, enabled } as ServiceStatus;
+    private withHealth(status: Omit<ServiceStatus, 'health'>): ServiceStatus {
+        const health = this.isServiceAuthorized(status.id);
+        return { ...status, health } as ServiceStatus;
     }
 
-    private async checkGemini(): Promise<Omit<ServiceStatus, 'enabled'>> {
+    private async checkGemini(): Promise<Omit<ServiceStatus, 'health'>> {
         const apiKey = process.env['GOOGLE_API_KEY'];
 
         if (!apiKey) {
@@ -63,7 +64,7 @@ export class ServiceDiscovery {
         }
 
         try {
-            const gemini = new GeminiServices({ apiKey });
+            const gemini = new GeminiService({ apiKey });
             // Minor ping just to verify key/connectivity
             const result = await gemini.generateContent('ping');
             if (result.ok) {
@@ -75,7 +76,7 @@ export class ServiceDiscovery {
         }
     }
 
-    private async checkOllama(): Promise<Omit<ServiceStatus, 'enabled'>> {
+    private async checkOllama(): Promise<Omit<ServiceStatus, 'health'>> {
         try {
             // Ping Ollama endpoint
             const response = await fetch('http://localhost:11434/api/tags');
@@ -88,8 +89,8 @@ export class ServiceDiscovery {
         }
     }
 
-    private async checkCloudExtensions(): Promise<Omit<ServiceStatus, 'enabled'>[]> {
-        const extensions: Omit<ServiceStatus, 'enabled'>[] = [
+    private async checkCloudExtensions(): Promise<Omit<ServiceStatus, 'health'>[]> {
+        const extensions: Omit<ServiceStatus, 'health'>[] = [
             { id: 'healthcare', name: 'Bio Intelligence (MedGemma)', status: 'INACTIVE', type: 'EXTENSION' },
             { id: 'documentai', name: 'Document AI', status: 'INACTIVE', type: 'EXTENSION' },
             { id: 'vision', name: 'Cloud Vision', status: 'INACTIVE', type: 'EXTENSION' },
@@ -138,7 +139,7 @@ export class ServiceDiscovery {
         });
     }
 
-    private async checkMCPServers(): Promise<Omit<ServiceStatus, 'enabled'>> {
+    private async checkMCPServers(): Promise<Omit<ServiceStatus, 'health'>> {
         try {
             const hasGitKraken = fs.existsSync(join(this.config.projectRoot, '.gitkraken'));
             const hasGit = fs.existsSync(join(this.config.projectRoot, '.git'));
@@ -159,7 +160,7 @@ export class ServiceDiscovery {
         }
     }
 
-    private async checkKnowledgeLimbs(): Promise<Omit<ServiceStatus, 'enabled'>> {
+    private async checkKnowledgeLimbs(): Promise<Omit<ServiceStatus, 'health'>> {
         const gutenbergPath = this.config.gutenbergPath || join(this.config.pogDir, 'knowledge');
         const exists = fs.existsSync(gutenbergPath);
 
@@ -172,7 +173,7 @@ export class ServiceDiscovery {
         };
     }
 
-    private async checkVSCodeExtension(): Promise<Omit<ServiceStatus, 'enabled'>> {
+    private async checkVSCodeExtension(): Promise<Omit<ServiceStatus, 'health'>> {
         const wsPort = this.config.wsPort || 8765;
 
         // Test WebSocket bridge availability by checking if the server is listening
@@ -209,7 +210,7 @@ export class ServiceDiscovery {
         }
     }
 
-    private async checkCloudflareWorker(): Promise<Omit<ServiceStatus, 'enabled'>> {
+    private async checkCloudflareWorker(): Promise<Omit<ServiceStatus, 'health'>> {
         const workerUrl = process.env['CLOUDFLARE_WORKER_URL'];
 
         // If worker URL is set, ping it to verify it's operational

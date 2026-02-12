@@ -1,4 +1,5 @@
 import { BaseLimb } from '../core/BaseLimb.js';
+import { z } from 'zod';
 import { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import type { ModelExecutor } from '../../core/ModelExecutor.js';
@@ -54,6 +55,9 @@ export class RelicLimb extends BaseLimb {
                         cacheId: { type: 'number', description: 'Priority cache target' }
                     }
                 },
+                schema: z.object({
+                    cacheId: z.number().optional().describe('Priority cache target')
+                }),
                 handler: async (args) => {
                     const res = await this.excavate_cache(args);
                     return { ok: true, value: res };
@@ -70,6 +74,10 @@ export class RelicLimb extends BaseLimb {
                     },
                     required: ['path']
                 },
+                schema: z.object({
+                    path: z.string().describe('Relative path to the record'),
+                    base64: z.boolean().optional().describe('Return as base64')
+                }),
                 handler: async (args: Record<string, any>) => {
                     const res = await this.read_record(args);
                     return { ok: true, value: res };
@@ -85,6 +93,10 @@ export class RelicLimb extends BaseLimb {
                         limit: { type: 'number', description: 'Max items to return' }
                     }
                 },
+                schema: z.object({
+                    category: z.string().optional().describe('Archive category (config, models, maps, etc)'),
+                    limit: z.number().optional().describe('Max items to return')
+                }),
                 handler: async (args: Record<string, any>) => {
                     const res = await this.explore_museum(args);
                     return { ok: true, value: res };

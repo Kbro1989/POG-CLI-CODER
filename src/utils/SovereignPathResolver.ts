@@ -96,6 +96,10 @@ export function getSovereignRoot(tier?: PathTier): string {
         if (!existsSync(SOVEREIGN_D_ROOT)) {
             mkdirSync(SOVEREIGN_D_ROOT, { recursive: true });
         }
+        // Ensure Gutenberg path is also initialized if it doesn't exist
+        if (!existsSync(GUTENBERG_D_PATH)) {
+            mkdirSync(GUTENBERG_D_PATH, { recursive: true });
+        }
         return SOVEREIGN_D_ROOT;
     }
 
@@ -135,7 +139,7 @@ export function resolveSovereignPath(subpath: string, tier?: PathTier): string {
  * Gets the Ollama models path (D:\ollama-models or environment override)
  */
 export function getOllamaModelsPath(): string {
-    const envPath = process.env['OLLAMA_MODELS_PATH'];
+    const envPath = process.env['OLLAMA_MODELS_PATH'] || process.env['POG_ERROR_TRACKER_PATH'];
     if (envPath && existsSync(envPath)) return envPath;
 
     if (hasSovereignDrive() && existsSync(OLLAMA_D_PATH)) {

@@ -773,6 +773,60 @@
       "success": true,
       "timestamp": 1770779578677,
       "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 19164,
+      "success": true,
+      "timestamp": 1770895782420,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 17975,
+      "success": true,
+      "timestamp": 1770896035100,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 18383,
+      "success": true,
+      "timestamp": 1770896168731,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 21244,
+      "success": true,
+      "timestamp": 1770897169843,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 6635,
+      "success": true,
+      "timestamp": 1770897709057,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 4505,
+      "success": true,
+      "timestamp": 1770897808298,
+      "isFree": true
     }
   ],
   "version": "1.2.0"

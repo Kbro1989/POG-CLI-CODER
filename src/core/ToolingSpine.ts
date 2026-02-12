@@ -1,5 +1,13 @@
 import { z } from 'zod';
+import { EventEmitter } from 'events';
 import type { Result } from './models.js';
+import { YaoState } from './HexagramManager.js';
+
+export interface PulseEvent {
+    state: YaoState;
+    detail: string;
+    source: string;
+}
 
 
 /**
@@ -21,8 +29,15 @@ export interface LimbTool {
 /**
  * ToolingSpine - Centralizes tool registration and routing for Limbs.
  */
-export class ToolingSpine {
+export class ToolingSpine extends EventEmitter {
     private tools: Map<string, LimbTool> = new Map();
+
+    /**
+     * Emits a ternary pulse for Hexagram Line 2.
+     */
+    emitPulse(state: YaoState, detail: string, source: string): void {
+        this.emit('pulse', { state, detail, source } as PulseEvent);
+    }
 
     /**
      * Register multiple tools at once.

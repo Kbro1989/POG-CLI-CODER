@@ -104,11 +104,15 @@ export class Sandbox {
       const dest = join(this.snapshotsDir, snapshotId);
       mkdirSync(dest, { recursive: true });
 
-      // Copy src and cli directories
-      ['src', 'cli', 'package.json', 'tsconfig.json'].forEach(item => {
+      // Copy key project areas
+      ['src', 'cli', 'tests', 'package.json', 'tsconfig.json'].forEach(item => {
         const srcPath = join(this.config.projectRoot, item);
         if (existsSync(srcPath)) {
-          cpSync(srcPath, join(dest, item), { recursive: true });
+          try {
+            cpSync(srcPath, join(dest, item), { recursive: true });
+          } catch (err) {
+            logger.error({ item, err }, 'Failed to copy item to snapshot');
+          }
         }
       });
 
@@ -149,12 +153,16 @@ export class Sandbox {
       // File Copy Rollback
       const snapshotPath = join(this.snapshotsDir, snapshotId);
       if (existsSync(snapshotPath)) {
-        ['src', 'cli', 'package.json', 'tsconfig.json'].forEach(item => {
+        ['src', 'cli', 'tests', 'package.json', 'tsconfig.json'].forEach(item => {
           const destPath = join(this.config.projectRoot, item);
           const srcPath = join(snapshotPath, item);
           if (existsSync(srcPath)) {
-            rmSync(destPath, { recursive: true, force: true });
-            cpSync(srcPath, destPath, { recursive: true });
+            try {
+              rmSync(destPath, { recursive: true, force: true });
+              cpSync(srcPath, destPath, { recursive: true });
+            } catch (err) {
+              logger.error({ item, err }, 'Failed to restore item during rollback');
+            }
           }
         });
         return { ok: true, value: undefined };

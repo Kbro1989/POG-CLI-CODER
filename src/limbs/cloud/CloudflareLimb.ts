@@ -498,57 +498,12 @@ export class CloudflareLimb extends BaseLimb {
     }
 
     private async handlePipeline(task: string, type: 'image_gen' | 'code_forge' | 'assets_bake'): Promise<Result<unknown>> {
-        this.logger.info({ task, type }, 'Executing agentic pipeline');
+        this.logger.info({ task, type }, 'Executing agentic pipeline via Standalone App');
 
-        // Phase 1: Interpreter (Use native Llama 3.1 8B on CF)
-        const interpreterPrompt = `You are the Cloudflare Pipeline Interpreter. 
-Task: "${task}"
-Type: "${type}"
-Decompose this into a specific image prompt. 
-Output ONLY the final prompt for the image generator.`;
+        // Lazy load the pipeline to avoid circular deps if any
+        const { CloudflarePipeline } = await import('../../apps/cloudflare/Pipeline.js');
+        const pipeline = new CloudflarePipeline(this.services);
 
-        const interpretation = await this.chatCompletion([
-            { role: 'system', content: 'You are a precise prompt engineer.' },
-            { role: 'user', content: interpreterPrompt }
-        ]);
-
-        if (!interpretation.ok) return interpretation;
-        const refinedPrompt = interpretation.value.response.trim();
-        this.logger.info({ refinedPrompt }, 'Pipeline interpretation complete');
-
-        // Phase 2: Generation
-        const generation = await this.generateImage(refinedPrompt);
-        if (!generation.ok) return generation;
-
-        // Phase 3: Persistence (Auto-save to R2)
-        const assetName = `pipeline_${Date.now()}.png`;
-        const persistence = await this.services.putObject(
-            'workspace-bucketsespreview',
-            assetName,
-            generation.value,
-            'image/png'
-        );
-
-        if (!persistence.ok) {
-            this.logger.error({ error: persistence.error }, 'Pipeline persistence failed, returning raw result');
-            return {
-                ok: true,
-                value: {
-                    status: 'Partial Success',
-                    asset: Buffer.from(generation.value).toString('base64'),
-                    error: 'Storage failure'
-                }
-            };
-        }
-
-        return {
-            ok: true,
-            value: {
-                status: 'Success',
-                assetName,
-                bucket: 'workspace-bucketsespreview',
-                previewUrl: `https://pub-r2.cloudflare.com/${assetName}` // Hypothetical public URL pattern
-            }
-        };
+        return pipeline.execute(task, type);
     }
 }

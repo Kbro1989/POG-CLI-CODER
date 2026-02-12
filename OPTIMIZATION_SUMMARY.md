@@ -744,6 +744,30 @@ Speedup: 2.71x ⚡
 
 ---
 
+## 🧠 Brain Architecture & Job Alignment
+
+### Limb & Function Census
+- **Total Active Limbs**: 26 + 1 (AI Meta-Limb) = 27
+- **Core Tool Count (Spine)**: 22 formally registered functions across 5 executive limbs.
+- **Tool Spine Integrity**: 100% (AILimb, Hex, Learning, Control Plane, FileSystem connected).
+
+### Finalized Model Job Mapping (Hexagram Aligned)
+The system utilizes a 6-tier ternary orchestration strategy:
+
+| Line | Job Category | Primary Model (Local) | Ternary Role |
+| :--- | :--- | :--- | :--- |
+| **L6** | UI & Culmination | Gemini 2.0 Flash | Cloud Sovereign |
+| **L5** | Strategy & Planning | `qwen2.5-coder:14b` | `VIBE_PLANNING_MODEL` |
+| **L4** | Health & Rollback | `yi-coder:9b` | `VIBE_SNAPSHOT_MODEL` |
+| **L3** | Ethics & Critic | `deepseek-coder:6.7b` | `VIBE_CRITIC_MODEL` |
+| **L2** | Coding & Execution | `qwen2.5-coder:7b` | `VIBE_CODING_MODEL` |
+| **L1** | Pulse & Monitor | `tinyllama:latest` | `VIBE_MONITOR_MODEL` |
+
+> [!IMPORTANT]
+> This alignment ensures that no part of the "brain" is ripped out during model swaps. The Hexagram state (Soul) and VectorDB (Learning) are the immutable substrates upon which these jobs execute.
+
+---
+
 ## Multifunctional Efficiency 🐙
 
 A key optimization in Phase 13 was the consolidation of capabilities into **Multifunctional Limbs**. Instead of managing 50 disparate microservices or API clients, POG-CODER-VIBE condenses them into 11 high-density, type-safe modules.

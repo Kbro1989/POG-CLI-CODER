@@ -1,7 +1,9 @@
 import { BaseLimb } from '../core/BaseLimb.js';
+import { z } from 'zod';
 import { VibeConfig, ModelAbility as MA } from '../../core/models.js';
 import { ModelExecutor } from '../../core/ModelExecutor.js';
 import { FreeModelRouter } from '../../core/Router.js';
+import { YaoState } from '../../core/HexagramManager.js';
 
 /**
  * MediaForgeLimb - Generative Media Intelligence for Sovereign AI
@@ -34,6 +36,10 @@ export class MediaForgeLimb extends BaseLimb {
                     },
                     required: ['prompt', 'targetType']
                 },
+                schema: z.object({
+                    prompt: z.string(),
+                    targetType: z.enum(['image', 'speech', 'vision', 'model'])
+                }),
                 handler: async (args: any) => {
                     let ability: MA;
                     const target = args['targetType'].toLowerCase();
@@ -47,8 +53,12 @@ export class MediaForgeLimb extends BaseLimb {
                     const model = this.router.routeByAbility(ability);
                     const result = await this.modelExecutor.callCloudflareAI(model, { prompt: args['prompt'] });
 
-                    if (!result.ok) return result;
+                    if (!result.ok) {
+                        await this.pinPulse(YaoState.OldYin, `Media Forge Fail: ${target}`);
+                        return result;
+                    }
 
+                    await this.pinPulse(YaoState.OldYang, `Media Forged: ${target}`);
                     return {
                         ok: true,
                         value: {
@@ -60,6 +70,7 @@ export class MediaForgeLimb extends BaseLimb {
             }
         ]);
     }
+
 
     // Override canHandle for backward compatibility and broad detection
     override async canHandle(intent: import('../core/NeuralLimb.js').Intent): Promise<import('../core/NeuralLimb.js').TernaryDecision> {

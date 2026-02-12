@@ -57,9 +57,9 @@ export interface ModelPerformance {
   readonly taskType: TaskType;
   readonly extension: string;
   readonly latency: number;
-  readonly success: boolean;
+  readonly success: SuccessRating;
   readonly timestamp: number;
-  readonly isFree: boolean;
+  readonly isFree: CostTier;
   readonly memoryUsage?: number;
   readonly tokenCount?: number;
 }
@@ -80,7 +80,7 @@ export interface IntentHistory {
   readonly sessionId: string;
   readonly query: string;
   readonly selectedModel: string;
-  readonly success: boolean;
+  readonly success: SuccessRating;
   readonly timestamp: number;
   readonly fileContext?: string;
   readonly executionTime: number;
@@ -127,6 +127,51 @@ export interface FreeModelConfig {
  * Strictly-typed Ternary value for decision logic
  */
 export type Ternary = -1 | 0 | 1;
+
+/**
+ * Domain-Specific Ternary Enums for Stage-based Decisions
+ */
+export enum BuildStatus {
+  Failed = -1,
+  Warning = 0,
+  Passed = 1
+}
+
+export enum HealthStatus {
+  Critical = -1,
+  Degraded = 0,
+  Ready = 1
+}
+
+export enum ResourcePressure {
+  Critical = -1,
+  High = 0,
+  Optimal = 1
+}
+
+export enum UserEngagement {
+  Idle = -1,
+  Passive = 0,
+  Active = 1
+}
+
+export enum SuccessRating {
+  Failure = -1,
+  Partial = 0,
+  Success = 1
+}
+
+export enum ExecutionEscalation {
+  Safe = -1,
+  Standby = 0,
+  Aggressive = 1
+}
+
+export enum CostTier {
+  Paid = -1,
+  Credits = 0,
+  Free = 1
+}
 
 /**
  * Ternary decision tree node for routing (Discriminated Union)
@@ -271,8 +316,10 @@ export interface VibeConfig {
   readonly snapshotModel?: string | undefined;
   readonly criticModel?: string | undefined;
   readonly planningModel?: string | undefined;
+  readonly codingModel?: string | undefined;
   readonly healThreshold?: 'low' | 'medium' | 'high' | 'critical' | undefined;
   readonly sovereignRoot?: string | undefined;
+  readonly pogApiUrl?: string | undefined;
 }
 
 export const enum AgentTerminateMode {
@@ -355,7 +402,7 @@ export interface ExecutionContext {
   plan?: ExecutionPlan;
   currentStepId?: number;
   readonly imageBase64?: string;
-  readonly force?: boolean;
+  readonly force?: ExecutionEscalation;
 }
 
 export interface CascadeTier {

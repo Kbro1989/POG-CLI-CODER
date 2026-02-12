@@ -1,6 +1,6 @@
-import { ModelExecutor } from './src/core/ModelExecutor.js';
-import { ConfigManager } from './src/utils/config.js';
-import { GeminiService } from './src/core/GeminiService.js';
+import { ModelExecutor } from '../src/core/ModelExecutor.js';
+import { ConfigManager } from '../src/utils/config.js';
+import { GeminiService } from '../src/core/GeminiService.js';
 import * as dotenv from 'dotenv';
 
 dotenv.config();

@@ -1,6 +1,8 @@
 import { BaseLimb } from '../core/BaseLimb.js';
+import { z } from 'zod';
 import type { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
+import { YaoState } from '../../core/HexagramManager.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import * as fs from 'fs'; // For namespace access if needed
 import { join } from 'path';
@@ -13,15 +15,16 @@ import { VectorDB } from '../../learning/VectorDB.js';
 // Domain taxonomy for intelligent book categorization
 export const GUTENBERG_DOMAINS = {
     mathematics: ['geometry', 'algebra', 'calculus', 'arithmetic', 'euclid', 'mathematical'],
-    science: ['physics', 'chemistry', 'biology', 'astronomy', 'geology', 'darwin', 'scientific'],
+    science: ['physics', 'chemistry', 'biology', 'astronomy', 'geology', 'darwin', 'scientific', 'mechanism', 'evolution'],
     technology: ['engineering', 'inventions', 'machinery', 'electricity', 'tesla', 'technical'],
     construction: ['architecture', 'carpentry', 'masonry', 'building', 'vitruvius'],
     psychology: ['mind', 'behavior', 'cognitive', 'psychological', 'freud', 'mental'],
-    philosophy: ['ethics', 'metaphysics', 'logic', 'reasoning', 'philosophical'],
+    philosophy: ['logic', 'ethics', 'metaphysics', 'epistemology', 'plato', 'aristotle', 'nietzsche', 'hegel', 'kant', 'reflective'],
     religion: ['bible', 'theology', 'spirituality', 'mythology', 'religious'],
-    history: ['civilization', 'progression', 'chronicles', 'epochs', 'historical'],
-    fantasy: ['fairy tales', 'mythology', 'legends', 'epic', 'folklore'],
-    literature: ['novels', 'poetry', 'drama', 'essays', 'shakespeare', 'literary']
+    history: ['civilization', 'progression', 'chronicles', 'epochs', 'historical', 'ancient', 'modern', 'renaissance', 'empire'],
+    fantasy: ['fairy tales', 'mythology', 'legends', 'epic', 'folklore', 'faerie', 'enchanted'],
+    gothic: ['horror', 'ghost', 'vampire', 'supernatural', 'terror', 'mystery', 'macabre', 'lovecraft', 'poe'],
+    literature: ['novels', 'poetry', 'drama', 'essays', 'shakespeare', 'literary', 'classic', 'fiction', 'prose', 'victorian', 'customs', 'society']
 } as const;
 
 interface BookMetadata {
@@ -107,8 +110,15 @@ export class GutenbergLimb extends BaseLimb {
                         limit: { type: 'number', description: 'Maximum number of results' }
                     }
                 },
+                schema: z.object({
+                    search: z.string().optional(),
+                    authors: z.array(z.string()).optional(),
+                    domains: z.array(z.string()).optional(),
+                    limit: z.number().optional()
+                }),
                 handler: async (args: any) => {
                     const searchResult = await this.searchBooks(args);
+                    await this.pinPulse(YaoState.YoungYang, `Library Search: ${args.search || 'Global Scan'}`);
                     return {
                         ok: true,
                         value: {
@@ -129,9 +139,21 @@ export class GutenbergLimb extends BaseLimb {
                         domains: { type: 'array', items: { type: 'string' } }
                     }
                 },
+                schema: z.object({
+                    search: z.string().optional(),
+                    authors: z.array(z.string()).optional(),
+                    domains: z.array(z.string()).optional()
+                }),
                 handler: async (args: any) => {
                     const booksToIngest = await this.searchBooks(args);
                     const ingestResult = await this.ingestBooks(booksToIngest);
+
+                    if (ingestResult.success > 0) {
+                        await this.pinPulse(YaoState.OldYang, `Ingestion Pulse: ${ingestResult.success} books captured`);
+                    } else if (ingestResult.failed > 0) {
+                        await this.pinPulse(YaoState.YoungYin, 'Ingestion Pulse: Fault in capture stream');
+                    }
+
                     return {
                         ok: true,
                         value: {
@@ -148,6 +170,7 @@ export class GutenbergLimb extends BaseLimb {
                     type: 'object',
                     properties: {}
                 },
+                schema: z.object({}),
                 handler: async () => {
                     return this.handleListStyles();
                 }
@@ -159,6 +182,7 @@ export class GutenbergLimb extends BaseLimb {
                     type: 'object',
                     properties: {}
                 },
+                schema: z.object({}),
                 handler: async () => {
                     const books = this.loadMetadataCache();
                     return {
@@ -180,6 +204,9 @@ export class GutenbergLimb extends BaseLimb {
                     },
                     required: ['bookId']
                 },
+                schema: z.object({
+                    bookId: z.number().describe('The ID of the book to read')
+                }),
                 handler: async (args: any) => {
                     const books = this.loadMetadataCache();
                     const book = books.find(b => b.id === args.bookId);
@@ -209,6 +236,9 @@ export class GutenbergLimb extends BaseLimb {
                     },
                     required: ['fileName']
                 },
+                schema: z.object({
+                    fileName: z.string().describe('Name of the audio file in the audiobook directory')
+                }),
                 handler: async (args: any) => {
                     const audioPath = join(this.GUTENBERG_CACHE, 'audio', args.fileName);
                     if (!fs.existsSync(audioPath)) return { ok: false, error: new Error(`Audio file ${args.fileName} not found in library audio folder.`) };
@@ -251,6 +281,10 @@ export class GutenbergLimb extends BaseLimb {
                     },
                     required: ['bookId']
                 },
+                schema: z.object({
+                    bookId: z.number().describe('The ID of the book to narrate'),
+                    style: z.enum(['Professional', 'Storyteller', 'Dramatic']).optional().default('Professional').describe('Narration style')
+                }),
                 handler: async (args: any) => {
                     const books = this.loadMetadataCache();
                     const book = books.find(b => b.id === args.bookId);
@@ -271,78 +305,31 @@ export class GutenbergLimb extends BaseLimb {
                 }
             },
             {
-                name: 'generate_storyboard',
-                description: 'Generate a sequence of narrative beats and visual prompts inspired by a specific book style.',
+                name: 'gutenberg_analyze_style',
+                description: 'Analyze the literary style of a locally cached book.',
                 parameters: {
                     type: 'object',
                     properties: {
-                        bookId: { type: 'number', description: 'ID of the book for style inspiration' },
-                        premise: { type: 'string', description: 'The core idea for the storyboard' },
-                        sceneCount: { type: 'number', description: 'Number of scenes to generate', default: 4 }
+                        bookId: { type: 'number', description: 'The ID of the book to analyze' }
                     },
-                    required: ['bookId', 'premise']
+                    required: ['bookId']
                 },
+                schema: z.object({
+                    bookId: z.number().describe('The ID of the book to analyze')
+                }),
                 handler: async (args: any) => {
                     const books = this.loadMetadataCache();
                     const book = books.find(b => b.id === args.bookId);
-                    if (!book) return { ok: false, error: new Error(`Book ${args.bookId} not found.`) };
-
-                    this.logger.info({ bookTitle: book.title, premise: args.premise }, 'Generating style-aware storyboard');
+                    if (!book) return { ok: false, error: new Error(`Book ${args.bookId} not found in local library.`) };
 
                     try {
-                        const content = readFileSync(book.path, 'utf8').slice(0, 5000);
+                        const content = readFileSync(book.path, 'utf8');
                         const styleProfile = StyleAnalyzer.analyze(content);
-
-                        const prompt = `Act as a master storyteller. Using the prose style and narrative tone of "${book.author}" (specifically like "${book.title}"), generate a storyboard for the following premise: "${args.premise}".
-Style Context:
-- Avg Sentence Length: ${styleProfile.avgSentenceLength}
-- Readability: ${styleProfile.readabilityScore}
-- Tone: ${styleProfile.tone}
-- Direct Snippet: "${content.slice(100, 400)}..."
-
-Generate exactly ${args.sceneCount || 4} scenes. For each scene, provide:
-1. Scene Title
-2. Narrative Beat (in the author's style)
-3. Visual Forge Prompt (for an image generator)
-
-Return as JSON array of objects.`;
-
-                        let storyboardResult: any[] = [];
-                        if (this.gemini) {
-                            const response = await this.gemini.generateContent(prompt);
-                            if (response.ok) {
-                                try {
-                                    const jsonStr = response.value.response.match(/\[[\s\S]*\]/)?.[0] || response.value.response;
-                                    storyboardResult = JSON.parse(jsonStr);
-                                } catch (e) {
-                                    this.logger.warn({ err: e }, 'Failed to parse storyboard JSON, using raw response');
-                                    storyboardResult = [{ title: 'Narrative Flow', beat: response.value.response, visual: 'A literary landscape' }];
-                                }
-                            }
-                        }
-
-                        if (this.vectorDB && typeof this.vectorDB.addLesson === 'function' && this.gemini) {
-                            const text = JSON.stringify(storyboardResult);
-                            const embeddingRes = await this.gemini.embed(text);
-                            const embedding = (embeddingRes.ok && embeddingRes.value) ? embeddingRes.value : new Float32Array(768);
-
-                            await this.vectorDB.addLesson({
-                                id: `storyboard-${Date.now()}`,
-                                text,
-                                embedding,
-                                sessionId: 'storyboarding',
-                                projectId: 'global',
-                                errorType: 'none',
-                                createdAt: Date.now(),
-                                metadata: { source: `gutenberg:${book.id}`, styleProfile, type: 'storyboard' }
-                            });
-                        }
-
                         return {
                             ok: true,
                             value: {
-                                output: `Generated storyboard for "${args.premise}" inspired by ${book.author}.`,
-                                data: { storyboard: storyboardResult, book }
+                                output: `Style analysis complete for "${book.title}".`,
+                                data: { styleProfile, book }
                             }
                         };
                     } catch (err) {
@@ -360,6 +347,9 @@ Return as JSON array of objects.`;
                     },
                     required: ['bookId']
                 },
+                schema: z.object({
+                    bookId: z.number().describe('ID of the book to ingest')
+                }),
                 handler: async (args: any) => {
                     return this.ingestBookIntoMemory(args.bookId);
                 }
@@ -375,6 +365,10 @@ Return as JSON array of objects.`;
                     },
                     required: ['query']
                 },
+                schema: z.object({
+                    query: z.string().describe('The semantic query (e.g., "Lovecraftian description of a variable")'),
+                    limit: z.number().optional().default(5).describe('Max number of chunks to retrieve')
+                }),
                 handler: async (args: any) => {
                     return this.retrieveLiteraryContext(args.query, args.limit);
                 }
@@ -536,15 +530,6 @@ Return as JSON array of objects.`;
     }
 
     private async downloadAndCache(book: BookMetadata): Promise<void> {
-        const domain = this.inferDomain(book);
-        const cachePath = join(this.GUTENBERG_CACHE, 'domains', domain, `${book.id}.txt`);
-
-        // Skip if already cached
-        if (existsSync(cachePath)) {
-            this.logger.debug({ bookId: book.id }, 'Book already cached');
-            return;
-        }
-
         // Find plain text URL
         const textUrl = book.formats['text/plain; charset=utf-8'] ||
             book.formats['text/plain'] ||
@@ -559,6 +544,23 @@ Return as JSON array of objects.`;
 
         const text = await response.text();
 
+        // Infer domain with content awareness
+        const domain = this.inferDomain(book, text);
+
+        // Standardize naming: Title_Author_ID.txt
+        const sanitizedTitle = book.title.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').slice(0, 50);
+        const authorName = book.authors[0]?.name || 'Unknown';
+        const sanitizedAuthor = authorName.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').slice(0, 30);
+        const fileName = `${sanitizedTitle}_${sanitizedAuthor}_${book.id}.txt`;
+        const cachePath = join(this.GUTENBERG_CACHE, 'domains', domain, fileName);
+
+        // Skip if already cached (checking both path and ID in metadata)
+        const metadata = this.loadMetadataCache();
+        if (metadata.some(m => m.id === book.id && existsSync(m.path))) {
+            this.logger.debug({ bookId: book.id }, 'Book already cached');
+            return;
+        }
+
         // Cache locally
         mkdirSync(join(this.GUTENBERG_CACHE, 'domains', domain), { recursive: true });
         writeFileSync(cachePath, text);
@@ -567,12 +569,12 @@ Return as JSON array of objects.`;
         this.updateMetadataCache({
             id: book.id,
             title: book.title,
-            author: book.authors[0]?.name || 'Unknown',
+            author: authorName,
             domain,
             path: cachePath
         });
 
-        this.logger.info({ bookId: book.id, domain, title: book.title }, 'Book cached successfully');
+        this.logger.info({ bookId: book.id, domain, title: book.title, fileName }, 'Book cached with descriptive naming');
 
 
         // Integrating Learning Mechanism with Style Analysis
@@ -612,12 +614,27 @@ Return as JSON array of objects.`;
         }
     }
 
-    private inferDomain(book: BookMetadata): string {
-        const text = `${book.title} ${book.subjects.join(' ')}`.toLowerCase();
+    private inferDomain(book: BookMetadata, content?: string): string {
+        const metadataText = `${book.title} ${book.subjects.join(' ')}`.toLowerCase();
 
+        // 1. Keyword Taxonomy Match
         for (const [domain, keywords] of Object.entries(GUTENBERG_DOMAINS)) {
-            if (keywords.some(kw => text.includes(kw))) {
+            if (keywords.some(kw => metadataText.includes(kw))) {
                 return domain;
+            }
+        }
+
+        // 2. Content-Aware Fallback
+        if (content) {
+            const head = content.slice(0, 2000).toLowerCase();
+            if (head.includes('chapter i') || head.includes('contents') || head.includes('preface')) {
+                return 'literature'; // Likely a novel or structured literary work
+            }
+            if (head.includes('theorem') || head.includes('q.e.d') || head.includes('equation')) {
+                return 'mathematics';
+            }
+            if (head.includes('experiment') || head.includes('observation') || head.includes('data')) {
+                return 'science';
             }
         }
 

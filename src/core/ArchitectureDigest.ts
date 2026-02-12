@@ -32,7 +32,8 @@ export class ArchitectureDigest {
                 'Core': { file: 'src/core/Orchestrator.ts', properties: ['processFunctionCalls', 'executeTurn'] },
                 'Learning': { file: 'src/learning/VectorDB.ts', properties: ['addLesson', 'search'] },
                 'Limbs': { file: 'src/limbs/webapp/WebAppForgeLimb.ts', properties: ['execute'] },
-                'Sandbox': { file: 'src/sandbox/Sandbox.ts', properties: ['execute', 'createSnapshot'] }
+                'Sandbox': { file: 'src/sandbox/Sandbox.ts', properties: ['execute', 'createSnapshot'] },
+                'Tests': { file: 'tests/index.ts', properties: ['verify', 'outputs'] }
             },
             dependencyRules: {
                 'core': ['learning', 'utils', 'context'],

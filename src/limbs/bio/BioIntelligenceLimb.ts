@@ -21,43 +21,66 @@ export class BioIntelligenceLimb extends BaseLimb {
     }
 
     private registerBioTools(): void {
-        const tools = [
+        const tools: import('../../core/ToolingSpine.js').LimbTool[] = [
             {
-                id: 'hear_acoustic_analysis',
                 name: 'hear_acoustic_analysis',
-                description: 'Analyze health-related sounds like coughs or breathing.'
+                description: 'Analyze health-related sounds like coughs or breathing.',
+                parameters: {
+                    type: 'object' as const,
+                    properties: {
+                        prompt: { type: 'string', description: 'Clinical context or patient case to analyze' }
+                    },
+                    required: ['prompt'] as const
+                },
+                handler: async (args: Record<string, any>): Promise<Result<unknown>> => {
+                    return this.handleBioCall('hear_acoustic_analysis', args['prompt']);
+                }
             },
             {
-                id: 'medgemma_reasoning',
                 name: 'medgemma_reasoning',
-                description: 'Perform advanced medical reasoning and comprehension.'
+                description: 'Perform advanced medical reasoning and comprehension.',
+                parameters: {
+                    type: 'object' as const,
+                    properties: {
+                        prompt: { type: 'string', description: 'Clinical context or patient case to analyze' }
+                    },
+                    required: ['prompt'] as const
+                },
+                handler: async (args: Record<string, any>): Promise<Result<unknown>> => {
+                    return this.handleBioCall('medgemma_reasoning', args['prompt']);
+                }
             },
             {
-                id: 'derm_foundation_analysis',
                 name: 'derm_foundation_analysis',
-                description: 'Analyze medical photographs of human skin for dermatological assessment.'
+                description: 'Analyze medical photographs of human skin for dermatological assessment.',
+                parameters: {
+                    type: 'object' as const,
+                    properties: {
+                        prompt: { type: 'string', description: 'Clinical context or patient case to analyze' }
+                    },
+                    required: ['prompt'] as const
+                },
+                handler: async (args: Record<string, any>): Promise<Result<unknown>> => {
+                    return this.handleBioCall('derm_foundation_analysis', args['prompt']);
+                }
             },
             {
-                id: 'pathology_analysis',
                 name: 'pathology_analysis',
-                description: 'Analyze pathology slides and H&E patches.'
+                description: 'Analyze pathology slides and H&E patches.',
+                parameters: {
+                    type: 'object' as const,
+                    properties: {
+                        prompt: { type: 'string', description: 'Clinical context or patient case to analyze' }
+                    },
+                    required: ['prompt'] as const
+                },
+                handler: async (args: Record<string, any>): Promise<Result<unknown>> => {
+                    return this.handleBioCall('pathology_analysis', args['prompt']);
+                }
             }
         ];
 
-        this.registerTools(tools.map(tool => ({
-            name: tool.name,
-            description: tool.description,
-            parameters: {
-                type: 'object',
-                properties: {
-                    prompt: { type: 'string', description: 'Clinical context or patient case to analyze' }
-                },
-                required: ['prompt']
-            },
-            handler: async (args: any) => {
-                return this.handleBioCall(tool.id, args['prompt']);
-            }
-        })));
+        this.registerTools(tools);
     }
 
     override async canHandle(intent: Intent): Promise<TernaryDecision> {

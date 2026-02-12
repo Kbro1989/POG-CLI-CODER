@@ -1,4 +1,5 @@
 import { BaseLimb } from '../core/BaseLimb.js';
+import { z } from 'zod';
 import { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import type { ModelExecutor } from '../../core/ModelExecutor.js';
@@ -31,6 +32,9 @@ export class OmegaLimb extends BaseLimb {
                     },
                     required: ['goal']
                 },
+                schema: z.object({
+                    goal: z.string().describe('The objective to measure against')
+                }),
                 handler: (args) => this.executeTeleology(args['goal'])
             }
         ]);

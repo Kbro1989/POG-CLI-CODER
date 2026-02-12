@@ -1,5 +1,6 @@
-
 import 'dotenv/config';
+import { appendFileSync, mkdirSync, existsSync } from 'fs';
+import { join } from 'path';
 
 const MODELS_TO_TEST = [
     'qwen2.5-coder:14b-instruct-q5_K_M',
@@ -9,9 +10,19 @@ const MODELS_TO_TEST = [
 ];
 
 const TEST_PROMPT = 'Write hello world in Python';
+const OUTPUT_DIR = join(process.cwd(), 'tests', 'outputs');
+const LOG_FILE = join(OUTPUT_DIR, 'model_health.log');
+
+if (!existsSync(OUTPUT_DIR)) mkdirSync(OUTPUT_DIR, { recursive: true });
+
+function logToFile(msg: string) {
+    appendFileSync(LOG_FILE, `${new Date().toISOString()} - ${msg}\n`);
+}
 
 async function testModel(modelName: string): Promise<boolean> {
-    console.log(`\n🧪 Testing ${modelName}...`);
+    const msg = `🧪 Testing ${modelName}...`;
+    console.log(`\n${msg}`);
+    logToFile(msg);
     const start = Date.now();
 
     try {
@@ -37,14 +48,17 @@ async function testModel(modelName: string): Promise<boolean> {
         return true;
     } catch (e: any) {
         const duration = ((Date.now() - start) / 1000).toFixed(2);
-        console.log(`❌ ERROR (${duration}s) - ${e.message}`);
+        const errorMsg = `❌ ERROR (${duration}s) - ${e.message}`;
+        console.log(errorMsg);
+        logToFile(errorMsg);
         return false;
     }
 }
 
 async function main() {
-    console.log('🔍 Testing Local Ollama Models\n');
-    console.log('Running full tests (no timeout) to identify actual failures\n');
+    const header = '🔍 Testing Local Ollama Models\nRunning full tests (no timeout) to identify actual failures';
+    console.log(header);
+    logToFile(header);
     console.log('='.repeat(60));
 
     const results: { model: string; passed: boolean }[] = [];

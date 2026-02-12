@@ -10,7 +10,7 @@ import type {
   Ternary,
   CircuitState,
 } from './models.js';
-import { CircuitState as CS, ModelType as MT, ModelAbility as MA } from './models.js';
+import { CircuitState as CS, ModelType as MT, ModelAbility as MA, SuccessRating } from './models.js';
 import { ContextBuilder } from '../context/ContextBuilder.js';
 import { VectorDB } from '../learning/VectorDB.js';
 import { GeminiService } from './GeminiService.js';
@@ -204,7 +204,7 @@ export class FreeModelRouter {
             circuitLevel,
             lastLatency
           }
-        };
+        } as FreeModelConfig; // Cast to ensure health grid compatibility
       });
 
       this.healthCache = grid;
@@ -354,7 +354,7 @@ export class FreeModelRouter {
     if (relevant.length === 0) return 0; // No history
 
     const avgLatency = relevant.reduce((sum, p) => sum + p.latency, 0) / relevant.length;
-    const successRate = relevant.filter(p => p.success).length / relevant.length;
+    const successRate = relevant.filter(p => p.success === SuccessRating.Success).length / relevant.length;
 
     if (successRate > 0.9 && avgLatency < 2000) return 1;  // Excellent
     if (successRate > 0.7 && avgLatency < 5000) return 0;   // Average

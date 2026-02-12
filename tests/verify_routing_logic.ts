@@ -1,32 +1,20 @@
 
 import { FreeModelRouter } from '../src/core/Router.js';
-import { VibeConfig, TaskType } from '../src/core/models.js';
-import path from 'path';
+import { ConfigManager } from '../src/utils/config.js';
 
-// Mock Config
-const mockConfig: VibeConfig = {
-    projectId: 'test-project',
-    projectRoot: process.cwd(),
-    pogDir: path.join(process.cwd(), '.pog_coder_vibe'),
-    enabledServices: [],
-    agentName: 'POG-VIBE-TEST',
-    wsPort: 3000,
-    maxSnapshotAge: 86400000,
-    circuitBreakerThreshold: 3,
-    circuitBreakerCooldown: 10000,
-    embeddingDimensions: 384,
-    logLevel: 'info',
-    errorTrackerModelPath: undefined
-};
+// 0. Initialize Real Config
+const projectRoot = process.cwd();
+const configManager = new ConfigManager(projectRoot);
+const config = configManager.getConfig();
 
-// Mock Environment
-process.env.GOOGLE_API_KEY = 'mock-key';
+// Environment Safety (Needed for API keys if not set)
+if (!process.env['GOOGLE_API_KEY']) process.env['GOOGLE_API_KEY'] = 'mock-key';
 
 async function verifyRouting() {
     console.log('🧪 Verifying Ternary Routing Logic...\n');
 
     // Instantiate Router
-    const router = new FreeModelRouter(mockConfig, undefined);
+    const router = new FreeModelRouter(config, undefined);
 
     const testCases = [
         {
@@ -55,7 +43,7 @@ async function verifyRouting() {
         console.log(`\n📋 Case: ${test.name}`);
         console.log(`   Prompt: "${test.prompt}"`);
 
-        const result = router.route(test.prompt);
+        const result = await router.route(test.prompt);
 
         if (result.ok) {
             // FIX: Router returns a string (model name), not an object

@@ -1,37 +1,27 @@
 
 import { Sandbox } from '../src/sandbox/Sandbox.js';
 import { VibeConfig } from '../src/core/models.js';
+import { ConfigManager } from '../src/utils/config.js';
 import path from 'path';
 import fs from 'fs';
 
-// Mock Config
-const mockConfig: VibeConfig = {
-    projectId: 'test-project',
-    projectRoot: process.cwd(),
-    pogDir: path.join(process.cwd(), '.pog_coder_vibe'),
-    enabledServices: [],
-    agentName: 'POG-VIBE-TEST',
-    wsPort: 3000,
-    maxSnapshotAge: 86400000,
-    circuitBreakerThreshold: 3,
-    circuitBreakerCooldown: 10000,
-    embeddingDimensions: 384,
-    logLevel: 'info',
-    errorTrackerModelPath: undefined
-};
+// 0. Initialize Real Config (NO MOCKS Law)
+const projectRoot = process.cwd();
+const configManager = new ConfigManager(projectRoot);
+const config = configManager.getConfig();
 
 async function verifySandbox() {
     console.log('📦 Verifying Sandbox Logic...\n');
 
-    const sandbox = new Sandbox(mockConfig);
-    // CRITCAL FIX: Place test file in 'src' because Sandbox only restores src, cli, package.json
-    const testFile = path.join(process.cwd(), 'src', 'sandbox_test_v2.ts');
+    const sandbox = new Sandbox(config);
+    // Hardened Version: Sandbox now copies 'tests' directory as well
+    const testFile = path.join(process.cwd(), 'tests', 'sandbox_test_v2.ts');
     const originalContent = 'export const test = "Original";';
 
     try {
         // 1. Setup Test File
         fs.writeFileSync(testFile, originalContent);
-        console.log(`1. Created test file: ${testFile}`);
+        console.log(`1. Created test file in tests/: ${testFile}`);
 
         // 2. Create Snapshot
         const snapshotResult = await sandbox.createSnapshot('Test Snapshot V2');

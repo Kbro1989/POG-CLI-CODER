@@ -36,6 +36,15 @@ These rules are enforced across the entire codebase and all development activiti
 
 ---
 
+### 5. RESILIENT EDITING 🛠️
+**Always use high-fidelity patching over destructive overwrites.**
+- Prefer `patch_file` (via `SmartEdit`) for targeted code changes.
+- Ensure 100% matching accuracy before applying edits.
+- Never strip indentation or ignore line-ending styles.
+- **Example**: Use `SmartEdit` flexible matching to handle AI-generated indentation drift.
+
+---
+
 ### 5. CLUSTER INTELLIGENCE 🧠
 **Always leverage the 9-node cognitive loop (Sense-Think-Act-Reflect) for complex work.**
 - **Sensing**: Verify architectural alignment before proposing edits.
