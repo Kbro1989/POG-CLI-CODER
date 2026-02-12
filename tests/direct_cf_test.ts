@@ -1,7 +1,7 @@
 
-import { KeyVault } from '../src/utils/KeyVault.js';
 
-async function main() {
+
+async function mainDirectCf() {
     const accountId = '6872653edcee9c791787c1b783173793';
     const apiKey = '9edfd6891042bede27f3899e34a057b7a5683';
     const email = 'kristain33rs@gmail.com';
@@ -27,4 +27,4 @@ async function main() {
         console.log(`❌ ERROR: ${e.message}`);
     }
 }
-main();
+mainDirectCf();

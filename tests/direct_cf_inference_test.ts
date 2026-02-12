@@ -1,7 +1,7 @@
+// Remove unused import
+// 
 
-import { KeyVault } from '../src/utils/KeyVault.js';
-
-async function main() {
+async function mainDirectCfInference() {
     const accountId = '6872653edcee9c791787c1b783173793';
     const apiToken = 'BKPBdQcDbG4PQLnNo7nsZdYTdzC2CzROmWJCIYks';
     const model = '@cf/meta/llama-3.1-8b-instruct';
@@ -30,4 +30,4 @@ async function main() {
         console.log(`❌ ERROR: ${e.message}`);
     }
 }
-main();
+mainDirectCfInference();

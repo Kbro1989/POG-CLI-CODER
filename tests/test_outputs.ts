@@ -7,6 +7,7 @@ import { join } from 'path';
 
 // Simple logger
 const logger = pino({ level: 'info', transport: { target: 'pino-pretty' } });
+if (logger) logger.info('Starting test_outputs');
 
 const OLLAMA_MODEL = 'qwen2.5-coder:14b-instruct-q5_K_M';
 const GEMINI_MODEL = 'gemini-2.0-flash-exp';
@@ -68,7 +69,7 @@ async function testGemini() {
         if (!apiKey) throw new Error('GOOGLE_API_KEY not found in env');
 
         console.log(`🔑 Gemini Key: ${apiKey.substring(0, 8)}...`);
-        const gemini = new GeminiService(apiKey, GEMINI_MODEL);
+        const gemini = new GeminiService({ apiKey, modelName: GEMINI_MODEL });
         // Note: GeminiService defaults to gemini-2.0-flash-exp in our update
         const result = await gemini.generateContent(PROMPT);
 
@@ -77,7 +78,7 @@ async function testGemini() {
         if (result.ok) {
             console.log(`✅ Gemini Success (${duration}s):`);
             console.log('---------------------------------------------------');
-            const output = result.value.trim();
+            const output = result.value.response.trim();
             console.log(output);
             console.log('---------------------------------------------------');
             logToFile(`Gemini response: ${output}`);

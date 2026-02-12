@@ -1,6 +1,6 @@
 
 import { Sandbox } from '../src/sandbox/Sandbox.js';
-import { VibeConfig } from '../src/core/models.js';
+
 import { ConfigManager } from '../src/utils/config.js';
 import path from 'path';
 import fs from 'fs';

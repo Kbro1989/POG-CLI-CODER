@@ -2,10 +2,9 @@ import { GutenbergLimb } from '../src/limbs/gutenberg/GutenbergLimb.js';
 import { RelicLimb } from '../src/limbs/experimental/RelicLimb.js';
 import { QuantumLimb } from '../src/limbs/experimental/QuantumLimb.js';
 import { OmegaLimb } from '../src/limbs/experimental/OmegaLimb.js';
-import { VibeConfig } from '../src/core/models.js';
-import pino from 'pino';
 
-const logger = pino({ level: 'info' });
+
+
 
 async function verify() {
     const config: any = {

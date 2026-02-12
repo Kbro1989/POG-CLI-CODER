@@ -8,7 +8,7 @@ async function checkModels() {
         process.exit(1);
     }
 
-    const genAI = new GoogleGenAI(apiKey);
+    const genAI = new GoogleGenAI({ apiKey });
     const models = [
         'gemini-2.0-flash',
         'gemini-2.0-flash-thinking-exp',
@@ -20,10 +20,8 @@ async function checkModels() {
 
     for (const modelName of models) {
         try {
-            const response = await (genAI as any).models.generateContent({
-                model: modelName,
-                contents: [{ role: 'user', parts: [{ text: 'Hi' }] }]
-            });
+            const response: any = await (genAI as any).getGenerativeModel({ model: modelName }).generateContent('Hi');
+            if (response) console.log(`✅ ${modelName}: SUCCESS`);
             console.log(`✅ ${modelName}: SUCCESS`);
         } catch (error: any) {
             console.error(`❌ ${modelName}: FAILED (${error.message || error})`);

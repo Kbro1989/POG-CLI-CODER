@@ -27,7 +27,7 @@ async function main() {
     for (const model of MODELS_TO_TEST) {
         process.stdout.write(`Testing ${model.padEnd(25)} ... `);
         try {
-            const service = new GeminiService(apiKey, model);
+            const service = new GeminiService({ apiKey, modelName: model });
             // Use a very simple prompt
             const result = await service.generateContent('Hi');
 

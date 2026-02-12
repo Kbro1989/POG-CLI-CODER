@@ -9,6 +9,7 @@ import pino from 'pino';
 
 // Silence main logger for this script
 const logger = pino({ level: 'silent' });
+if (logger) logger.debug('Silent logger initialized');
 
 async function main() {
     const projectRoot = process.cwd();

@@ -318,9 +318,9 @@ class VibeCLI {
       `🏰 Substrate:  ${sovereignLine} `,
       `🔌 Extension:  ${extLine} `,
       `🌩️ Edge:       ${workerLine} `,
-      `🌌 Constellation: ONLINE`,
+      `🌌 Constellation: ONLINE [Gemini 2.0 Flash]`,
       '',
-      chalk.cyan('Ready to take on the world. What are we building today?'),
+      chalk.cyan('Ready to take on the world. Sovereign Intelligence active.'),
       chalk.gray('• Code Pro • App Forge • Book Reader • Creative Friend • Gen Art'),
       '',
       'Type your intent to begin, or use "help" for a list of commands.'
@@ -396,11 +396,9 @@ class VibeCLI {
         console.log('');
         // eslint-disable-next-line no-console
         console.log('\n💡 Tips:');
-        // eslint-disable-next-line no-console
         console.log('  - Use natural language for intents');
-        // eslint-disable-next-line no-console
-        console.log('  - Models are automatically selected via ternary routing');
-        // eslint-disable-next-line no-console
+        console.log('  - Models are balanced via Ternary logic (Cost/Health/Power)');
+        console.log('  - Critical tasks escalate to Cloud; simple fixes stay Local');
         console.log('  - All operations are type-safe with Result types');
         // eslint-disable-next-line no-console
         console.log('');
@@ -557,9 +555,9 @@ class VibeCLI {
       handler: async (args: string[]): Promise<void> => {
         void args;
         const items = [
-          { value: 'gemini-3-flash-preview', label: 'Gemini 3 Flash', description: '+1 (Complex) - Agentic workhorse' },
-          { value: 'qwen2.5-coder:14b', label: 'Qwen 14B', description: '0 (Balanced) - Local sweet spot' },
-          { value: 'qwen2.5-coder:7b', label: 'Qwen 7B', description: '-1 (Simple) - Fast syntax fix' }
+          { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', description: '+1 (Escalate) - Sovereign Power' },
+          { value: 'qwen2.5-coder:14b', label: 'Qwen 14B', description: '0 (Balanced) - Local Performance' },
+          { value: 'qwen2.5-coder:7b', label: 'Qwen 7B', description: '-1 (De-escalate) - Rapid Fixes' }
         ];
 
         const selected = await select('🔧 Model Calibration (Ternary Logic)', items);

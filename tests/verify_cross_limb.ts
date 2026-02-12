@@ -29,8 +29,8 @@ const config: VibeConfig = {
     circuitBreakerCooldown: 10000,
     embeddingDimensions: 384,
     logLevel: 'info',
-    pogApiUrl: process.env.POG_API_URL,
-    cloudflareGatewayUrl: process.env.CLOUDFLARE_GATEWAY_URL || process.env.CLOUDFLARE_BINDING_URL
+    pogApiUrl: process.env['POG_API_URL'],
+    cloudflareGatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'] || process.env['CLOUDFLARE_BINDING_URL']
 };
 
 async function verifyCrossLimb() {
@@ -38,7 +38,7 @@ async function verifyCrossLimb() {
 
     try {
         // 1. Initialize Core Dependencies
-        const apiKey = process.env.GOOGLE_API_KEY || '';
+        const apiKey = process.env['GOOGLE_API_KEY'] || '';
         if (!apiKey) console.warn('⚠️ GOOGLE_API_KEY missing. Some limbs may fail.');
 
         const geminiService = new GeminiService(apiKey);

@@ -4,7 +4,7 @@ import { VectorDB } from '../src/learning/VectorDB.js';
 import { GeminiService } from '../src/core/GeminiService.js';
 import { VibeConfig } from '../src/core/models.js';
 import * as dotenv from 'dotenv';
-import { join } from 'path';
+
 
 // Load environment variables
 dotenv.config();
@@ -12,7 +12,7 @@ dotenv.config();
 async function main() {
     console.log('🧪 Starting RAG Verification...');
 
-    const apiKey = process.env.GOOGLE_API_KEY;
+    const apiKey = process.env['GOOGLE_API_KEY'];
     if (!apiKey) {
         console.error('❌ GOOGLE_API_KEY not found');
         process.exit(1);

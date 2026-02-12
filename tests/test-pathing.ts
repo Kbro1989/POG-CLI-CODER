@@ -4,12 +4,15 @@ import chalk from 'chalk';
 
 const mockConfig: VibeConfig = {
     projectId: 'pog-vibe-test',
-    enabledServices: []
-};
+    enabledServices: [],
+    projectRoot: process.cwd(),
+    pogDir: process.cwd(),
+    agentName: 'pog-test'
+} as any;
 
 async function runTest() {
     console.log(chalk.blue.bold('\n--- POG-VIBE: Semantic Pathing Verification ---'));
-    const limb = new AILimb(mockConfig);
+    const limb = new AILimb(mockConfig, {} as any, {} as any);
 
     const testCases = [
         {

@@ -7,9 +7,9 @@ async function checkCloudflare() {
     console.log('--- Cloudflare Heartbeat ---');
 
     const config: VibeConfig = {
-        cloudflareAccountId: process.env.CLOUDFLARE_ACCOUNT_ID,
-        cloudflareApiToken: process.env.CLOUDFLARE_API_TOKEN,
-        gatewayUrl: process.env.CLOUDFLARE_GATEWAY_URL,
+        cloudflareAccountId: process.env['CLOUDFLARE_ACCOUNT_ID'],
+        cloudflareApiToken: process.env['CLOUDFLARE_API_TOKEN'],
+        gatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'],
         projectId: 'heartbeat'
     } as any;
 

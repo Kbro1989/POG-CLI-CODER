@@ -1,5 +1,5 @@
 
-async function main() {
+async function mainCfTokenTest() {
     const token = '5Vyh-R1quEolvMxzB-svDOjA8Y9--zeUM_YHLOYy'; // Hardcoded ensuring usage
     console.log(`Testing new token: ${token.substring(0, 5)}...`);
 
@@ -20,4 +20,4 @@ async function main() {
     }
 }
 
-main();
+mainCfTokenTest();

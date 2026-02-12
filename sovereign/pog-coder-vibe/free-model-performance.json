@@ -827,6 +827,132 @@
       "success": true,
       "timestamp": 1770897808298,
       "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 9425,
+      "success": true,
+      "timestamp": 1770898826588,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 3075,
+      "success": true,
+      "timestamp": 1770898932903,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7588,
+      "success": true,
+      "timestamp": 1770898982746,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7617,
+      "success": true,
+      "timestamp": 1770898982763,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7644,
+      "success": true,
+      "timestamp": 1770898982784,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7653,
+      "success": true,
+      "timestamp": 1770898982801,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7702,
+      "success": true,
+      "timestamp": 1770898982833,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7704,
+      "success": true,
+      "timestamp": 1770898982846,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7710,
+      "success": true,
+      "timestamp": 1770898982869,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7762,
+      "success": true,
+      "timestamp": 1770898982897,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 3946,
+      "success": true,
+      "timestamp": 1770899337359,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 3123,
+      "success": true,
+      "timestamp": 1770899402962,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 18311,
+      "success": true,
+      "timestamp": 1770899802792,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 2759,
+      "success": true,
+      "timestamp": 1770900343438,
+      "isFree": true
     }
   ],
   "version": "1.2.0"
