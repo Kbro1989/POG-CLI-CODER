@@ -1430,6 +1430,15 @@
       "success": "Yang",
       "timestamp": 1771022241571,
       "isFree": "Yang"
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 122,
+      "success": "Yang",
+      "timestamp": 1771022406585,
+      "isFree": "Yang"
     }
   ],
   "version": "1.2.0"
