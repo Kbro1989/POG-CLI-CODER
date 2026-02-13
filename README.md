@@ -228,7 +228,7 @@ npm run dev
 |--------|-------|
 | Boot time | ~12 seconds |
 | Routing latency | ~18ms |
-| Model inventory | 767 models |
+| Model inventory | 767 models+ |
 | Active limbs | 30 |
 | Local storage | 1.2GB (sovereign) + 40GB (books) |
 | TypeScript errors | 0 |
