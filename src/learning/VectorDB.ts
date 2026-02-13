@@ -53,7 +53,7 @@ export class VectorDB {
     }
   }
 
-  async indexModelRegistry(_registry: Record<string, any>): Promise<Result<void>> {
+  async indexModelRegistry(_registry: Record<string, unknown>): Promise<Result<void>> {
     return new Promise((resolve) => {
       if (!this.db) {
         resolve({ ok: false, error: new Error('Database not initialized') });
@@ -83,12 +83,13 @@ export class VectorDB {
         try {
           this.db!.run('BEGIN TRANSACTION');
 
-          for (const [id, model] of Object.entries(_registry)) {
+          for (const [id, modelVal] of Object.entries(_registry)) {
+            const model = modelVal as Record<string, unknown>;
             // Safe fallback for optional fields
-            const name = model.name || id;
-            const desc = model.description || '';
-            const caps = JSON.stringify(model.capabilities || []);
-            const embed = model.embedding ? Buffer.from(model.embedding) : null;
+            const name = (model['name'] as string) || id;
+            const desc = (model['description'] as string) || '';
+            const caps = JSON.stringify((model['capabilities'] as string[]) || []);
+            const embed = model['embedding'] ? Buffer.from(model['embedding'] as Uint8Array | number[]) : null;
 
             stmt.run(id, name, desc, caps, embed);
           }
@@ -116,7 +117,7 @@ export class VectorDB {
     chunkIndex: number;
     content: string;
     embedding: Float32Array;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
   }>): Promise<Result<void>> {
     return new Promise((resolve) => {
       if (!this.db) {
@@ -167,7 +168,7 @@ export class VectorDB {
     content: string;
     bookId: number;
     score: number;
-    metadata: any;
+    metadata: Record<string, unknown>;
   }>>> {
     return new Promise((resolve) => {
       if (!this.db) {
@@ -177,24 +178,25 @@ export class VectorDB {
 
       // Memory-efficient: Stream rows instead of loading all at once if possible,
       // but for <100k chunks, loading into memory is faster than iterated I/O.
-      this.db.all('SELECT * FROM gutenberg_chunks', (err, rows: any[]) => {
+      this.db.all('SELECT * FROM gutenberg_chunks', (err, rows: Array<Record<string, unknown>>) => {
         if (err) {
           resolve({ ok: false, error: err });
           return;
         }
 
         const results = rows.map(row => {
+          const embeddingBuffer = row['embedding'] as Buffer;
           const storedEmbedding = new Float32Array(
-            row.embedding.buffer,
-            row.embedding.byteOffset,
-            row.embedding.byteLength / 4
+            embeddingBuffer.buffer,
+            embeddingBuffer.byteOffset,
+            embeddingBuffer.byteLength / 4
           );
 
           return {
-            content: row.content,
-            bookId: row.book_id,
+            content: row['content'] as string,
+            bookId: row['book_id'] as number,
             score: this.cosineSimilarity(embedding, storedEmbedding),
-            metadata: JSON.parse(row.metadata || '{}')
+            metadata: JSON.parse((row['metadata'] as string) || '{}') as Record<string, unknown>
           };
         });
 
@@ -209,14 +211,15 @@ export class VectorDB {
     return new Promise((resolve) => {
       if (!this.db) return resolve({ ok: false, error: new Error('DB not init') });
 
-      this.db.all('SELECT * FROM model_capabilities', [], (err, rows: any[]) => {
+      this.db.all('SELECT * FROM model_capabilities', [], (err, rows: Array<Record<string, unknown>>) => {
         if (err) return resolve({ ok: false, error: err });
 
         // Simple cosine similarity scan
         const scored = rows.map(r => {
-          const embedding = new Float32Array(r.embedding); // Assuming BLOB is returned as buffer/array
+          const embeddingBuffer = r['embedding'] as Buffer;
+          const embedding = new Float32Array(embeddingBuffer.buffer);
           return {
-            id: r.id,
+            id: r['id'] as string,
             score: this.cosineSimilarity(queryEmbedding, embedding)
           };
         });
@@ -231,14 +234,14 @@ export class VectorDB {
     if (!this.db) return;
 
     return new Promise((resolve) => {
-      this.db!.all("PRAGMA table_info(lessons)", async (err, _rows: any[]) => {
+      this.db!.all("PRAGMA table_info(lessons)", async (err, _rows: Array<Record<string, unknown>>) => {
         if (err) {
           logger.error({ err }, 'Failed to check schema');
           resolve();
           return;
         }
 
-        const columns = _rows.map(r => r.name);
+        const columns = _rows.map(r => r['name'] as string);
         const migrations: string[] = [];
 
         if (!columns.includes('projectId')) {
@@ -375,7 +378,7 @@ export class VectorDB {
    * Note: This fetches recent lessons and computes similarity in JS
    * Suitable for local use with < 10,000 lessons
    */
-  async getHexagramContext(projectId: string): Promise<Result<any[]>> {
+  async getHexagramContext(projectId: string): Promise<Result<Record<string, unknown>[]>> {
     return new Promise((resolve) => {
       if (!this.db) {
         resolve({ ok: false, error: new Error('Database not initialized') });
@@ -384,7 +387,7 @@ export class VectorDB {
 
       this.db.all('SELECT * FROM hexagram_context WHERE projectId = ? ORDER BY line_index ASC', [projectId], (err, rows) => {
         if (err) return resolve({ ok: false, error: err });
-        else resolve({ ok: true, value: rows });
+        else resolve({ ok: true, value: rows as Record<string, unknown>[] });
       });
     });
   }
@@ -416,33 +419,34 @@ export class VectorDB {
       }
 
       // Fetch last 1000 lessons to compare
-      this.db.all('SELECT * FROM lessons ORDER BY createdAt DESC LIMIT 1000', [], (err, rows: any[]) => {
+      this.db.all('SELECT * FROM lessons ORDER BY createdAt DESC LIMIT 1000', [], (err, rows: Array<Record<string, unknown>>) => {
         if (err) {
           resolve({ ok: false, error: err });
           return;
         }
 
         const lessons = rows.map(row => {
+          const embeddingBuffer = row['embedding'] as Buffer;
           const embedding = new Float32Array(
-            row.embedding.buffer,
-            row.embedding.byteOffset,
-            row.embedding.byteLength / 4
+            embeddingBuffer.buffer,
+            embeddingBuffer.byteOffset,
+            embeddingBuffer.byteLength / 4
           );
 
           let similarity = this.cosineSimilarity(queryEmbedding, embedding);
 
           // Apply boost if it's the current project
-          if (currentProjectId && row.projectId === currentProjectId) {
+          if (currentProjectId && row['projectId'] === currentProjectId) {
             similarity += 0.1;
           }
 
           return {
             ...row,
             embedding,
-            projectId: row.projectId,
+            projectId: row['projectId'] as string,
             similarity,
-            metadata: JSON.parse(row.metadata as string)
-          };
+            metadata: JSON.parse(row['metadata'] as string) as Record<string, unknown>
+          } as Lesson & { similarity: number };
         });
 
         // Sort by similarity and return top K
@@ -477,9 +481,9 @@ export class VectorDB {
   async getLessonCount(): Promise<number> {
     return new Promise((resolve) => {
       if (!this.db) return resolve(0);
-      this.db.get('SELECT COUNT(*) as count FROM lessons', (err, row: any) => {
+      this.db.get('SELECT COUNT(*) as count FROM lessons', (err, row: Record<string, unknown>) => {
         if (err) resolve(0);
-        else resolve(row?.count || 0);
+        else resolve((row?.['count'] as number) || 0);
       });
     });
   }

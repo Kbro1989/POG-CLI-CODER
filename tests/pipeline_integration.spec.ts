@@ -19,7 +19,11 @@ describe('Standardized Pipeline Integration', () => {
         circuitBreakerCooldown: 30000,
         embeddingDimensions: 768,
         enabledServices: ['GEMINI', 'WEBAPP_FORGE', 'MEDIA_FORGE', 'BIO_INTELLIGENCE', 'GUTENBERG'],
-        logLevel: 'info'
+        logLevel: 'info',
+        gutenbergPath: undefined,
+        workspaces: [],
+        pogApiUrl: undefined,
+        aiContextPath: undefined
     };
 
     beforeAll(async () => {

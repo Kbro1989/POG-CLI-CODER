@@ -3,20 +3,29 @@ import { join } from 'path';
 import pino from 'pino';
 import { execSync } from 'child_process';
 import { ModelInventory } from './ModelInventory.js';
-import type {
-  ModelPerformance,
-  CircuitBreakerState,
-  FreeModelConfig,
-  Ternary,
+import {
+  ModelType,
+  ModelAbility,
   CircuitState,
+  SuccessRating,
+  Result,
+  VibeConfig,
+  CognitiveChoice,
+  Ternary,
+  type ModelPerformance,
+  type CircuitBreakerState,
+  type FreeModelConfig
 } from './models.js';
-import { CircuitState as CS, ModelType as MT, ModelAbility as MA, SuccessRating } from './models.js';
+
 import { ContextBuilder } from '../context/ContextBuilder.js';
-import { VectorDB } from '../learning/VectorDB.js';
 import { GeminiService } from './GeminiService.js';
+import { VectorDB } from '../learning/VectorDB.js';
 import { TaskClassifier } from './TaskClassifier.js';
 import { ArchitectureDigest } from './ArchitectureDigest.js';
-import type { Result, VibeConfig } from './models.js';
+
+const MT = ModelType;
+const MA = ModelAbility;
+const CS = CircuitState;
 
 // Modular Routing Implementation
 import { CompositeStrategy } from '../routing/strategies/CompositeStrategy.js';
@@ -83,7 +92,7 @@ export class FreeModelRouter {
         ? {
           prompt: input,
           weightedTasks: TaskClassifier.analyzeProbabilities(input),
-          complexity: 0,
+          complexity: 'Yin',
           availableModels: [],
           metadata: { projectRoot: this.config.projectRoot }
         }
@@ -101,7 +110,7 @@ export class FreeModelRouter {
       }
 
       const staticComplexity = this.assessComplexity(prompt); // Use new method
-      const complexity = (staticComplexity === 0 && this.gemini)
+      const complexity = (staticComplexity === 'YinYang' && this.gemini)
         ? await TaskClassifier.assessComplexityAI(prompt, this.gemini)
         : staticComplexity;
 
@@ -188,9 +197,9 @@ export class FreeModelRouter {
           : output.includes(m.name);
 
         const state = this.circuitBreakers.get(m.name);
-        let circuitLevel: Ternary = 1;
-        if (state?.state === CS.Open) circuitLevel = -1;
-        else if (state?.state === CS.HalfOpen || (state?.failures ?? 0) > 0) circuitLevel = 0;
+        let circuitLevel: CognitiveChoice = 'Yang';
+        if (state?.state === CS.Open) circuitLevel = 'Yin';
+        else if (state?.state === CS.HalfOpen || (state?.failures ?? 0) > 0) circuitLevel = 'YinYang';
 
         // Populate lastLatency from performance history
         const modelPerf = history.filter(h => h.model === m.name);
@@ -211,11 +220,11 @@ export class FreeModelRouter {
       this.lastHealthCheck = Date.now();
       return grid;
     } catch {
-      return this.getAllModels().map(m => ({ ...m, health: { isAvailable: false, circuitLevel: -1 as Ternary } }));
+      return this.getAllModels().map(m => ({ ...m, health: { isAvailable: false, circuitLevel: 'Yin' } }));
     }
   }
 
-  private applyCircuitBreaker(model: string, available: ReadonlyArray<FreeModelConfig>, complexity: Ternary): string {
+  private applyCircuitBreaker(model: string, available: ReadonlyArray<FreeModelConfig>, complexity: CognitiveChoice): string {
     const state = this.circuitBreakers.get(model);
     if (state?.state === CS.Open) {
       if (Date.now() - state.lastFailure > state.cooldownMs) {
@@ -224,12 +233,12 @@ export class FreeModelRouter {
         return model;
       }
 
-      const candidates = available.filter(m => m.health?.isAvailable && (m.health?.circuitLevel ?? 1) > -1);
+      const candidates = available.filter(m => m.health?.isAvailable && m.health?.circuitLevel !== 'Yin');
 
       let preferred: FreeModelConfig[] = [];
-      if (complexity === 1) {
+      if (complexity === 'Yang') {
         preferred = candidates.filter(m => m.type !== MT.Local);
-      } else if (complexity === -1) {
+      } else if (complexity === 'Yin') {
         preferred = candidates.filter(m => m.type === MT.Local);
       }
 
@@ -289,10 +298,10 @@ export class FreeModelRouter {
     }
   }
 
-  public routeByAbility(ability: MA): string {
+  public routeByAbility(ability: ModelAbility): string {
     const available = this.getModelHealthGrid();
     const candidates = available
-      .filter(m => m.health?.isAvailable && (m.health?.circuitLevel ?? 1) > -1)
+      .filter(m => m.health?.isAvailable && m.health?.circuitLevel !== 'Yin')
       .filter(m => m.capabilities.includes(ability));
 
     if (candidates.length === 0) {
@@ -310,9 +319,9 @@ export class FreeModelRouter {
     return this.circuitBreakers.get(model)?.state ?? CS.Closed;
   }
 
-  // --- Ternary Logic Implementation (Matches TERNARY_TREE_GUIDE.md) ---
+  // --- Semantic Logic Implementation (Sovereign Decision Tree) ---
 
-  private assessComplexity(prompt: string): Ternary {
+  private assessComplexity(prompt: string): CognitiveChoice {
     let score = 0;
 
     // Word count > 50
@@ -327,47 +336,47 @@ export class FreeModelRouter {
     // Multi-file indicator
     if (/files|modules|components/i.test(prompt)) score++;
 
-    // Return ternary decision
-    if (score >= 4) return 1;  // Complex -> Gemini Pro/Thinking
-    if (score >= 2) return 0;   // Medium -> Qwen/Flash/Cloudflare
-    return -1;                  // Simple -> Ollama/Llama
+    // Return semantic decision
+    if (score >= 4) return 'Yang';    // Complex -> Gemini Pro/Thinking
+    if (score >= 2) return 'YinYang'; // Medium -> Qwen/Flash/Cloudflare
+    return 'Yin';                     // Simple -> Ollama/Llama
   }
 
-  private checkLocalAvailability(): Ternary {
+  private checkLocalAvailability(): CognitiveChoice {
     const available = this.getModelHealthGrid().filter(m => m.type === MT.Local && m.health?.isAvailable);
     const total = this.getAllModels().filter(m => m.type === MT.Local).length;
 
-    if (total === 0) return -1; // No local models configured
+    if (total === 0) return 'Yin'; // No local models configured
 
     const ratio = available.length / total;
 
-    if (ratio >= 0.8) return 1;  // Most available
-    if (ratio >= 0.4) return 0;   // Some available
-    return -1;                    // Few available
+    if (ratio >= 0.8) return 'Yang';    // Most available
+    if (ratio >= 0.4) return 'YinYang'; // Some available
+    return 'Yin';                       // Few available
   }
 
-  private checkPerformanceHistory(context: RoutingContext): Ternary {
+  private checkPerformanceHistory(context: RoutingContext): CognitiveChoice {
     const history = this.loadPerformanceHistory();
     // Simple extension match for now, can be expanded to TaskType
     const relevant = history.filter(p => p.extension === context.extension);
 
-    if (relevant.length === 0) return 0; // No history
+    if (relevant.length === 0) return 'YinYang'; // No history
 
     const avgLatency = relevant.reduce((sum, p) => sum + p.latency, 0) / relevant.length;
     const successRate = relevant.filter(p => p.success === SuccessRating.Success).length / relevant.length;
 
-    if (successRate > 0.9 && avgLatency < 2000) return 1;  // Excellent
-    if (successRate > 0.7 && avgLatency < 5000) return 0;   // Average
-    return -1;                                               // Poor
+    if (successRate > 0.9 && avgLatency < 2000) return 'Yang';    // Excellent
+    if (successRate > 0.7 && avgLatency < 5000) return 'YinYang'; // Average
+    return 'Yin';                                                 // Poor
   }
 
-  private checkSupervisorNeeds(context: RoutingContext): Ternary {
+  private checkSupervisorNeeds(context: RoutingContext): CognitiveChoice {
     const containsArchitecture = /design|architect|refactor|system/i.test(context.prompt);
     // context.fileSize isn't always populated, assume 0 if missing
     const isLargeModule = (context.fileSize || 0) > 20000;
 
-    if (containsArchitecture && isLargeModule) return 1; // Gemini Thinking
-    if (isLargeModule) return 0;                          // Gemini Flash (Context King)
-    return -1;                                           // Simulation Substrate (Top Brain)
+    if (containsArchitecture && isLargeModule) return 'Yang';    // Gemini Thinking
+    if (isLargeModule) return 'YinYang';                         // Gemini Flash (Context King)
+    return 'Yin';                                                // Simulation Substrate (Top Brain)
   }
 }

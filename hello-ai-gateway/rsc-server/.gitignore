@@ -1,0 +1,15 @@
+node_modules/
+.npm
+.eslintcache
+.node_repl_history
+
+# Audit Scripts
+*.txt
+*.js.map
+audit_*.js
+compare_*.js
+check_*.js
+find_*.js
+*report.md
+*report.txt
+broad_search*.js

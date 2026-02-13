@@ -118,10 +118,10 @@ export interface OrchestratorEvents {
 
 export class FreeOrchestrator extends EventEmitter {
   private readonly router: FreeModelRouter;
-  private geminiService?: GeminiService;
+  private readonly geminiService?: GeminiService;
   private readonly sessionId: string;
   private readonly intentHistory: IntentHistory[] = [];
-  private wsServer?: import('ws').WebSocketServer;
+  private wsServer?: import('ws').WebSocketServer | undefined;
   private readonly logger: pino.Logger;
   private readonly webAppForgeLimb: WebAppForgeLimb;
   private readonly contextBuilder: ContextBuilder;
@@ -135,16 +135,22 @@ export class FreeOrchestrator extends EventEmitter {
   private readonly architectureDigest: ArchitectureDigest;
   private readonly monitorAgent?: MonitorAgent;
   private readonly limbs: NeuralLimb[] = [];
+
+  public getModelExecutor(): ModelExecutor {
+    return this.modelExecutor;
+  }
   private readonly sovereignShellLimb: SovereignShellLimb;
   private readonly substrateLimb: SubstrateLimb;
-  private lastSentFileHashes: Map<string, string> = new Map();
+  private readonly lastSentFileHashes: Map<string, string> = new Map();
   private forceFullContext = true;
   private readonly endpointStatus: Map<string, 'ACTIVE' | 'INACTIVE' | 'PARTIAL'> = new Map();
   private readonly intentVerifier: IntentVerifier;
   private activeMemories: Lesson[] = [];
   private currentNarrative: string = 'The substrate is quiet, observing the void.';
   private cachedHealth: { cpu: number; mem: number; disk: number } = { cpu: 0, mem: 0, disk: 0 };
+  private neuralLatency = 0;
   private toolUsageHeatmap: Record<string, number> = {};
+  private readonly ghostLimb: GhostLimb;
 
 
 
@@ -175,8 +181,8 @@ export class FreeOrchestrator extends EventEmitter {
       projectId: process.env['GOOGLE_PROJECT_ID'] || config.projectId
     });
     const cfAuth = {
-      accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || config.cloudflareAccountId || '') as string,
-      apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || config.cloudflareApiToken || '') as string,
+      accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || config.cloudflareAccountId || ''),
+      apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || config.cloudflareApiToken || ''),
       authEmail: process.env['CLOUDFLARE_AUTH_EMAIL'],
       gatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL']
     };
@@ -235,7 +241,7 @@ export class FreeOrchestrator extends EventEmitter {
     const voiceLimb = new VoiceLimb(config, this.modelExecutor);
     const dashboardLimb = new DashboardLimb(config, this.previewServer);
     const cloudflareLimb = new CloudflareLimb(config);
-    const storyboardLimb = new StoryboardLimb(config, this.geminiService!, this.vectorDB, this.modelExecutor);
+    const storyboardLimb = new StoryboardLimb(config, this.geminiService, this.vectorDB, this.modelExecutor);
     const neuralForgeLimb = new NeuralForgeLimb(config, this.adversarialOrchestrator);
     const sovereignShellLimb = new SovereignShellLimb(config);
     const aiModelLimb = new AIModelLimb(config);
@@ -245,16 +251,21 @@ export class FreeOrchestrator extends EventEmitter {
     const webSensoryLimb = new WebSensoryLimb(config);
     const mcpLimb = new MCPLimb(config);
     const controlPlaneLimb = new ControlPlaneLimb(config, this.router);
-    const memoryLimb = new MemoryLimb(config, this.vectorDB, this.indexer, this.geminiService!);
+    const memoryLimb = new MemoryLimb(config, this.vectorDB, this.indexer, this.geminiService);
     const cognitionLimb = new CognitionLimb(config, this.modelExecutor);
 
     // Phase 14: Ghost Limb Synthesis
-    const ghostLimb = new GhostLimb(config, this.modelExecutor);
+    this.ghostLimb = new GhostLimb(config, this.modelExecutor);
     const quantumLimb = new QuantumLimb(config, this.modelExecutor);
     const relicLimb = new RelicLimb(config, this.modelExecutor);
     const omegaLimb = new OmegaLimb(config, this.modelExecutor);
 
     cloudflareLimb.setExecutor(this.modelExecutor);
+
+    // Phase 23: Constellation Telemetry Wiring
+    cloudflareLimb.on('spatial_health_update', (data) => this.broadcastToDashboard('spatial_health_update', data));
+    cloudflareLimb.on('failover_tracer', (data) => this.broadcastToDashboard('failover_tracer', data));
+    cloudflareLimb.on('globe_forge_completed', (data) => this.broadcastToDashboard('globe_forge_completed', data));
 
     // Store in collection for intent routing
     const limbs: NeuralLimb[] = [
@@ -281,7 +292,7 @@ export class FreeOrchestrator extends EventEmitter {
       voiceLimb,
       dashboardLimb,
       sovereignShellLimb,
-      ghostLimb,
+      this.ghostLimb,
       quantumLimb,
       relicLimb,
       omegaLimb
@@ -293,14 +304,13 @@ export class FreeOrchestrator extends EventEmitter {
       (limb.getTools?.() ?? []).forEach(() => { /* triggers tool indexing if needed */ });
 
       // Access the internal spine of the limb to subscribe to pulses
-      // Using 'as any' since spine is protected but we are the Orchestrator (the Weaver)
-      const spine = (limb as any).spine;
+      const spine = limb.spine;
       if (spine && typeof spine.on === 'function') {
         spine.on('pulse', (data: import('../core/ToolingSpine.js').PulseEvent) => {
           void this.hexagramManager.pinCard(
             2,
             `Memory Pulse: ${data.source}`,
-            data.detail,
+            `[SOVEREIGN PULSE]: ${data.detail}`,
             data.state
           );
         });
@@ -448,12 +458,12 @@ export class FreeOrchestrator extends EventEmitter {
     const { WebSocketServer } = await import('ws');
     this.wsServer = new WebSocketServer({ port: this.config.wsPort, host: '0.0.0.0' });
 
-    this.wsServer.on('connection', (ws) => {
+    this.wsServer.on('connection', (ws: import('ws').WebSocket) => {
       this.logger.debug('Client connected');
       ws.send(JSON.stringify({ type: 'state', data: this.getCurrentState() }));
 
       // Event propagation
-      const forwardEvent = (type: string, data: any) => {
+      const forwardEvent = (type: string, data: unknown) => {
         if (ws.readyState === 1) { // OPEN
           ws.send(JSON.stringify({ type, data }));
         }
@@ -462,12 +472,15 @@ export class FreeOrchestrator extends EventEmitter {
       this.on('intentExecuted', (data) => forwardEvent('intentExecuted', data));
       this.on('previewStarted', (data) => forwardEvent('previewStarted', data));
 
+      // Phase 23: Global Node Discovery & Telemetry
+      this.substrateLimb.on('node_discovered', (data) => forwardEvent('node_discovered', data));
+
       // 1d. Universal Log Streaming (Phase 8)
       this.previewServer.on('log', (log) => forwardEvent('preview_log', log));
       this.previewServer.on('exit', (exit) => forwardEvent('preview_exit', exit));
 
       // 1e. Human-in-the-Loop Feedback Channel
-      ws.on('message', (msg) => {
+      ws.on('message', (msg: import('ws').Data) => {
         try {
           const payload = JSON.parse(msg.toString());
           if (payload.type === 'user_feedback') {
@@ -484,7 +497,7 @@ export class FreeOrchestrator extends EventEmitter {
       });
     });
 
-    this.wsServer.on('error', (error) => this.logger.error({ error }, 'WebSocket error'));
+    this.wsServer.on('error', (error: Error) => this.logger.error({ error }, 'WebSocket error'));
   }
 
   private setupMonitorListeners(): void {
@@ -512,37 +525,39 @@ export class FreeOrchestrator extends EventEmitter {
       this.logger.debug('Monitor health check passed - no issues');
     });
 
-    this.monitorAgent.on('provenanceCandidate', async (filePath) => {
-      const forge = this.limbs.find(l => l.id === 'neural_forge') as any as WebAppForgeLimb;
-      if (!forge) return;
+    this.monitorAgent.on('provenanceCandidate', (filePath) => {
+      void (async () => {
+        const forge = this.limbs.find(l => l.id === 'neural_forge') as WebAppForgeLimb | undefined;
+        if (!forge) return;
 
-      // Heuristic Filter (Ravenous Autonomy)
-      try {
-        const content = fs.readFileSync(filePath, 'utf8');
-        const isComponent = filePath.endsWith('.tsx') && /export\s+function\s+\w+/.test(content);
-        const hasSovereignStyle = /className=".*sovereign-/.test(content);
+        // Heuristic Filter (Ravenous Autonomy)
+        try {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const isComponent = filePath.endsWith('.tsx') && /export\s+function\s+\w+/.test(content);
+          const hasSovereignStyle = /className=".*sovereign-/.test(content);
 
-        if (isComponent && hasSovereignStyle) {
-          const path = await import('path');
-          const patternName = `AUTO_${path.basename(filePath, '.tsx').toUpperCase()}_${Date.now()}`;
+          if (isComponent && hasSovereignStyle) {
+            const path = await import('path');
+            const patternName = `AUTO_${path.basename(filePath, '.tsx').toUpperCase()}_${Date.now()}`;
 
-          this.logger.info({ patternName, filePath }, '🧬 Pattern Candidate Detected via Heuristic. Harvesting...');
+            this.logger.info({ patternName, filePath }, '🧬 Pattern Candidate Detected via Heuristic. Harvesting...');
 
-          await forge.handleToolCall('harvest_pattern', {
-            filePath,
-            patternName,
-            description: 'Harvested via Ravenous Autonomy (Build Trigger)'
-          });
+            await forge.handleToolCall('harvest_pattern', {
+              filePath,
+              patternName,
+              description: 'Harvested via Ravenous Autonomy (Build Trigger)'
+            });
+          }
+        } catch (e) {
+          this.logger.warn({ error: e }, 'Failed to process provenance candidate');
         }
-      } catch (e) {
-        this.logger.warn({ error: e }, 'Failed to process provenance candidate');
-      }
+      })();
     });
 
     // Wire Metabolic Events to Hexagram Strategy Engine
-    this.monitorAgent.on('issueDetected', () => this.refreshHexagramState());
-    this.monitorAgent.on('healthCheckPassed', () => this.refreshHexagramState());
-    this.monitorAgent.on('provenanceCandidate', () => this.refreshHexagramState());
+    this.monitorAgent.on('issueDetected', () => { void this.refreshHexagramState(); });
+    this.monitorAgent.on('healthCheckPassed', () => { void this.refreshHexagramState(); });
+    this.monitorAgent.on('provenanceCandidate', () => { void this.refreshHexagramState(); });
   }
 
   /**
@@ -558,16 +573,16 @@ export class FreeOrchestrator extends EventEmitter {
       // Resolve async metrics first
       const buildDecision = this.monitorAgent
         ? await this.monitorAgent.diagnoseState().then(d => d.decision)
-        : 1;
+        : 'Yang';
 
-      const buildPass = buildDecision === 1 ? BuildStatus.Passed : (buildDecision === 0 ? BuildStatus.Warning : BuildStatus.Failed);
+      const buildPass = buildDecision === 'Yang' ? BuildStatus.Passed : (buildDecision === 'YinYang' ? BuildStatus.Warning : BuildStatus.Failed);
 
       // Approximate System State
       const state: import('../core/HexagramManager.js').SystemState = {
         buildPass,
         cloudHealthy: geminiHealth.state === 'READY' ? HealthStatus.Ready : (geminiHealth.state === 'RATE_LIMITED' ? HealthStatus.Degraded : HealthStatus.Critical),
         localModels: HealthStatus.Ready, // Always true for this architecture
-        noRecentErrors: (!this.monitorAgent || (this.monitorAgent as any).tscMonitor.getCurrentErrors().length === 0) ? HealthStatus.Ready : HealthStatus.Degraded,
+        noRecentErrors: (!this.monitorAgent || this.monitorAgent.getCurrentErrors().length === 0) ? HealthStatus.Ready : HealthStatus.Degraded,
         userActive: UserEngagement.Active, // Assumed active if events are firing
         lowResourcePressure: ResourcePressure.Optimal, // Default for now
         dashboardHealthy: this.checkDashboardHealth() // Line 6: UI Culmination
@@ -593,8 +608,8 @@ export class FreeOrchestrator extends EventEmitter {
   private checkDashboardHealth(): HealthStatus {
     try {
       // Check WebSocket server has connected clients
-      const wsConnected = this.wsServer && Array.from(this.wsServer.clients || []).some(
-        (ws: { readyState?: number }) => ws.readyState === 1 // WebSocket.OPEN
+      const wsConnected = this.wsServer && Array.from(this.wsServer.clients).some(
+        (ws: import('ws').WebSocket) => ws.readyState === 1 // WebSocket.OPEN
       );
 
       // Check preview server has active previews
@@ -780,11 +795,42 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
     }
   }
 
+  private async negotiateBoundaries(_prompt: string): Promise<{ proceed: boolean; strategyOverride?: string; reason?: string }> {
+    const boundaries = this.config.sovereignBoundaries;
+    if (!boundaries) return { proceed: true };
+
+    const currentLat = this.neuralLatency || 0;
+
+    // 1. Latency Protocol
+    if (boundaries.maxLatencyMs && currentLat > boundaries.maxLatencyMs) {
+      if (currentLat > boundaries.maxLatencyMs * 1.5) {
+        return {
+          proceed: true,
+          strategyOverride: 'YIELD',
+          reason: `Latency (${Math.round(currentLat)}ms) exceeds threshold. Enforcing YIELD protocol.`
+        };
+      }
+    }
+
+    // 2. Budget Protocol Placeholder
+
+    // 3. Offline Protocol
+    if (boundaries.forceOffline) {
+      return {
+        proceed: true,
+        strategyOverride: 'YIELD',
+        reason: 'Sovereign Offline Link active. Local substrate only.'
+      };
+    }
+
+    return { proceed: true };
+  }
+
   /**
- * Execute user intent with "Research -> Plan -> Execute -> Review" loop
- * High-level entry point for executing user intents.
- * Leverages ternary routing and adversarial loops for maximum quality.
- */
+   * Execute user intent with "Research -> Plan -> Execute -> Review" loop
+   * High-level entry point for executing user intents.
+   * Leverages ternary routing and adversarial loops for maximum quality.
+   */
   async executeIntent(promptOrOptions: string | { prompt: string; model?: string; force?: boolean }, filePath?: string): Promise<Result<Execution>> {
     const prompt = typeof promptOrOptions === 'string' ? promptOrOptions : promptOrOptions.prompt;
     const modelOverride = typeof promptOrOptions === 'string' ? undefined : promptOrOptions.model;
@@ -798,6 +844,21 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
       startTime: Date.now(),
       ...(force !== undefined ? { force } : {})
     };
+
+    // Phase 24: Constitutional Boundary Negotiation
+    const negotiation = await this.negotiateBoundaries(prompt);
+    if (!negotiation.proceed) {
+      return { ok: false, error: new Error(`Boundary Negotiation Failed: ${negotiation.reason}`) };
+    }
+
+    if (negotiation.strategyOverride) {
+      this.currentNarrative = `Constitutional Shift: ${negotiation.reason}`;
+      this.broadcastToDashboard('boundary_negotiation', {
+        type: 'PROTOCOL_SHIFT',
+        reason: negotiation.reason,
+        strategy: negotiation.strategyOverride
+      });
+    }
 
     // Inject Immutable System Prompt
     const fullPrompt = constructInitialPrompt(prompt);
@@ -838,20 +899,20 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
     for (const limb of orderedLimbs) {
       const decision = await limb.canHandle({ prompt: fullPrompt });
 
-      // Phase 14: Quantum Escalation for Maximal Complexity (1.0 Threshold)
-      if (decision === 1 && limb.id === 'quantum_superposition') {
+      // Phase 14: Quantum Escalation for Maximal Complexity ('Yang' Threshold)
+      if (decision === 'Yang' && limb.id === 'quantum_superposition') {
         this.logger.info('Escalating to Quantum Superposition (Super-Intelligent reasoning)...');
         // Proceed to standard limb execution for Quantum
       }
 
-      if (decision >= 0) {
+      if (decision !== 'Yin') {
 
         const result = await limb.execute({ prompt: fullPrompt });
         if (result.ok) {
           this.recordSuccessMetadata(limb.id, prompt, Date.now() - context.startTime, filePath);
 
           // Special case for WebAppForge preview events
-          const resultData = result.value.data as Record<string, any>;
+          const resultData = result.value.data as Record<string, unknown>;
           if (limb.id === 'webapp_forge' && resultData?.['previewUrl']) {
             const previewMetadata = (await this.previewServer.getActivePreviews()).find(p => p.url === resultData['previewUrl']);
             if (previewMetadata) {
@@ -1020,7 +1081,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
         prompt: `Review the following output for goal completion: ${prompt}`,
         context: { complexity: TaskClassifier.assessComplexity(prompt, TaskClassifier.analyzeProbabilities(prompt)) }
       });
-      if (omegaResult.ok && (omegaResult.value.data as Record<string, any>)?.['done']) {
+      if (omegaResult.ok && (omegaResult.value.data as Record<string, unknown> | undefined)?.['done']) {
         this.logger.info('Omega Sequence: Project Converged at Omega Point.');
         totalResponse += `\n\n--- OMEGA VERIFICATION ---\n${omegaResult.value.output}`;
       }
@@ -1059,7 +1120,15 @@ Perform the current step and output results. If verifying, ensure you run the ne
     if (modelOverride) {
       selectedModel = modelOverride;
     } else {
-      const routeResult = await this.router.route(currentMessage);
+      const routeResult = await this.router.route({
+        prompt: currentMessage,
+        metadata: {
+          projectRoot: this.config.projectRoot,
+          filePath: context.filePath,
+          ghostEngagementLevel: this.ghostLimb.engagementLevel,
+          isStuck: turnCounter > 2 // Trigger esoteric escalation if loops persist
+        }
+      });
       if (!routeResult.ok) {
         return {
           status: 'stop',
@@ -1069,6 +1138,26 @@ Perform the current step and output results. If verifying, ensure you run the ne
         };
       }
       selectedModel = routeResult.value;
+    }
+
+    // Phase 18: Ghost Terminator Interception
+    if (selectedModel === 'ghost-terminator') {
+      this.logger.warn({ prompt: currentMessage.substring(0, 50) }, '👻 GHOST_TERMINATOR: Fulfilling natively via local GhostLimb');
+      const ghostResult = await this.ghostLimb.execute({ prompt: currentMessage });
+      if (ghostResult.ok) {
+        return {
+          status: 'stop',
+          terminateReason: AgentTerminateMode.GOAL,
+          finalResult: ghostResult.value.output,
+          model: 'ghost-terminator'
+        };
+      }
+      return {
+        status: 'stop',
+        terminateReason: AgentTerminateMode.ERROR,
+        finalResult: ghostResult.error.message,
+        model: 'ghost-terminator'
+      };
     }
 
     // Augment with context if filePath is present
@@ -1154,8 +1243,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
       this.router.recordFailure(selectedModel);
       const error = (callResult as { error: Error }).error;
-      const contextObj = context as any;
-      this.recordFailureMetadata(selectedModel, augmentedPrompt, error.message, contextObj['filePath']);
+      this.recordFailureMetadata(selectedModel, augmentedPrompt, error.message, (context as { filePath: string }).filePath);
 
       // Sovereign Shell Fallback Logic
       if (selectedModel.includes('gemini')) {
@@ -1165,7 +1253,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
           return {
             status: 'stop', // CLI usually handles the full task or specific edit
             terminateReason: AgentTerminateMode.GOAL,
-            finalResult: shellResult.value,
+            finalResult: shellResult.value.output,
             model: 'sovereign-shell-gemini'
           };
         }
@@ -1179,13 +1267,13 @@ Perform the current step and output results. If verifying, ensure you run the ne
           return {
             status: 'stop',
             terminateReason: AgentTerminateMode.GOAL,
-            finalResult: shellResult.value,
+            finalResult: shellResult.value.output,
             model: 'sovereign-shell-wrangler'
           };
         }
       }
 
-      this.emit('executionError', { error: callResult.error, context });
+      this.emit('executionError', { error: (callResult as { error: Error }).error, context });
       return {
         status: 'stop',
         terminateReason: AgentTerminateMode.ERROR,
@@ -1199,13 +1287,23 @@ Perform the current step and output results. If verifying, ensure you run the ne
     // 3. Process Logic (Handle Formal Function Calls and Sandbox Commands)
     const processResult = await this.processFunctionCalls(callResult.value, context.plan);
     return { ...processResult, model: selectedModel };
+  } catch(error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    this.logger.error({ error: message }, 'Turn execution failed');
+    return {
+      status: 'stop',
+      terminateReason: AgentTerminateMode.ERROR,
+      finalResult: message,
+      model: 'unknown'
+    };
   }
 
   /**
    * Executes a terminal-based fallback using the SovereignShellLimb.
    */
-  private async executeSovereignFallback(toolName: string, prompt: string): Promise<Result<string>> {
-    return await this.sovereignShellLimb.handleToolCall(toolName, { args: prompt });
+  private async executeSovereignFallback(toolName: string, prompt: string): Promise<Result<Execution>> {
+    const res = await this.sovereignShellLimb.handleToolCall(toolName, { args: prompt });
+    return res as unknown as Result<Execution>;
   }
 
   /**
@@ -1236,14 +1334,14 @@ Perform the current step and output results. If verifying, ensure you run the ne
         const interference = await this.checkMonitorInterference(plan);
         if (interference) return interference;
 
-        let result: Result<any> = { ok: false, error: new Error(`No handler for tool: ${call.name}`) };
+        let result: Result<Execution> = { ok: false, error: new Error(`No handler for tool: ${call.name}`) };
 
         // Dynamic routing to limb that owns the tool
         let handled = false;
         for (const limb of this.limbs) {
           if (limb.getTools && limb.handleToolCall) {
             const tools = limb.getTools();
-            const hasTool = tools.some(group => group.functionDeclarations.some((f: any) => f.name === call.name));
+            const hasTool = tools.some(group => group.functionDeclarations.some((f: { name: string }) => f.name === call.name));
             if (hasTool) {
               result = await limb.handleToolCall(call.name, call.args);
               handled = true;
@@ -1312,9 +1410,9 @@ Perform the current step and output results. If verifying, ensure you run the ne
     if (!this.monitorAgent) return null;
 
     const result = await this.monitorAgent.diagnoseState(plan);
-    if (result.decision === 1) return null; // Proceed (Healthy or Planned Drift)
+    if (result.decision === 'Yang') return null; // Proceed (Healthy or Planned Drift)
 
-    if (result.decision === -1) {
+    if (result.decision === 'Yin') {
       this.logger.warn({ reasoning: result.reasoning }, 'MONITOR INTERFERENCE: Critical failure detected');
       return {
         status: 'stop',
@@ -1323,7 +1421,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
       };
     }
 
-    if (result.decision === 0) {
+    if (result.decision === 'YinYang') {
       this.logger.info({ reasoning: result.reasoning }, 'MONITOR INTERVENTION: Proactive Patch needed');
       // Background handleAutoHeal will catch this via the event listener, 
       // but we return a 'continue' result that essentially "waits" or suggests a retry.
@@ -1377,7 +1475,6 @@ Perform the current step and output results. If verifying, ensure you run the ne
       if (this.geminiService) {
         const embedResult = await this.geminiService.embed(prompt);
         if (embedResult.ok) {
-          // Re-instantiate to match local Float32Array<ArrayBuffer> definition
           embedding = new Float32Array(embedResult.value);
         }
       }
@@ -1446,7 +1543,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
     // Update Neural Latency (Rolling average of last 5)
     const recentExecs = this.intentHistory.slice(-5).map(i => i.executionTime);
     if (recentExecs.length > 0) {
-      (this as any).neuralLatency = recentExecs.reduce((a, b) => a + b, 0) / recentExecs.length;
+      this.neuralLatency = recentExecs.reduce((a, b) => a + b, 0) / recentExecs.length;
     }
 
     this.emit('intentExecuted', this.intentHistory[this.intentHistory.length - 1] as any);
@@ -1468,10 +1565,10 @@ Perform the current step and output results. If verifying, ensure you run the ne
       sessionId: this.sessionId,
       intentCount: this.intentHistory.length,
       recentIntents: this.intentHistory.slice(-10),
-      neuralLatency: (this as any).neuralLatency || 0,
+      neuralLatency: this.neuralLatency || 0,
       enabledServices: this.config.enabledServices,
       limbs: this.limbs.map(l => {
-        const status = typeof (l as any).getStatus === 'function' ? (l as any).getStatus() : { id: l.id, type: l.type, capabilities: l.capabilities };
+        const status = typeof l.getStatus === 'function' ? l.getStatus() : { id: l.id, type: l.type, capabilities: l.capabilities };
         return status;
       }),
       workspaces: this.config.workspaces || [],
@@ -1494,8 +1591,10 @@ Perform the current step and output results. If verifying, ensure you run the ne
   }
 
   private async broadcastPulse(): Promise<void> {
+    await this.refreshSystemHealth();
     if (!this.wsServer) return;
 
+    const health = this.getSystemHealth();
     const hex = this.hexagramManager.getInterpretation();
     // Intensity weighted by hexagram strategy (MAINTAIN=0.3, EXPAND=0.9, etc.)
     const strategyWeight = hex.strategy === 'EXPAND' ? 0.9 :
@@ -1509,7 +1608,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
       timestamp: Date.now(),
       intensity: 0.5 + (0.5 * strategyWeight),
       spark: Math.random() < sparkProb,
-      health: this.getSystemHealth()
+      health: health
     };
 
     const payload = JSON.stringify({ type: 'pulse', data: pulse });
@@ -1519,30 +1618,19 @@ Perform the current step and output results. If verifying, ensure you run the ne
   }
 
   private async generateSovereignVoice(): Promise<void> {
-    if (!this.geminiService) return;
-
-    const hex = this.hexagramManager.getInterpretation();
     const metrics = this.getSystemHealth();
+    const ghostStatus = this.ghostLimb.getStatus();
+    const isGhostActive = ghostStatus['engagementLevel'] === 1; // HealthStatus.Ready
 
-    const prompt = `You are the Sovereign Voice of POG-CODER-VIBE.
-Current Hexagram: ${hex.name} (${hex.binary})
-Meaning: ${hex.description}
-Strategy: ${hex.strategy}
-System Health: CPU ${metrics.cpu.toFixed(1)}%, RAM ${metrics.mem.toFixed(1)}%, Disk ${metrics.disk.toFixed(1)}%
-
-Provide a short, 1-sentence "Sovereign Narrative" about the current system vibe. 
-Use a high-tier, sophisticated, yet straight-up tone. Avoid generic AI fluff.`;
-
-    const response = await this.geminiService.generateContent(prompt, {
-      model: 'gemini:gemini-2.0-flash',
-      maxOutputTokens: 60
-    } as any);
-
-    if (response.ok) {
-      this.currentNarrative = response.value.response.trim();
-      this.logger.info({ narrative: this.currentNarrative }, 'Sovereign Voice updated');
-      this.broadcastState(); // Broadcast immediately to update UI
+    // TERNARY FAILOVER: If Ghost is Master (+1), skip Cloud narrative
+    if (isGhostActive) {
+      this.currentNarrative = this.ghostLimb.generateLocalNarrative(metrics);
+      this.logger.info({ narrative: this.currentNarrative }, 'Sovereign Voice updated (Ghost Failover)');
+      this.broadcastState();
+      return;
     }
+
+    if (!this.geminiService) return;
   }
 
   private async refreshSystemHealth(): Promise<void> {
@@ -1630,12 +1718,17 @@ Use a high-tier, sophisticated, yet straight-up tone. Avoid generic AI fluff.`;
   }
 
   private broadcastState(): void {
-    if (this.wsServer) {
-      const stateMsg = JSON.stringify({ type: 'state', data: this.getCurrentState() });
-      this.wsServer.clients.forEach(client => {
-        if (client.readyState === 1) client.send(stateMsg);
-      });
-    }
+    this.broadcastToDashboard('state', this.getCurrentState());
+  }
+
+  // Consolidated into the previous broadcastPulse
+
+  private broadcastToDashboard(type: string, data: any): void {
+    if (!this.wsServer) return;
+    const msg = JSON.stringify({ type, data });
+    this.wsServer.clients.forEach(client => {
+      if (client.readyState === 1) client.send(msg);
+    });
   }
 
   private handleControlMessage(payload: { command: string; data: Record<string, any> }, ws: import('ws').WebSocket): void {
@@ -1657,8 +1750,8 @@ Use a high-tier, sophisticated, yet straight-up tone. Avoid generic AI fluff.`;
       'transcribeAudiobook': { limbId: 'gutenberg_knowledge', toolName: 'audiobook_transcribe' },
       'forge_storyboard': { limbId: 'gutenberg_knowledge', toolName: 'generate_storyboard' },
       'invoke_limb_tool': {
-        limbId: (data as Record<string, any>)['limbId'] || 'unknown',
-        toolName: (data as Record<string, any>)['toolName'] || 'unknown'
+        limbId: (data)['limbId'] || 'unknown',
+        toolName: (data)['toolName'] || 'unknown'
       }
     };
 
@@ -1698,10 +1791,11 @@ Use a high-tier, sophisticated, yet straight-up tone. Avoid generic AI fluff.`;
       if (targetLimb && targetLimb.handleToolCall) {
         void targetLimb.handleToolCall(mapped.toolName, data || {}).then(res => {
           // Secondary Side Effects based on tool result
-          if (res.ok && res.value.action) {
-            if (res.value.action === 'switch_workspace') this.switchWorkspace(res.value.data.path);
-            if (res.value.action === 'pin_file') this.pinFile(res.value.data.path);
-            if (res.value.action === 'unpin_file') this.unpinFile(res.value.data.path);
+          if (res.ok && (res.value as any).action) {
+            const exec = res.value as any;
+            if (exec.action === 'switch_workspace') this.switchWorkspace(exec.data.path);
+            if (exec.action === 'pin_file') this.pinFile(exec.data.path);
+            if (exec.action === 'unpin_file') this.unpinFile(exec.data.path);
           }
 
           // Broadcast updates to all clients
@@ -1720,7 +1814,7 @@ Use a high-tier, sophisticated, yet straight-up tone. Avoid generic AI fluff.`;
           } else if (command === 'readBook' && res.ok) {
             ws.send(JSON.stringify({ type: 'bookContent', data: res.value.data }));
           } else if (command === 'requestBooks' && res.ok) {
-            ws.send(JSON.stringify({ type: 'books', data: res.value.data.books }));
+            ws.send(JSON.stringify({ type: 'books', data: (res.value.data as any).books }));
           }
         });
       } else {
@@ -1878,7 +1972,13 @@ Use a high-tier, sophisticated, yet straight-up tone. Avoid generic AI fluff.`;
   async cleanup(reason = 'unknown'): Promise<void> {
     this.logger.info({ reason }, 'Cleaning up orchestrator');
     await this.previewServer.stopAll();
-    if (this.wsServer) this.wsServer.close();
+    if (this.wsServer) {
+      this.wsServer.close();
+      this.wsServer = undefined;
+    }
+    if (this.monitorAgent) {
+      this.monitorAgent.removeAllListeners();
+    }
     this.removeAllListeners();
   }
 }

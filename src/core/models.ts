@@ -3,7 +3,7 @@
  * All types are immutable by default for safety
  */
 
-export const enum TaskType {
+export enum TaskType {
   Architecture = 'architecture',
   Syntax = 'syntax',
   Refactor = 'refactor',
@@ -19,7 +19,7 @@ export const enum TaskType {
   Conversational = 'conversational'
 }
 
-export const enum ModelAbility {
+export enum ModelAbility {
   Chat = 'CHAT',
   Code = 'CODE',
   Vision = 'VISION',
@@ -31,25 +31,27 @@ export const enum ModelAbility {
   Search = 'SEARCH'
 }
 
-export const enum ModelType {
+export enum ModelType {
   Local = 'local',
   CloudFree = 'cloud-free',
   Cloudflare = 'cloudflare'
 }
 
-export const enum CircuitState {
+export enum CircuitState {
   Closed = 'CLOSED',
   Open = 'OPEN',
   HalfOpen = 'HALF_OPEN'
 }
 
 /**
- * Ternary Decision Type - The foundation of POG-VIBE routing philosophy.
- * -1: De-escalate / Cannot handle / Skip
- *  0: Balanced / Neutral confidence / Maybe
- * +1: Escalate / Optimal handler / Yes
+ * Sovereign Decision Taxonomy - Domain-aware decision types
+ * Replacing industrial numbers with organic, semantic states.
  */
-export type TernaryDecision = -1 | 0 | 1;
+export type CognitiveChoice = 'Yang' | 'Yin' | 'YinYang'; // Yes | No | Maybe
+export type Ternary = CognitiveChoice;
+export type TernaryDecision = CognitiveChoice;
+export type StrategicDirection = 'Forward' | 'Back' | 'Reflect'; // Escalate | Revert | Audit
+export type MetabolicState = 'Hyper' | 'Steady' | 'Dormant'; // High | Normal | Low
 
 
 export interface ModelPerformance {
@@ -117,60 +119,55 @@ export interface FreeModelConfig {
   readonly priority: number; // 0-100, higher = preferred
   readonly health?: {
     readonly isAvailable: boolean;
-    readonly circuitLevel: Ternary; // -1: Failing, 0: Degrading, 1: Healthy
+    readonly circuitLevel: CognitiveChoice; // Yang: Healthy, Yin: Failing, YinYang: Degrading
     readonly lastLatency?: number | undefined;
     readonly cooldownSeconds?: number;
   };
 }
 
 /**
- * Strictly-typed Ternary value for decision logic
- */
-export type Ternary = -1 | 0 | 1;
-
-/**
- * Domain-Specific Ternary Enums for Stage-based Decisions
+ * Domain-Specific Semantic Enums for Stage-based Decisions
  */
 export enum BuildStatus {
-  Failed = -1,
-  Warning = 0,
-  Passed = 1
+  Failed = 'Yin',
+  Warning = 'YinYang',
+  Passed = 'Yang'
 }
 
 export enum HealthStatus {
-  Critical = -1,
-  Degraded = 0,
-  Ready = 1
+  Critical = 'Yin',
+  Degraded = 'YinYang',
+  Ready = 'Yang'
 }
 
 export enum ResourcePressure {
-  Critical = -1,
-  High = 0,
-  Optimal = 1
+  Critical = 'Yin',
+  High = 'YinYang',
+  Optimal = 'Yang'
 }
 
 export enum UserEngagement {
-  Idle = -1,
-  Passive = 0,
-  Active = 1
+  Idle = 'Yin',
+  Passive = 'YinYang',
+  Active = 'Yang'
 }
 
 export enum SuccessRating {
-  Failure = -1,
-  Partial = 0,
-  Success = 1
+  Failure = 'Yin',
+  Partial = 'YinYang',
+  Success = 'Yang'
 }
 
 export enum ExecutionEscalation {
-  Safe = -1,
-  Standby = 0,
-  Aggressive = 1
+  Safe = 'Yin',
+  Standby = 'YinYang',
+  Aggressive = 'Yang'
 }
 
 export enum CostTier {
-  Paid = -1,
-  Credits = 0,
-  Free = 1
+  Paid = 'Yin',
+  Credits = 'YinYang',
+  Free = 'Yang'
 }
 
 /**
@@ -179,10 +176,10 @@ export enum CostTier {
 export type TernaryNode =
   | {
     readonly kind: 'branch';
-    readonly condition: (context: AssessedRoutingContext) => Ternary;
-    readonly left: TernaryNode;   // -1 path - NO STRINGS
-    readonly center: TernaryNode; // 0 path  - NO STRINGS
-    readonly right: TernaryNode;  // 1 path  - NO STRINGS
+    readonly condition: (context: AssessedRoutingContext) => CognitiveChoice;
+    readonly left: TernaryNode;   // Yin path
+    readonly center: TernaryNode; // YinYang path
+    readonly right: TernaryNode;  // Yang path
     readonly description?: string; // For explainability
   }
   | {
@@ -195,7 +192,7 @@ export type TernaryNode =
  */
 export interface RoutingDecision {
   readonly modelName: string;
-  readonly path: ReadonlyArray<Ternary>;
+  readonly path: ReadonlyArray<CognitiveChoice>;
   readonly reason: string;
   readonly candidateConfidence: number; // 0-1 scale
   readonly regretLikelihood: number;   // 0-1 scale, chance a better model was skipped
@@ -320,6 +317,13 @@ export interface VibeConfig {
   readonly healThreshold?: 'low' | 'medium' | 'high' | 'critical' | undefined;
   readonly sovereignRoot?: string | undefined;
   readonly pogApiUrl?: string | undefined;
+  readonly aiContextPath?: string | undefined;
+  readonly sovereignBoundaries?: {
+    readonly maxLatencyMs?: number;
+    readonly dailyBudgetUsd?: number;
+    readonly allowCloud?: boolean;
+    readonly forceOffline?: boolean;
+  };
 }
 
 export const enum AgentTerminateMode {

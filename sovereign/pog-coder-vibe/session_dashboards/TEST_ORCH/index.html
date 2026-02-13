@@ -28,11 +28,18 @@
                 <button class="tab-btn" data-tab="health">Health</button>
                 <button class="tab-btn" data-tab="books" id="tab-books">Books</button>
                 <button class="tab-btn" data-tab="storyboard" id="tab-storyboard">Storyboard</button>
-                <button class="tab-btn" data-tab="media">Forge</button>
+                <button class="tab-btn" data-tab="media">Cloudflare</button>
+                <button class="tab-btn" data-tab="sovereign">Sovereign</button>
                 <button class="tab-btn" data-tab="settings">Config</button>
             </nav>
             <div class="status-indicator">
                 <div id="sovereign-narrative" class="sovereign-narrative">The substrate is quiet...</div>
+                <div id="gps-telemetry" class="gps-telemetry" title="GPS Context">
+                    <span class="icon">📍</span> <span id="gps-coords">Searching...</span>
+                </div>
+                <div id="sovereign-link" class="sovereign-link" title="Sovereign Boundary Status">
+                    <span class="status-dot"></span> Sovereign Link: <span id="link-status">INIT</span>
+                </div>
                 <button id="mic-btn" class="mic-btn" title="Speak">🎙️</button>
                 <span id="ws-status" class="status-dot"></span>
                 <span id="ws-text">Neural Link</span>
@@ -252,6 +259,36 @@
                             </div>
                         </div>
                         <div id="media-library" class="scroll-box gallery-view mt-10"></div>
+                        
+                        <div class="forge-divider"></div>
+                        
+                        <h3><span class="icon">🌏</span> GLOBE FORGE (MULTIPLATER SUBSTRATE)</h3>
+                        <div class="forge-controls horizontal">
+                            <input type="text" id="globe-name" placeholder="Enter globe project name...">
+                            <button onclick="forgeGlobe()" class="action-btn purple">Forge Globe</button>
+                        </div>
+                        <div id="globe-preview-container" class="globe-preview mt-10">
+                            <canvas id="globe-canvas" style="width: 300px; height: 300px; margin: 0 auto; display: none;"></canvas>
+                            <div id="globe-meta" class="muted">No active globe forged.</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- SOVEREIGN TAB -->
+            <div id="sovereign" class="tab-content">
+                <div class="grid-layout">
+                    <section class="panel main-panel">
+                        <h3><span class="icon">🌌</span> GLOBAL CONSTELLATION</h3>
+                        <div id="sovereign-globe-container" class="canvas-box premium-loader" style="height:450px !important;">
+                            <canvas id="globe-canvas-sov" style="width:100%;height:100%;"></canvas>
+                        </div>
+                    </section>
+                    <section class="panel side-panel">
+                        <h3><span class="icon">⚖️</span> CONSTITUTIONAL LOG</h3>
+                        <div id="constitutional-log" class="scroll-box token-stream" style="height:450px;">
+                            <p class="muted">Awaiting boundary negotiation...</p>
+                        </div>
                     </section>
                 </div>
             </div>
@@ -339,14 +376,6 @@
                                     <label>VIBE</label>
                                     <label class="switch">
                                         <input type="checkbox" checked onchange="toggleService('vibe', this.checked)">
-                                        <span class="slider round"></span>
-                                    </label>
-                                </div>
-                            
-                                <div class="setting-item">
-                                    <label>GEMINI</label>
-                                    <label class="switch">
-                                        <input type="checkbox" checked onchange="toggleService('gemini', this.checked)">
                                         <span class="slider round"></span>
                                     </label>
                                 </div>

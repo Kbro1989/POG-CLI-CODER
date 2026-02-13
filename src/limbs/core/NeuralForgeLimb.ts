@@ -33,8 +33,8 @@ export class NeuralForgeLimb extends BaseLimb {
                     },
                     required: ['forgeType', 'prompt']
                 },
-                handler: async (args: any) => {
-                    const targetForge = args['forgeType'];
+                handler: async (args: Record<string, unknown>) => {
+                    const targetForge = args['forgeType'] as string;
                     let persona = 'Architectural Engineer';
 
                     if (targetForge === 'SQL') persona = 'SQL Architect';
@@ -42,7 +42,7 @@ export class NeuralForgeLimb extends BaseLimb {
                     else if (targetForge === 'UI') persona = 'Sovereign UI/UX Architect';
                     else if (targetForge === 'PatternScope') persona = 'Code Provenance Auditor';
 
-                    const specializedPrompt = this.wrapForgePrompt(persona, args['prompt']);
+                    const specializedPrompt = this.wrapForgePrompt(persona, args['prompt'] as string);
                     this.logger.info({ targetForge }, 'Executing specialized forge loop (Adversarial)');
 
                     const result = await this.adversarialOrchestrator.generateValidatedCode(
@@ -70,15 +70,17 @@ export class NeuralForgeLimb extends BaseLimb {
                     },
                     required: ['filePath', 'patternName', 'description']
                 },
-                handler: async (args) => {
+                handler: async (args: Record<string, unknown>) => {
                     return this.handleHarvestPattern(args);
                 }
             }
         ]);
     }
 
-    private async handleHarvestPattern(args: any): Promise<Result<string>> {
-        const { filePath, patternName, description } = args;
+    private async handleHarvestPattern(args: Record<string, unknown>): Promise<Result<string>> {
+        const filePath = (args['filePath'] as string) || '';
+        const patternName = (args['patternName'] as string) || '';
+        const description = (args['description'] as string) || '';
         const fs = await import('fs');
         const path = await import('path');
 
@@ -153,22 +155,23 @@ GENERATE IMPLEMENTATION NOW:
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const userIntent = this.getUserIntent(intent).toLowerCase();
 
-        // +1: Explicit forge match = optimal
+        // 'Yang': Explicit forge match = optimal
         const forgeMatch = /sql\s+forge|docs\s+forge|refactor\s+forge/i.test(userIntent);
-        if (forgeMatch) return 1;
+        if (forgeMatch) return 'Yang';
 
-        // 0: Common patterns = maybe
+        // 'YinYang': Common patterns = maybe
         const patterns = ['migration', 'database schema', 'technical deep-dive', 'code smell', 'refactor', 'api reference'];
-        if (patterns.some(pattern => userIntent.includes(pattern))) return 0;
+        if (patterns.some(pattern => userIntent.includes(pattern))) return 'YinYang';
 
-        return -1;
+        return 'Yin';
     }
     override async execute(intent: Intent): Promise<Result<Execution>> {
         const userIntent = this.getUserIntent(intent).toLowerCase();
         const matchedCap = this.spine.getCapabilities().find(cap => userIntent.includes(cap));
 
         if (matchedCap) {
-            return this.spine.handleCall(matchedCap, { forgeType: 'SQL', prompt: intent.prompt }) as any; // Default to SQL for now if auto-matched
+            const spineResult = await this.spine.handleCall(matchedCap, { forgeType: 'SQL', prompt: intent.prompt });
+            return spineResult as unknown as Result<Execution>;
         }
 
         // Fallback to Sovereign Cognitive Response

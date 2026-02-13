@@ -22,15 +22,15 @@ export interface LimbTool {
         properties: Record<string, unknown>;
         required?: string[] | readonly string[];
     };
-    schema?: z.ZodObject<any>;
-    handler: (args: Record<string, any>) => Promise<Result<unknown>>;
+    schema?: z.ZodObject<Record<string, z.ZodTypeAny>>;
+    handler: (args: Record<string, unknown>) => Promise<Result<unknown>>;
 }
 
 /**
  * ToolingSpine - Centralizes tool registration and routing for Limbs.
  */
 export class ToolingSpine extends EventEmitter {
-    private tools: Map<string, LimbTool> = new Map();
+    private readonly tools: Map<string, LimbTool> = new Map();
 
     /**
      * Emits a ternary pulse for Hexagram Line 2.
@@ -64,13 +64,13 @@ export class ToolingSpine extends EventEmitter {
     /**
      * Routes a tool call to the registered handler with validation.
      */
-    async handleCall(name: string, args: Record<string, any>): Promise<Result<unknown>> {
+    async handleCall<T = unknown>(name: string, args: Record<string, unknown>): Promise<Result<T>> {
         const tool = this.tools.get(name);
         if (!tool) {
             return { ok: false, error: new Error(`Tool Spine: Unknown tool '${name}'`) };
         }
 
-        let parsedArgs = args;
+        let parsedArgs: Record<string, unknown> = args;
 
         // Perform Zod validation if schema is present
         if (tool.schema) {
@@ -82,11 +82,11 @@ export class ToolingSpine extends EventEmitter {
                 };
             }
             // Use authenticated/parsed data
-            parsedArgs = validationResult.data;
+            parsedArgs = validationResult.data as Record<string, unknown>;
         }
 
         try {
-            return await tool.handler(parsedArgs);
+            return await tool.handler(parsedArgs) as Result<T>;
         } catch (error) {
             return { ok: false, error: error as Error };
         }

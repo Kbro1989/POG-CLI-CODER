@@ -1,6 +1,6 @@
 import pino from 'pino';
 import { TSCError } from './TSCMonitor.js';
-import { Ternary, BuildStatus, HealthStatus } from '../core/models.js';
+import { CognitiveChoice, BuildStatus, HealthStatus } from '../core/models.js';
 import { ArchitectureDigest } from '../core/ArchitectureDigest.js';
 import { ModelExecutor } from '../core/ModelExecutor.js';
 import { existsSync, readdirSync, readFileSync as fsReadFileSync } from 'fs';
@@ -43,7 +43,7 @@ export class SelfHealingEngine {
     /**
      * Diagnose an error in context of the current execution plan.
      */
-    async diagnose(error: TSCError, plan?: ExecutionPlan): Promise<{ decision: Ternary; reasoning: string }> {
+    async diagnose(error: TSCError, plan?: ExecutionPlan): Promise<{ decision: CognitiveChoice; reasoning: string }> {
         logger.info({ code: error.code, file: error.file }, 'Diagnosing error');
 
         // 0. Sense Test Outputs (Phase 16)
@@ -140,7 +140,7 @@ Format: JSON { "severity": "low|medium|high|critical", "analysis": "concise expl
 
         try {
             const files = readdirSync(outputsDir);
-            const recentLogs = files.filter(f => f.endsWith('.log') || f.endsWith('.txt')).slice(-5);
+            const recentLogs = files.filter(f => f.endsWith('.log') || f.endsWith('.txt') || f.endsWith('.json')).slice(-5);
 
             return recentLogs.map(f => {
                 const content = fsReadFileSync(join(outputsDir, f), 'utf-8').slice(-500);
@@ -149,6 +149,29 @@ Format: JSON { "severity": "low|medium|high|critical", "analysis": "concise expl
         } catch (err) {
             logger.error({ err }, 'Failed to sense test outputs');
             return undefined;
+        }
+    }
+
+    /**
+     * Purges the tests/outputs directory.
+     * Triggered after successful healing to clear stale diagnostic state.
+     */
+    public cleanupTestOutputs(): void {
+        const outputsDir = join(this.architectureDigest.getManifest().domainModel['Tests']?.file.split('/')[0] || 'tests', 'outputs');
+        if (!existsSync(outputsDir)) return;
+
+        try {
+            const files = readdirSync(outputsDir);
+            for (const file of files) {
+                const filePath = join(outputsDir, file);
+                const stats = readdirSync(outputsDir, { withFileTypes: true }).find(f => f.name === file);
+                if (stats?.isFile()) {
+                    import('fs').then(fs => fs.unlinkSync(filePath));
+                }
+            }
+            logger.info({ count: files.length }, 'Cleaned up test outputs');
+        } catch (err) {
+            logger.error({ err }, 'Failed to cleanup test outputs');
         }
     }
 }

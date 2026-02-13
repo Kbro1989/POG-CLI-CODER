@@ -12,7 +12,7 @@ export class BioIntelligenceLimb extends BaseLimb {
     readonly id = 'bio_intelligence';
     readonly type = 'analytical' as const;
 
-    private dispatcher: AIDispatcher;
+    private readonly dispatcher: AIDispatcher;
 
     constructor(config: VibeConfig) {
         super(config);
@@ -32,8 +32,8 @@ export class BioIntelligenceLimb extends BaseLimb {
                     },
                     required: ['prompt'] as const
                 },
-                handler: async (args: Record<string, any>): Promise<Result<unknown>> => {
-                    return this.handleBioCall('hear_acoustic_analysis', args['prompt']);
+                handler: async (args: Record<string, unknown>): Promise<Result<unknown>> => {
+                    return this.handleBioCall('hear_acoustic_analysis', args['prompt'] as string);
                 }
             },
             {
@@ -46,8 +46,8 @@ export class BioIntelligenceLimb extends BaseLimb {
                     },
                     required: ['prompt'] as const
                 },
-                handler: async (args: Record<string, any>): Promise<Result<unknown>> => {
-                    return this.handleBioCall('medgemma_reasoning', args['prompt']);
+                handler: async (args: Record<string, unknown>): Promise<Result<unknown>> => {
+                    return this.handleBioCall('medgemma_reasoning', args['prompt'] as string);
                 }
             },
             {
@@ -60,8 +60,8 @@ export class BioIntelligenceLimb extends BaseLimb {
                     },
                     required: ['prompt'] as const
                 },
-                handler: async (args: Record<string, any>): Promise<Result<unknown>> => {
-                    return this.handleBioCall('derm_foundation_analysis', args['prompt']);
+                handler: async (args: Record<string, unknown>): Promise<Result<unknown>> => {
+                    return this.handleBioCall('derm_foundation_analysis', args['prompt'] as string);
                 }
             },
             {
@@ -74,8 +74,8 @@ export class BioIntelligenceLimb extends BaseLimb {
                     },
                     required: ['prompt'] as const
                 },
-                handler: async (args: Record<string, any>): Promise<Result<unknown>> => {
-                    return this.handleBioCall('pathology_analysis', args['prompt']);
+                handler: async (args: Record<string, unknown>): Promise<Result<unknown>> => {
+                    return this.handleBioCall('pathology_analysis', args['prompt'] as string);
                 }
             }
         ];
@@ -86,18 +86,18 @@ export class BioIntelligenceLimb extends BaseLimb {
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const prompt = intent.prompt.toLowerCase();
 
-        // +1: Specific medical substrates = optimal
+        // 'Yang': Specific medical substrates = optimal
         const specificSubstrates = ['hear', 'medgemma', 'path foundation', 'derm foundation'];
-        if (specificSubstrates.some(s => prompt.includes(s))) return 1;
+        if (specificSubstrates.some(s => prompt.includes(s))) return 'Yang';
 
-        // 0: General medical keywords = maybe
+        // 'YinYang': General medical keywords = maybe
         const keywords = ['medical', 'heart', 'cough', 'skin', 'pathology', 'biological', 'clinical', 'diagnosis'];
-        if (keywords.some(k => prompt.includes(k))) return 0;
+        if (keywords.some(k => prompt.includes(k))) return 'YinYang';
 
-        // 0: Capability matches = maybe
-        if (this.spine.getCapabilities().some(cap => prompt.includes(cap))) return 0;
+        // 'YinYang': Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => prompt.includes(cap))) return 'YinYang';
 
-        return -1;
+        return 'Yin';
     }
 
 
@@ -116,16 +116,18 @@ export class BioIntelligenceLimb extends BaseLimb {
         const result = await this.spine.handleCall(capabilityId, { prompt: intent.prompt });
         if (!result.ok) return { ok: false, error: result.error };
 
+        const resData = result.value as Record<string, unknown>;
+
         return {
             ok: true,
             value: {
-                output: (result.value as any)['output'],
-                data: (result.value as any)['data']
+                output: (resData['output'] as string) || 'Bio-intelligence analysis complete.',
+                data: resData['data']
             }
         };
     }
 
-    private async handleBioCall(name: string, payload: string): Promise<Result<any>> {
+    private async handleBioCall(name: string, payload: string): Promise<Result<unknown>> {
         this.logger.info({ capabilityId: name, payload }, 'Executing bio-intelligence tool call');
 
         const response = await this.dispatcher.dispatch({

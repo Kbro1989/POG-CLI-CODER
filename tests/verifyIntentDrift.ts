@@ -22,7 +22,9 @@ async function testDrift() {
         circuitBreakerCooldown: 60000,
         logLevel: 'debug',
         enabledServices: ['gemini'],
-        embeddingDimensions: 768
+        embeddingDimensions: 768,
+        gutenbergPath: undefined,
+        workspaces: [process.cwd()]
     };
 
     const vectorDB = new VectorDB(config);

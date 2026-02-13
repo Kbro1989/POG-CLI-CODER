@@ -39,8 +39,8 @@ export class HexagramLimb extends BaseLimb {
                     },
                     required: ['lineIndex', 'title', 'content']
                 },
-                handler: async (args: any) => {
-                    return this.manager.pinCard(args.lineIndex, args.title, args.content, args.state);
+                handler: async (args: Record<string, unknown>) => {
+                    return this.manager.pinCard(args['lineIndex'] as number, args['title'] as string, args['content'] as string, args['state'] as number);
                 }
             },
             {
@@ -61,14 +61,14 @@ export class HexagramLimb extends BaseLimb {
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = intent.prompt.toLowerCase();
 
-        // +1: Explicit hexagram keywords = optimal
+        // 'Yang': Explicit hexagram keywords = optimal
         const keywords = ['pin to hexagram', 'unpin from hexagram', 'check hexagram', 'hexagram slot', 'card holder'];
-        if (keywords.some(k => p.includes(k))) return 1;
+        if (keywords.some(k => p.includes(k))) return 'Yang';
 
-        // 0: Capability matches = maybe
-        if (this.spine.getCapabilities().some(cap => p.includes(cap))) return 0;
+        // 'YinYang': Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => p.includes(cap))) return 'YinYang';
 
-        return -1;
+        return 'Yin';
     }
 
     override async execute(intent: Intent): Promise<Result<Execution>> {

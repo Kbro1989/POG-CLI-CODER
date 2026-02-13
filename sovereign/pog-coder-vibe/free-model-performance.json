@@ -953,6 +953,483 @@
       "success": true,
       "timestamp": 1770900343438,
       "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 2561,
+      "success": 1,
+      "timestamp": 1770930055115,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 399,
+      "success": 1,
+      "timestamp": 1770936873233,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 401,
+      "success": 1,
+      "timestamp": 1770937364830,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 1053,
+      "success": 1,
+      "timestamp": 1770938164998,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 1317,
+      "success": 1,
+      "timestamp": 1770938297712,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 8683,
+      "success": true,
+      "timestamp": 1770938524914,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "syntax",
+      "extension": "",
+      "latency": 10181,
+      "success": true,
+      "timestamp": 1770938578028,
+      "isFree": true
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 1009,
+      "success": 1,
+      "timestamp": 1770938802942,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "monitor",
+      "extension": "",
+      "latency": 864,
+      "success": 1,
+      "timestamp": 1770938854271,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "monitor",
+      "extension": "",
+      "latency": 896,
+      "success": 1,
+      "timestamp": 1770938893672,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 889,
+      "success": 1,
+      "timestamp": 1770938922059,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "test",
+      "extension": "",
+      "latency": 1094,
+      "success": 1,
+      "timestamp": 1770938950930,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "syntax",
+      "extension": "",
+      "latency": 1285,
+      "success": 1,
+      "timestamp": 1770939163555,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 8786,
+      "success": 1,
+      "timestamp": 1770939505063,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "test",
+      "extension": "",
+      "latency": 9280,
+      "success": 1,
+      "timestamp": 1770939550732,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 10827,
+      "success": 1,
+      "timestamp": 1770939684472,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 9643,
+      "success": 1,
+      "timestamp": 1770939741944,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 9440,
+      "success": 1,
+      "timestamp": 1770939840790,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "docs",
+      "extension": "",
+      "latency": 9414,
+      "success": 1,
+      "timestamp": 1770940018884,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "docs",
+      "extension": "",
+      "latency": 9505,
+      "success": 1,
+      "timestamp": 1770940132398,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 12595,
+      "success": 1,
+      "timestamp": 1770940252648,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 9242,
+      "success": 1,
+      "timestamp": 1770940304328,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 9319,
+      "success": 1,
+      "timestamp": 1770940344056,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 22115,
+      "success": 1,
+      "timestamp": 1770940491249,
+      "isFree": 1
+    },
+    {
+      "model": "cloudflare_ai",
+      "taskType": "api-orchestration",
+      "extension": "",
+      "latency": 7,
+      "success": 1,
+      "timestamp": 1770940558481,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 8231,
+      "success": 1,
+      "timestamp": 1770941774627,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 8299,
+      "success": 1,
+      "timestamp": 1770941993885,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7649,
+      "success": 1,
+      "timestamp": 1770942120266,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "docs",
+      "extension": "",
+      "latency": 7947,
+      "success": 1,
+      "timestamp": 1770942186714,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7169,
+      "success": 1,
+      "timestamp": 1770942400502,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7586,
+      "success": 1,
+      "timestamp": 1770943231093,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 6975,
+      "success": 1,
+      "timestamp": 1770943372934,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7041,
+      "success": 1,
+      "timestamp": 1770943628681,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 6980,
+      "success": 1,
+      "timestamp": 1770944830989,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 7460,
+      "success": 1,
+      "timestamp": 1770944958935,
+      "isFree": 1
+    },
+    {
+      "model": "gutenberg_knowledge",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 3101,
+      "success": 1,
+      "timestamp": 1770945037604,
+      "isFree": 1
+    },
+    {
+      "model": "gutenberg_knowledge",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 37426,
+      "success": 1,
+      "timestamp": 1770945107122,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 3366,
+      "success": 1,
+      "timestamp": 1770946294366,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "diagnostic",
+      "extension": "",
+      "latency": 3209,
+      "success": 1,
+      "timestamp": 1770946427885,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 3259,
+      "success": 1,
+      "timestamp": 1770946519496,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "monitor",
+      "extension": "",
+      "latency": 3312,
+      "success": 1,
+      "timestamp": 1770946646434,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "monitor",
+      "extension": "",
+      "latency": 3248,
+      "success": 1,
+      "timestamp": 1770946875197,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 3329,
+      "success": 1,
+      "timestamp": 1770946931647,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 3217,
+      "success": 1,
+      "timestamp": 1770947154498,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 436,
+      "success": 1,
+      "timestamp": 1770967633730,
+      "isFree": 1
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 27,
+      "success": "Yang",
+      "timestamp": 1770971925208,
+      "isFree": "Yang"
+    },
+    {
+      "model": "webapp_forge",
+      "taskType": "monitor",
+      "extension": "",
+      "latency": 927727,
+      "success": "Yang",
+      "timestamp": 1770981615592,
+      "isFree": "Yang"
+    },
+    {
+      "model": "webapp_forge",
+      "taskType": "monitor",
+      "extension": "",
+      "latency": 1185157,
+      "success": "Yang",
+      "timestamp": 1770981615677,
+      "isFree": "Yang"
+    },
+    {
+      "model": "dashboard",
+      "taskType": "diagnostic",
+      "extension": "",
+      "latency": 55,
+      "success": "Yang",
+      "timestamp": 1771021198811,
+      "isFree": "Yang"
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 44,
+      "success": "Yang",
+      "timestamp": 1771021214102,
+      "isFree": "Yang"
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 62,
+      "success": "Yang",
+      "timestamp": 1771021254323,
+      "isFree": "Yang"
+    },
+    {
+      "model": "dashboard",
+      "taskType": "generate",
+      "extension": "",
+      "latency": 131,
+      "success": "Yang",
+      "timestamp": 1771022160659,
+      "isFree": "Yang"
+    },
+    {
+      "model": "dashboard",
+      "taskType": "conversational",
+      "extension": "",
+      "latency": 80,
+      "success": "Yang",
+      "timestamp": 1771022241571,
+      "isFree": "Yang"
     }
   ],
   "version": "1.2.0"

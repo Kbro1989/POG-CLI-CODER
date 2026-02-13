@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POG-CODER-VIBE | verification-test</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2300f2ff'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='%23050505'>⚡</text></svg>" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="vibe-theme">
+    <div id="bloom-substrate-container" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0.4;">
+        <canvas id="bloom-substrate"></canvas>
+    </div>
+    <div class="glass-container" style="position:relative;z-index:2;">
+        <header>
+            <div class="logo">POG-VIBE <span>CORE</span></div>
+            <div class="workspace-selector">
+                <select id="workspace-select" onchange="switchWorkspace(this.value)">
+                    <option value="C:\\Users\\\\Desktop\\Ollama_Code_Editor_Quant" selected>Ollama_Code_Editor_Quant</option>
+                </select>
+            </div>
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn" data-tab="ai">AI Pipeline</button>
+                <button class="tab-btn" data-tab="limbs">Limb Matrix</button>
+                <button class="tab-btn" data-tab="terminal">Terminal</button>
+                <button class="tab-btn" data-tab="health">Health</button>
+                <button class="tab-btn" data-tab="books" id="tab-books">Books</button>
+                <button class="tab-btn" data-tab="storyboard" id="tab-storyboard">Storyboard</button>
+                <button class="tab-btn" data-tab="media">Forge</button>
+                <button class="tab-btn" data-tab="settings">Config</button>
+            </nav>
+            <div class="status-indicator">
+                <div id="sovereign-narrative" class="sovereign-narrative">The substrate is quiet...</div>
+                <div id="gps-telemetry" class="gps-telemetry" title="GPS Context">
+                    <span class="icon">📍</span> <span id="gps-coords">Searching...</span>
+                </div>
+                <div id="sovereign-link" class="sovereign-link" title="Sovereign Boundary Status">
+                    <span class="status-dot"></span> Sovereign Link: <span id="link-status">INIT</span>
+                </div>
+                <button id="mic-btn" class="mic-btn" title="Speak">🎙️</button>
+                <span id="ws-status" class="status-dot"></span>
+                <span id="ws-text">Neural Link</span>
+            </div>
+        </header>
+
+        <main class="viewport">
+            <!-- DASHBOARD TAB -->
+            <div id="dashboard" class="tab-content active">
+                <div class="grid-layout">
+                    <section class="panel side-panel">
+                        <h3><span class="icon">📜</span> LIVE AUDIT</h3>
+                        <div id="log-container" class="scroll-box"></div>
+                    </section>
+                    <section class="panel main-panel">
+                        <h3><span class="icon">👁️</span> NEURAL VIEWER</h3>
+                        <div id="viewer-canvas-container" class="canvas-box premium-loader">
+                            <div id="connectivity-matrix" class="matrix-canvas"></div>
+                        </div>
+                        <div id="memory-pulse" class="memory-pulse-container">
+                            <div class="memory-label">HEXAGRAM METABOLISM</div>
+                            <div id="hexagram-viz" class="hexagram-viz-box"></div>
+                            <div id="active-hexagram-info" class="hexagram-badge">Unknown Archetype</div>
+                            <div class="memory-label mt-10">MEMORY PULSE</div>
+                            <div id="active-memories-list" class="memory-bubbles"></div>
+                        </div>
+                    </section>
+                    <section class="panel side-panel">
+                        <h3><span class="icon">🧠</span> RECENT INTENTS</h3>
+                        <div id="intent-list" class="scroll-box"></div>
+                        <h3 class="mt-20"><span class="icon">🔥</span> NEURAL HEATMAP</h3>
+                        <div id="neural-heatmap" class="heatmap-container">
+                            <p class="muted">No activity data...</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- AI PIPELINE TAB -->
+            <div id="ai" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">🤖</span> AI CAPABILITIES & CONTEXT</h3>
+                        <div class="pipeline-grid">
+                            <div class="pipeline-section">
+                                <h4>PINNED CONTEXT (SOLDIERED)</h4>
+                                <div id="pinned-files-list" class="scroll-box mini-list">
+                                    <p class="muted">No files pinned.</p>
+                                </div>
+                                <div id="context-preview" class="context-preview-box">
+                                    <h4 id="preview-title">File Preview</h4>
+                                    <pre id="preview-content" class="preview-code">Select a pinned file to preview...</pre>
+                                </div>
+                            </div>
+                            <div class="pipeline-section">
+                                <h4>MODEL GALLERY (CATEGORIZED)</h4>
+                                <div id="model-gallery" class="scroll-box gallery-view">
+                                    <p class="muted">Loading model inventory...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- LIMB MATRIX TAB -->
+            <div id="limbs" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">🧬</span> INTERACTIVE LIMB MATRIX</h3>
+                        <div id="limb-matrix" class="limb-grid scroll-box">
+                            <p class="muted">Introspecting limb substrate...</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- TERMINAL TAB -->
+            <div id="terminal" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">💻</span> SYSTEM TERMINAL</h3>
+                        <div id="terminal-view" class="scroll-box terminal-style">
+                            <div id="terminal-header" class="terminal-meta">Process: PowerShell Extension | Status: <span id="term-status-val">Active</span></div>
+                            <div id="terminal-body" class="terminal-output">
+                                <pre id="terminal-content">Initializing cognitive terminal link...</pre>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- HEALTH TAB -->
+            <div id="health" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel full-panel">
+                        <h3><span class="icon">📊</span> SYSTEM HEALTH</h3>
+                        <div class="health-grid">
+                            <div class="health-gauge">
+                                <div class="gauge-label">CPU LOAD</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="cpu-gauge" class="gauge-fg cpu" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="cpu-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">MEMORY</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="mem-gauge" class="gauge-fg mem" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="mem-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">DISK I/O</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="disk-gauge" class="gauge-fg disk" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="disk-pct" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                            <div class="health-gauge">
+                                <div class="gauge-label">NEURAL LATENCY</div>
+                                <div class="gauge-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="gauge-bg" cx="50" cy="50" r="45"/>
+                                        <circle id="latency-gauge" class="gauge-fg latency" cx="50" cy="50" r="45" stroke-dasharray="0 283"/>
+                                    </svg>
+                                    <div id="latency-val" class="gauge-value">--</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="health-history" class="scroll-box mt-20">
+                            <h4>Service Stability Registry</h4>
+                            <div id="cluster-health" class="mini-list health-events">
+                                <p class="muted">Detecting limb status...</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- BOOKS TAB -->
+            <div id="books" class="tab-content">
+                <div class="grid-layout">
+                    <section class="panel side-panel">
+                        <h3><span class="icon">📚</span> BOOKSHELF</h3>
+                        <div class="search-box"><input type="text" id="book-search" placeholder="Filter library..." oninput="filterBooks(this.value)"></div>
+                        <div id="bookshelf-list" class="scroll-box mini-list mt-10"><p class="muted">Loading D:\pog-gutenberg...</p></div>
+                        <div class="sidebar-actions mt-10">
+                            <button onclick="promptAudiobookImport()" class="action-btn cyan full-width">🎙️ Import Audiobook</button>
+                        </div>
+                    </section>
+                    <section class="panel main-panel">
+                        <div class="reader-header">
+                            <h3 id="reader-title"><span class="icon">📖</span> READER</h3>
+                            <div class="reader-actions">
+                                <button id="narrate-btn" onclick="toggleNarration()" class="icon-btn">🎧</button>
+                                <button onclick="triggerStoryboardFromBook()" class="icon-btn" title="Draft Storyboard">🎬</button>
+                                <button onclick="closeReader()" class="close-btn">×</button>
+                            </div>
+                        </div>
+                        <div id="reader-content" class="scroll-box reader-view"><div class="reader-placeholder">Select a book.</div></div>
+                    </section>
+                    <section class="panel side-panel">
+                        <h3><span class="icon">📝</span> STYLE BRAIN</h3>
+                        <div id="book-style-profile" class="scroll-box style-list"><p class="muted">No learning data.</p></div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- STORYBOARD TAB -->
+            <div id="storyboard" class="tab-content">
+                <div class="grid-layout">
+                    <section class="panel side-panel">
+                        <h3><span class="icon">📽️</span> DIRECTORS CUT</h3>
+                        <div class="forge-controls">
+                            <label>STORY PREMISE</label>
+                            <textarea id="story-premise" placeholder="Enter your story idea..."></textarea>
+                            <label>STYLE INSPIRATION</label>
+                            <div id="selected-style-name" class="style-tag">None Selected</div>
+                            <button onclick="forgeStoryboard()" class="action-btn cyan full-width mt-10">GENERATE BEATS</button>
+                        </div>
+                    </section>
+                    <section class="panel main-panel">
+                        <h3><span class="icon">🎞️</span> ACTIVE STORYBOARD</h3>
+                        <div id="storyboard-gallery" class="storyboard-grid scroll-box">
+                            <p class="muted">Start a new storyboard to see beats.</p>
+                        </div>
+                    </section>
+                    <section class="panel side-panel">
+                        <h3><span class="icon">🧬</span> AGENT LEARNING</h3>
+                        <div id="learning-logs" class="scroll-box mini-list">
+                            <p class="muted">Waiting for creative events...</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- MEDIA FORGE TAB -->
+            <div id="media" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel forge-panel">
+                        <h3><span class="icon">🎨</span> MEDIA FORGE</h3>
+                        <div class="forge-controls horizontal">
+                            <textarea id="media-prompt" placeholder="Forge something brilliant..."></textarea>
+                            <div class="forge-actions">
+                                <select id="media-target"><option value="image">Image</option><option value="speech">Speech</option><option value="model">RSMV</option></select>
+                                <button onclick="forgeMedia()" class="action-btn cyan">Forge</button>
+                            </div>
+                        </div>
+                        <div id="media-library" class="scroll-box gallery-view mt-10"></div>
+                        
+                        <div class="forge-divider"></div>
+                        
+                        <h3><span class="icon">🌏</span> GLOBE FORGE (MULTIPLATER SUBSTRATE)</h3>
+                        <div class="forge-controls horizontal">
+                            <input type="text" id="globe-name" placeholder="Enter globe project name...">
+                            <button onclick="forgeGlobe()" class="action-btn purple">Forge Globe</button>
+                        </div>
+                        <div id="globe-preview-container" class="globe-preview mt-10">
+                            <canvas id="globe-canvas" style="width: 300px; height: 300px; margin: 0 auto; display: none;"></canvas>
+                            <div id="globe-meta" class="muted">No active globe forged.</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- CONFIG TAB -->
+            <div id="settings" class="tab-content">
+                <div class="grid-layout single-col">
+                    <section class="panel settings-panel">
+                        <h3><span class="icon">⚙️</span> CORE CONFIG</h3>
+                        <div class="settings-grid" id="settings-grid">
+                            
+                                <div class="setting-item">
+                                    <label>CLOUDFLARE</label>
+                                    <label class="switch">
+                                        <input type="checkbox" checked onchange="toggleService('cloudflare', this.checked)">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="model-health">
+                <div class="model-tag gemini">Gemini: <span id="gemini-status">IDLE</span></div>
+                <div class="model-tag ollama">Ollama: <span id="ollama-status">IDLE</span></div>
+            </div>
+            <div class="orb-telemetry">
+                <div class="orb-unit" title="CPU Phase">
+                    <svg viewBox="0 0 36 36"><path class="orb-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="path-cpu" class="orb-fg cpu" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <span class="orb-val" id="cpu-load-footer">--</span>
+                </div>
+                <div class="orb-unit" title="Memory Flux">
+                    <svg viewBox="0 0 36 36"><path class="orb-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="path-mem" class="orb-fg mem" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <span class="orb-val" id="mem-usage-footer">--</span>
+                </div>
+                <div class="orb-unit" title="Disk Substrate">
+                    <svg viewBox="0 0 36 36"><path class="orb-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path id="path-disk" class="orb-fg disk" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <span class="orb-val" id="disk-val-footer">--</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>

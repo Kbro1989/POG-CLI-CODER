@@ -2,12 +2,24 @@
  * NeuralLimb Interface - The contract for all specialized limbs
  */
 import { Result, Intent, Execution, TernaryDecision } from '../../core/models.js';
+import type { ModelExecutor } from '../../core/ModelExecutor.js';
+import type { ToolingSpine } from '../../core/ToolingSpine.js';
+
 export type { Result, Intent, Execution, TernaryDecision };
+
+export interface ToolDeclaration {
+    functionDeclarations: Array<{
+        name: string;
+        description: string;
+        parameters: Record<string, unknown>;
+    }>;
+}
 
 export interface NeuralLimb {
     id: string;
     type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud' | 'action' | 'experimental' | 'sensory' | 'metabolic' | 'psychic' | 'metaphysical' | 'system';
     capabilities: string[];
+    readonly spine?: ToolingSpine;
 
     /**
      * Strategic affinity for Hexagram states
@@ -17,7 +29,7 @@ export interface NeuralLimb {
 
     /**
      * Check if this limb can handle the given intent.
-     * Returns TernaryDecision: -1 (skip), 0 (maybe), +1 (optimal)
+     * Returns CognitiveChoice: 'Yang' (optimal), 'Yin' (skip), 'YinYang' (maybe)
      */
     canHandle(intent: Intent): Promise<TernaryDecision>;
 
@@ -29,21 +41,26 @@ export interface NeuralLimb {
     /**
      * Optional: Return formal tool declarations for the Supervisor Loop
      */
-    getTools?(): any[];
+    getTools?(): ToolDeclaration[];
 
     /**
      * Optional: Handle a formal tool call from the model
      */
-    handleToolCall?(name: string, args: any): Promise<Result<any>>;
+    handleToolCall?(name: string, args: Record<string, unknown>): Promise<Result<Execution>>;
 
     /**
      * Optional: Get detailed diagnostic/contextual status of the limb
      */
-    getStatus?(): Record<string, any>;
+    getStatus?(): Record<string, unknown>;
 
     /**
      * Optional: Assigns a ModelExecutor for cognitive fallbacks
      */
-    setExecutor?(executor: any): void;
+    setExecutor?(executor: ModelExecutor): void;
+
+    /**
+     * Optional: Perform resource cleanup (close DBs, kill processes, etc.)
+     */
+    close?(): Promise<void>;
 }
 

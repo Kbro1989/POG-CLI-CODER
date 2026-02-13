@@ -56,8 +56,9 @@ export class ControlPlaneLimb extends BaseLimb {
                         rollback: z.string().optional()
                     }))
                 }),
-                handler: async (args: any): Promise<Result<{ status: string }>> => {
-                    this.logger.info({ goal: args['goal'], stepCount: args['steps'].length }, 'Plan documented in Control Plane');
+                handler: async (args: Record<string, unknown>): Promise<Result<{ status: string }>> => {
+                    const steps = (args['steps'] as unknown[]) || [];
+                    this.logger.info({ goal: args['goal'] as string, stepCount: steps.length }, 'Plan documented in Control Plane');
                     return { ok: true, value: { status: 'plan_recorded' } };
                 }
             },
@@ -80,15 +81,15 @@ export class ControlPlaneLimb extends BaseLimb {
                     requiresCloud: z.boolean().optional(),
                     reason: z.string()
                 }),
-                handler: async (args: any): Promise<Result<{ selectedModel: string; reason: string }>> => {
-                    this.logger.info({ reason: args['reason'] }, 'Dynamic routing coordination');
+                handler: async (args: Record<string, unknown>): Promise<Result<{ selectedModel: string; reason: string }>> => {
+                    this.logger.info({ reason: args['reason'] as string }, 'Dynamic routing coordination');
                     // Fixed: Explicit coordination through the router instance
-                    const routeResult = await this.router.route(args['reason']);
+                    const routeResult = await this.router.route(args['reason'] as string);
                     return {
                         ok: true,
                         value: {
                             selectedModel: routeResult.ok ? routeResult.value : 'fallback',
-                            reason: args['reason']
+                            reason: args['reason'] as string
                         }
                     };
                 }
@@ -117,7 +118,7 @@ export class ControlPlaneLimb extends BaseLimb {
                     lessons: z.array(z.string()),
                     regretLikelihood: z.number().min(0).max(1)
                 }),
-                handler: async (args: any): Promise<Result<{ auditId: string }>> => {
+                handler: async (args: Record<string, unknown>): Promise<Result<{ auditId: string }>> => {
                     this.logger.info({ success: args['success'] }, 'Result evaluation recorded');
                     return { ok: true, value: { auditId: `AUDIT_${Date.now()}` } };
                 }
@@ -154,9 +155,9 @@ export class ControlPlaneLimb extends BaseLimb {
                     payload_uri: z.string(),
                     metadata: z.record(z.unknown()).optional() // Fixed: Using unknown instead of any
                 }),
-                handler: async (args: any): Promise<Result<{ status: string; uri: string }>> => {
-                    this.logger.info({ intent: args['intent'], uri: args['payload_uri'] }, 'Durable memory operation');
-                    return { ok: true, value: { status: 'operation_queued', uri: args['payload_uri'] } };
+                handler: async (args: Record<string, unknown>): Promise<Result<{ status: string; uri: string }>> => {
+                    this.logger.info({ intent: args['intent'] as string, uri: args['payload_uri'] as string }, 'Durable memory operation');
+                    return { ok: true, value: { status: 'operation_queued', uri: args['payload_uri'] as string } };
                 }
             },
             {
@@ -186,7 +187,7 @@ export class ControlPlaneLimb extends BaseLimb {
                     artifactPointers: z.array(z.string()).optional(),
                     lessonDerived: z.boolean().optional()
                 }),
-                handler: async (args: any): Promise<Result<{ manifestUri: string }>> => {
+                handler: async (args: Record<string, unknown>): Promise<Result<{ manifestUri: string }>> => {
                     this.logger.info({ intentId: args['intentId'] }, 'Emitting execution manifest');
                     return { ok: true, value: { manifestUri: `gs://pog-audit/manifests/${Date.now()}.json` } };
                 }
@@ -211,7 +212,7 @@ export class ControlPlaneLimb extends BaseLimb {
                     terminal_context: z.string(),
                     proposed_action: z.string().optional()
                 }),
-                handler: async (args: any): Promise<Result<{ status: string; advice: string }>> => {
+                handler: async (args: Record<string, unknown>): Promise<Result<{ status: string; advice: string }>> => {
                     this.logger.info({ intent: args['intent'] }, 'Cloud Shell cognitive assist requested');
                     return { ok: true, value: { status: 'assist_provided', advice: 'Review terminal history for context.' } };
                 }
@@ -253,9 +254,9 @@ export class ControlPlaneLimb extends BaseLimb {
                         uri: z.string()
                     }).optional()
                 }),
-                handler: async (args: any): Promise<Result<{ status: string; triggerId: string }>> => {
-                    this.logger.info({ action: args['action'], triggerId: args['triggerId'] }, 'Event trigger management');
-                    return { ok: true, value: { status: 'trigger_configured', triggerId: args['triggerId'] } };
+                handler: async (args: Record<string, unknown>): Promise<Result<{ status: string; triggerId: string }>> => {
+                    this.logger.info({ action: args['action'] as string, triggerId: args['triggerId'] as string }, 'Event trigger management');
+                    return { ok: true, value: { status: 'trigger_configured', triggerId: args['triggerId'] as string } };
                 }
             }
         ]);
@@ -264,12 +265,12 @@ export class ControlPlaneLimb extends BaseLimb {
     override async canHandle(intent: import('../core/NeuralLimb.js').Intent): Promise<import('../core/NeuralLimb.js').TernaryDecision> {
         const p = intent.prompt.toLowerCase();
 
-        // +1: Direct mention of control plane = optimal
-        if (p.includes('control plane') || p.includes('orchestrator logs')) return 1;
+        // 'Yang': Direct mention of control plane = optimal
+        if (p.includes('control plane') || p.includes('orchestrator logs')) return 'Yang';
 
-        // 0: Capability matches = maybe
-        if (this.spine.getCapabilities().some(cap => p.includes(cap))) return 0;
+        // 'YinYang': Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => p.includes(cap))) return 'YinYang';
 
-        return -1;
+        return 'Yin';
     }
 }

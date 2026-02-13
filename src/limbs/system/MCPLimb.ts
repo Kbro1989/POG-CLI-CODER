@@ -13,6 +13,12 @@ interface MCPServerConfig {
     env?: Record<string, string>;
 }
 
+interface MCPContent {
+    type: string;
+    text?: string;
+    data?: unknown;
+}
+
 /**
  * MCPLimb - High-Fidelity Universal Model Context Protocol Substrate.
  * 
@@ -22,7 +28,7 @@ interface MCPServerConfig {
 export class MCPLimb extends BaseLimb {
     readonly id = 'mcp_extension';
     readonly type = 'action';
-    private clients: Map<string, Client> = new Map();
+    private readonly clients: Map<string, Client> = new Map();
 
     constructor(config: VibeConfig) {
         super(config);
@@ -49,10 +55,10 @@ export class MCPLimb extends BaseLimb {
                     command: z.string(),
                     args: z.array(z.string()).optional()
                 }),
-                handler: async (args: any) => {
-                    await this.connectToServer(args['name'], {
-                        command: args['command'],
-                        args: args['args'] || []
+                handler: async (args: Record<string, unknown>) => {
+                    await this.connectToServer(args['name'] as string, {
+                        command: args['command'] as string,
+                        args: args['args'] as string[] || []
                     });
                     return { ok: true, value: { status: 'synchronized' } };
                 }
@@ -86,7 +92,7 @@ export class MCPLimb extends BaseLimb {
             const transport = new StdioClientTransport({
                 command: config.command,
                 args: config.args,
-                env: { ...process.env, ...config.env } as any
+                env: { ...process.env, ...config.env } as Record<string, string>
             });
 
             // Using explicit casting for Client options to bypass SDK version strictness
@@ -94,11 +100,9 @@ export class MCPLimb extends BaseLimb {
                 {
                     name: "pog-coder-vibe",
                     version: "1.0.0"
-                } as any,
+                },
                 {
                     capabilities: {
-                        resources: {},
-                        prompts: {},
                         tools: {}
                     }
                 } as any
@@ -115,8 +119,8 @@ export class MCPLimb extends BaseLimb {
                 const formattedTools = tools.map((t) => ({
                     name: `mcp_${name}_${t.name}`,
                     description: `[MCP:${name}] ${t.description}`,
-                    parameters: t.inputSchema as any,
-                    handler: async (args: any): Promise<Result<any>> => {
+                    parameters: t.inputSchema as { type: 'object'; properties: Record<string, unknown>; required?: string[] },
+                    handler: async (args: Record<string, unknown>): Promise<Result<unknown>> => {
                         try {
                             const result = await client.callTool({
                                 name: t.name,
@@ -124,11 +128,11 @@ export class MCPLimb extends BaseLimb {
                             });
 
                             if (result.isError) {
-                                const errorText = (result.content as any[]).map((c: any) => c.text).join('\n');
+                                const errorText = (result.content as MCPContent[]).map((c) => c.text || JSON.stringify(c)).join('\n');
                                 return { ok: false, error: new Error(errorText) };
                             }
 
-                            const output = (result.content as any[]).map((c: any) => c.text).join('\n') || 'Success';
+                            const output = (result.content as MCPContent[]).map((c) => c.text || JSON.stringify(c)).join('\n') || 'Success';
                             return { ok: true, value: output };
                         } catch (err) {
                             return { ok: false, error: err as Error };
@@ -168,7 +172,7 @@ export class MCPLimb extends BaseLimb {
 
         // Check if any active server name is mentioned
         for (const name of this.clients.keys()) {
-            if (p.includes(name.toLowerCase())) return 1;
+            if (p.includes(name.toLowerCase())) return 'Yang';
         }
 
         // Standard de-escalation for general queries
@@ -176,9 +180,25 @@ export class MCPLimb extends BaseLimb {
     }
 
     /**
+     * Proper Close: Ensures all MCP Neural Links are cleanly severed.
+     */
+    public override async close(): Promise<void> {
+        this.logger.info({ connections: this.clients.size }, 'Severing MCP Neural Links...');
+        for (const [name, client] of this.clients.entries()) {
+            try {
+                await client.close();
+                this.logger.debug({ server: name }, 'Neural link offline');
+            } catch (e) {
+                this.logger.error({ server: name, error: (e as Error).message }, 'Failed to close neural link');
+            }
+        }
+        this.clients.clear();
+    }
+
+    /**
      * Diagnostic hook for Dashboard
      */
-    override getStatus(): Record<string, any> {
+    override getStatus(): Record<string, unknown> {
         const status = super.getStatus();
         return {
             ...status,

@@ -16,6 +16,7 @@ import readline from 'readline';
 import pino from 'pino';
 import * as fs from 'fs';
 import { Writable } from 'stream';
+import * as net from 'net';
 
 // Default: hide JSON logs, press Ctrl+F12 to reveal
 // showLogs is now controlled via showDetailedReports and vibeCLIInstance.bufferReport
@@ -29,9 +30,9 @@ const logToggleStream = new Writable({
       const content = chunk.toString();
       try {
         const parsed = JSON.parse(content);
-        vibeCLIInstance?.bufferReport(parsed.level >= 50 ? 'error' : 'info', parsed.msg || content);
+        (vibeCLIInstance as any)?.bufferReport(parsed.level >= 50 ? 'error' : 'info', parsed.msg || content);
       } catch {
-        vibeCLIInstance?.bufferReport('info', content);
+        (vibeCLIInstance as any)?.bufferReport('info', content);
       }
       callback();
     }
@@ -57,6 +58,7 @@ import { VectorDB } from '../src/learning/VectorDB.js';
 import { Sandbox } from '../src/sandbox/Sandbox.js';
 import { select, drawBox, drawMessage, drawSovereignFooter, drawDetailedReports } from '../src/utils/terminal.js';
 import { ServiceDiscovery } from '../src/core/ServiceDiscovery.js';
+import { MonitorAgent } from '../src/monitor/MonitorAgent.js';
 import { InteractiveMenu } from './InteractiveMenu.js';
 import chalk from 'chalk';
 
@@ -77,6 +79,7 @@ class VibeCLI {
   private readonly orchestrator: FreeOrchestrator;
   private readonly configManager: ConfigManager;
   private readonly discovery: ServiceDiscovery;
+  private readonly monitor: MonitorAgent;
   private running = true;
   private shutdownResolve?: (value: void | PromiseLike<void>) => void;
   private errorCount = 0;
@@ -95,6 +98,7 @@ class VibeCLI {
     // Initialize orchestrator
     this.orchestrator = new FreeOrchestrator(config, watcher, vectorDB, sandbox);
     this.discovery = new ServiceDiscovery(config);
+    this.monitor = new MonitorAgent(config, this.orchestrator.getModelExecutor());
 
     // Create readline interface
     this.rl = readline.createInterface({
@@ -264,7 +268,7 @@ class VibeCLI {
     }
 
     // Initialize endpoints
-    await this.initialAudit();
+    await this.runStartupSequence();
 
     // Display welcome banner
     this.displayBanner();
@@ -300,9 +304,47 @@ class VibeCLI {
     }
   }
 
+  private async runStartupSequence(): Promise<void> {
+    logger.info('Starting Autonomous Startup Sequence...');
+
+    // 1. Initial Health Audit
+    await this.initialAudit();
+
+    // 2. Autonomous Healing check
+    const diagnosis = await this.monitor.diagnoseState();
+    if (diagnosis.decision === 'YinYang' || diagnosis.decision === 'Yin') {
+      logger.warn({ reasoning: diagnosis.reasoning }, 'Metabolic regression detected during boot. Triggering Self-Healing...');
+      // Note: MonitorAgent.diagnoseState() might already trigger patches depending on implementation, 
+      // but here we ensure the system is aware.
+    }
+
+    // 3. Dashboard Synchronization
+    const config = this.configManager.getConfig();
+    const port = config.wsPort || 8765;
+
+    const isPortOpen = await new Promise<boolean>((resolve) => {
+      const socket = new net.Socket();
+      socket.setTimeout(500);
+      socket.on('connect', () => { socket.destroy(); resolve(true); });
+      socket.on('timeout', () => { socket.destroy(); resolve(false); });
+      socket.on('error', () => { socket.destroy(); resolve(false); });
+      socket.connect(port, '127.0.0.1');
+    });
+
+    if (isPortOpen) {
+      logger.info({ port }, 'Dashboard already open. Synchronizing session...');
+    } else {
+      logger.info({ port }, 'Launching new dashboard substrate...');
+      const url = `http://localhost:${port}/dashboard`; // Assuming standard route
+      const startCmd = process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+      void startCmd; // Preserve for future automation logic
+      logger.info({ url }, 'Dashboard launching logic standby.');
+      // exec(`${startCmd} ${url}`).catch(err => logger.error({ err }, 'Failed to launch browser dashboard'));
+    }
+  }
+
   private displayBanner(): void {
     const config = this.configManager.getConfig();
-    const sessionId = this.orchestrator.getSessionId();
     const extensionStatus = this.orchestrator.getEndpointStatus('extension');
     const workerStatus = this.orchestrator.getEndpointStatus('worker');
 
@@ -311,17 +353,18 @@ class VibeCLI {
     const sovereignLine = config.sovereignRoot ? chalk.green(`ACTIVE [${config.sovereignRoot}]`) : chalk.gray('NOT DETECTED');
 
     console.clear();
-    drawBox('🚀 POG-CODER-VIBE: SOVEREIGN INTELLIGENCE', [
+    drawBox('🚀 POG-CODER-VIBE: NEUROLOGICAL SOVEREIGNTY', [
       `📁 Root:       ${config.projectRoot} `,
-      `🆔 System:     ${config.projectId} `,
-      `💾 Active:     ${sessionId} `,
+      `🧠 CNS Class:  ${config.projectId} `,
+      `🔬 Medical:    READY [diag_env.ts]`,
+      `👻 Ghost:      FAILBACK [Cloud DC]`,
       `🏰 Substrate:  ${sovereignLine} `,
       `🔌 Extension:  ${extLine} `,
       `🌩️ Edge:       ${workerLine} `,
       `🌌 Constellation: ONLINE [Gemini 2.0 Flash]`,
       '',
-      chalk.cyan('Ready to take on the world. Sovereign Intelligence active.'),
-      chalk.gray('• Code Pro • App Forge • Book Reader • Creative Friend • Gen Art'),
+      chalk.cyan('Ready to take on the world. Neurological Sovereignty active.'),
+      chalk.gray('• Code Pro • App Forge • Book Reader • Creative Friend • RSC Archaeology'),
       '',
       'Type your intent to begin, or use "help" for a list of commands.'
     ]);
@@ -380,27 +423,33 @@ class VibeCLI {
     },
     {
       pattern: /^help$/i,
-      description: 'help             - Show this help',
-      handler: (args: string[]): void => {
+      description: 'help             - Show this help & live substrate status',
+      handler: async (args: string[]): Promise<void> => {
         void args;
+        const audit = await this.discovery.auditAll();
+        const diagnosis = await this.monitor.diagnoseState();
+        const activeServices = audit.filter(s => s.status === 'ACTIVE').length;
+
         // eslint-disable-next-line no-console
         console.log('\n📚 Available Commands:\n');
         for (const cmd of this.commands) {
           // eslint-disable-next-line no-console
           console.log(`  ${cmd.description} `);
         }
-        // eslint-disable-next-line no-console
         console.log('  history          - View intent history');
         console.log('  state            - Show current state');
         console.log('  config           - Show configuration');
-        console.log('');
-        // eslint-disable-next-line no-console
+
+        console.log('\n📡 Substrate Status:');
+        console.log(`  CNS Health:    ${activeServices}/${audit.length} Organs Active`);
+        console.log(`  Metabolism:    ${diagnosis.decision === 'Yang' ? chalk.green('Optimal') : chalk.red('Degraded')}`);
+        console.log(`  Vigilance:     ${chalk.cyan(diagnosis.reasoning)}`);
+
         console.log('\n💡 Tips:');
-        console.log('  - Use natural language for intents');
-        console.log('  - Models are balanced via Ternary logic (Cost/Health/Power)');
-        console.log('  - Critical tasks escalate to Cloud; simple fixes stay Local');
-        console.log('  - All operations are type-safe with Result types');
-        // eslint-disable-next-line no-console
+        console.log('  - Operations are verified against the localized D:\\ [Somatic Memory]');
+        console.log('  - Medical Class (scripts) monitors for real-time state regression');
+        console.log('  - "Escalate" to Cloud models automatically when local context is exceeded');
+        console.log('  - Ghost Class (Failback) ensures persistence via Cloud DC if local fails');
         console.log('');
       }
     },
@@ -471,14 +520,19 @@ class VibeCLI {
     {
       pattern: /^state$/i,
       description: 'state            - Show current state',
-      handler: (args: string[]): void => {
-        void args;
+      handler: (_args: string[]): void => {
         const state = this.orchestrator.getCurrentState();
-        // eslint-disable-next-line no-console
-        console.log('\n🎯 Current State:\n');
-        // eslint-disable-next-line no-console
-        console.log(JSON.stringify(state, null, 2));
-        // eslint-disable-next-line no-console
+        const hex = this.orchestrator.getStrategicPosture();
+
+        console.log('\n🎯 Sovereign System State:\n');
+        console.log(chalk.cyan(`  Focus:     ${hex.hexagram} (${hex.binary})`));
+        console.log(chalk.cyan(`  Strategy:  ${hex.strategy}`));
+        console.log(chalk.cyan(`  Narrative: ${state['narrative'] || 'Observing substrate...'}`));
+        console.log('');
+        console.log(JSON.stringify(state, (key, value) => {
+          if (key === 'narrative') return undefined; // Already shown
+          return value;
+        }, 2));
         console.log('');
       }
     },

@@ -1,0 +1,1211 @@
+{
+  "wieldableMissing": [
+    {
+      "id": 1306,
+      "name": "Staff of Guthix",
+      "equip": [
+        "right-hand"
+      ],
+      "reason": "Item has equip slots but missing wieldable data"
+    },
+    {
+      "id": 1307,
+      "name": "Staff of Saradomin",
+      "equip": [
+        "right-hand"
+      ],
+      "reason": "Item has equip slots but missing wieldable data"
+    },
+    {
+      "id": 1308,
+      "name": "Staff of Zamorak",
+      "equip": [
+        "right-hand"
+      ],
+      "reason": "Item has equip slots but missing wieldable data"
+    },
+    {
+      "id": 1309,
+      "name": "Cape of Guthix",
+      "equip": [
+        "cape"
+      ],
+      "reason": "Item has equip slots but missing wieldable data"
+    },
+    {
+      "id": 1310,
+      "name": "Cape of Saradomin",
+      "equip": [
+        "cape"
+      ],
+      "reason": "Item has equip slots but missing wieldable data"
+    },
+    {
+      "id": 1311,
+      "name": "Cape of Zamorak",
+      "equip": [
+        "cape"
+      ],
+      "reason": "Item has equip slots but missing wieldable data"
+    }
+  ],
+  "edibleMissing": [
+    {
+      "id": 58,
+      "name": "potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 134,
+      "name": "burntmeat",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 137,
+      "name": "bread dough",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 139,
+      "name": "burntbread",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 142,
+      "name": "wine",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 176,
+      "name": "Fish Food",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 178,
+      "name": "Poisoned fish food",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 180,
+      "name": "Bad wine",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 221,
+      "name": "Strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 222,
+      "name": "Strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 223,
+      "name": "Strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 224,
+      "name": "Strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 246,
+      "name": "Half full wine jug",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 251,
+      "name": "Pie dish",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 252,
+      "name": "cooking apple",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 253,
+      "name": "pie shell",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 254,
+      "name": "Uncooked apple pie",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 255,
+      "name": "Uncooked meat pie",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 256,
+      "name": "Uncooked redberry pie",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 260,
+      "name": "burntpie",
+      "command": "empty dish",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 278,
+      "name": "Unfired Pie dish",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 282,
+      "name": "Orangedye",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 321,
+      "name": "Pizza Base",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 322,
+      "name": "Burnt Pizza",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 323,
+      "name": "Incomplete Pizza",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 324,
+      "name": "Uncooked Pizza",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 331,
+      "name": "Burnt Cake",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 338,
+      "name": "Cake Tin",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 339,
+      "name": "Uncooked cake",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 353,
+      "name": "Burnt fish",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 360,
+      "name": "Burnt fish",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 365,
+      "name": "Burnt fish",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 368,
+      "name": "Burnt fish",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 369,
+      "name": "Raw Swordfish",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 371,
+      "name": "Burnt Swordfish",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 377,
+      "name": "Fishing Rod",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 378,
+      "name": "Fly Fishing Rod",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 380,
+      "name": "Fishing Bait",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 391,
+      "name": "Orange Key",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 416,
+      "name": "Map Piece",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 417,
+      "name": "Map Piece",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 418,
+      "name": "Map Piece",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 454,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 455,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 456,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 457,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 458,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 459,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 460,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 461,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 462,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 463,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 467,
+      "name": "Blue dragon scale",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 472,
+      "name": "Ground blue dragon scale",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 474,
+      "name": "attack Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 475,
+      "name": "attack Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 476,
+      "name": "attack Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 477,
+      "name": "stat restoration Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 478,
+      "name": "stat restoration Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 479,
+      "name": "stat restoration Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 480,
+      "name": "defense Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 481,
+      "name": "defense Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 482,
+      "name": "defense Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 483,
+      "name": "restore prayer Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 484,
+      "name": "restore prayer Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 485,
+      "name": "restore prayer Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 486,
+      "name": "Super attack Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 487,
+      "name": "Super attack Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 488,
+      "name": "Super attack Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 489,
+      "name": "fishing Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 490,
+      "name": "fishing Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 491,
+      "name": "fishing Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 492,
+      "name": "Super strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 493,
+      "name": "Super strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 494,
+      "name": "Super strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 495,
+      "name": "Super defense Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 496,
+      "name": "Super defense Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 497,
+      "name": "Super defense Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 498,
+      "name": "ranging Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 499,
+      "name": "ranging Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 500,
+      "name": "ranging Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 501,
+      "name": "wine of Zamorak",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 502,
+      "name": "raw bear meat",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 503,
+      "name": "raw rat meat",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 505,
+      "name": "enchanted bear meat",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 506,
+      "name": "enchanted rat meat",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 508,
+      "name": "enchanted chicken meat",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 535,
+      "name": "Swordfish certificate",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 536,
+      "name": "Raw swordfish certificate",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 566,
+      "name": "Cure poison Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 567,
+      "name": "Cure poison Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 568,
+      "name": "Cure poison Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 589,
+      "name": "Oily Fishing Rod",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 620,
+      "name": "Beer glass",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 719,
+      "name": "Fishing competition Pass",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 720,
+      "name": "Hemenster fishing trophy",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 748,
+      "name": "Pineapple",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 935,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1052,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1053,
+      "name": "Ogre potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1054,
+      "name": "Magic ogre potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1058,
+      "name": "Tenti Pineapple",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1074,
+      "name": "Unfinished potion",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1101,
+      "name": "Raw Ugthanki Meat",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1104,
+      "name": "Uncooked Pitta Bread",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1105,
+      "name": "Pitta Bread",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1110,
+      "name": "Burnt Pitta Bread",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1120,
+      "name": "Scrumpled piece of paper",
+      "command": "Read",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1195,
+      "name": "Bobs Silver Teacup",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1225,
+      "name": "Bobs Silver Teacup",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1253,
+      "name": "Gujuo Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1268,
+      "name": "Raw Oomlie Meat",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1272,
+      "name": "Prayer Potion Certificate",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1273,
+      "name": "Super Attack Potion Certificate",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1274,
+      "name": "Super Defense Potion Certificate",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1275,
+      "name": "Super Strength Potion Certificate",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1280,
+      "name": "Raw Oomlie Meat Parcel",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1281,
+      "name": "Burnt Oomlie Meat parcel",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1285,
+      "name": "display tea",
+      "command": "none",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1290,
+      "name": "attack Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1291,
+      "name": "attack Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1292,
+      "name": "attack Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1293,
+      "name": "Cure poison Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1294,
+      "name": "Cure poison Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1295,
+      "name": "Cure poison Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1296,
+      "name": "Strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1297,
+      "name": "Strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1298,
+      "name": "Strength Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1299,
+      "name": "defense Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1300,
+      "name": "defense Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1301,
+      "name": "defense Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1302,
+      "name": "restore prayer Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1303,
+      "name": "restore prayer Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    },
+    {
+      "id": 1304,
+      "name": "restore prayer Potion",
+      "command": "Drink",
+      "inEdibleData": "no",
+      "reason": "Food/drink item missing interaction data"
+    }
+  ],
+  "rangedMissing": [
+    {
+      "id": 59,
+      "name": "Phoenix Crossbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 60,
+      "name": "Crossbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 188,
+      "name": "Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 189,
+      "name": "Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 190,
+      "name": "Crossbow bolts",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 276,
+      "name": "unstrung Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 277,
+      "name": "unstrung shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 340,
+      "name": "Unfired bowl",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 341,
+      "name": "Bowl",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 342,
+      "name": "Bowl of water",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 592,
+      "name": "Poison Crossbow bolts",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 648,
+      "name": "Oak Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 649,
+      "name": "Oak Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 650,
+      "name": "Willow Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 651,
+      "name": "Willow Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 652,
+      "name": "Maple Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 653,
+      "name": "Maple Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 654,
+      "name": "Yew Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 655,
+      "name": "Yew Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 656,
+      "name": "Magic Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 657,
+      "name": "Magic Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 658,
+      "name": "unstrung Oak Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 659,
+      "name": "unstrung Oak Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 660,
+      "name": "unstrung Willow Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 661,
+      "name": "unstrung Willow Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 662,
+      "name": "unstrung Maple Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 663,
+      "name": "unstrung Maple Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 664,
+      "name": "unstrung Yew Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 665,
+      "name": "unstrung Yew Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 666,
+      "name": "unstrung Magic Longbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 667,
+      "name": "unstrung Magic Shortbow",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 676,
+      "name": "bow string",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 882,
+      "name": "gnomebowl dough",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 885,
+      "name": "gnomebowl",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 888,
+      "name": "gnomebowl",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 1188,
+      "name": "Golden Bowl",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 1189,
+      "name": "Golden Bowl with pure water",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 1246,
+      "name": "Rough Sketch of a bowl",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 1266,
+      "name": "Blessed Golden Bowl",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 1267,
+      "name": "Blessed Golden Bowl with Pure Water",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 1286,
+      "name": "Blessed Golden Bowl with plain water",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    },
+    {
+      "id": 1287,
+      "name": "Golden Bowl with plain water",
+      "reason": "Ranged weapon missing ammunition/attack data"
+    }
+  ],
+  "incompleteDefinitions": [],
+  "summary": {
+    "wieldableMissing": 6,
+    "edibleMissing": 134,
+    "rangedMissing": 42,
+    "incompleteCount": 0
+  }
+}

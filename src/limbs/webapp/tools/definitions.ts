@@ -13,9 +13,9 @@ export const FORGE_TOOLS: LimbTool[] = [
             },
             required: ['stack', 'name']
         },
-        handler: async (args: any) => {
+        handler: async (args: Record<string, unknown>) => {
             // Implementation handled in limb
-            return { ok: true, value: `Scaffolded ${args.stack} project: ${args.name}` };
+            return { ok: true, value: `Scaffolded ${args['stack']} project: ${args['name']}` };
         }
     },
     {
@@ -30,9 +30,9 @@ export const FORGE_TOOLS: LimbTool[] = [
             },
             required: ['projectDir', 'componentName']
         },
-        handler: async (args: any) => {
+        handler: async (args: Record<string, unknown>) => {
             // Implementation handled in limb
-            return { ok: true, value: `Digested component: ${args.componentName}` };
+            return { ok: true, value: `Digested component: ${args['componentName']}` };
         }
     },
     {
@@ -47,13 +47,16 @@ export const FORGE_TOOLS: LimbTool[] = [
             },
             required: ['projectDir']
         },
-        handler: async (args: any) => {
+        handler: async (args: Record<string, unknown>) => {
             try {
                 const { execSync } = await import('child_process');
-                const cmd = args.packages?.length
-                    ? `npm install ${args.dev ? '--save-dev' : ''} ${args.packages.join(' ')}`
+                const packages = (args['packages'] as string[]) || [];
+                const dev = args['dev'] as boolean;
+                const projectDir = args['projectDir'] as string;
+                const cmd = packages.length
+                    ? `npm install ${dev ? '--save-dev' : ''} ${packages.join(' ')}`
                     : 'npm install';
-                execSync(cmd, { cwd: args.projectDir, stdio: 'inherit' });
+                execSync(cmd, { cwd: projectDir, stdio: 'inherit' });
                 return { ok: true, value: 'Dependencies installed' };
             } catch (e) {
                 return { ok: false, error: e as Error };

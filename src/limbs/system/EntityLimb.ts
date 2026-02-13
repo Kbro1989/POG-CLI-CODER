@@ -20,7 +20,7 @@ export interface EntityDefinition {
 export class EntityLimb extends BaseLimb {
     readonly id = 'entity_limb';
     readonly type = 'creative';
-    private entities: Map<string, EntityDefinition> = new Map();
+    private readonly entities: Map<string, EntityDefinition> = new Map();
 
     constructor(config: VibeConfig) {
         super(config);

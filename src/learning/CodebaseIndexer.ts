@@ -16,8 +16,8 @@ const logger = pino({
 });
 
 export class CodebaseIndexer {
-    private vectorDB: VectorDB;
-    private gemini: GeminiService | undefined;
+    private readonly vectorDB: VectorDB;
+    private readonly gemini: GeminiService | undefined;
     private ignoreFilter: ReturnType<typeof ignore>;
     private projectRoot: string;
 

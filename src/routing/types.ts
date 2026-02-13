@@ -35,6 +35,8 @@ export interface RoutingDecision {
     };
 }
 
+import type { CognitiveChoice } from '../core/models.js';
+
 /**
  * Context provided to routing strategies for making decisions.
  */
@@ -51,8 +53,8 @@ export interface RoutingContext {
     /** File size in bytes */
     fileSize?: number;
 
-    /** Ternary complexity score (-1, 0, 1) */
-    complexity?: number;
+    /** Ternary complexity score ('Yin', 'YinYang', 'Yang') */
+    complexity?: CognitiveChoice;
 
     /** Cloudflare and Ollama model health grid */
     availableModels?: any[];

@@ -22,7 +22,7 @@ Or download: https://github.com/cloudflare/cloudflared/releases
 ## Step 2: Start Your RSC Server
 
 ```bash
-cd c:\Users\Destiny\Desktop\ai-architect-mmorpg\copy-of-rsc-evolution-ai\rsc-cloudflare\rsc-server
+cd ./rsc-server
 
 # Install dependencies (if not done)
 npm install

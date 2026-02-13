@@ -22,29 +22,42 @@ import { LanguageServiceClient } from '@google-cloud/language';
  */
 export class GoogleServices {
     protected readonly config: GoogleServiceConfig;
-    private visionClient?: ImageAnnotatorClient;
-    private translateClient?: any; // v2.Translate
-    private nlClient?: LanguageServiceClient;
+    private readonly visionClient?: ImageAnnotatorClient;
+    private readonly translateClient?: unknown;
+    private readonly nlClient?: LanguageServiceClient;
 
     constructor(config: GoogleServiceConfig) {
         this.config = config;
 
         const authOptions = config.apiKey ? { apiKey: config.apiKey } : {};
 
+        // 1. Vision Client (gRPC)
         try {
             this.visionClient = new ImageAnnotatorClient(authOptions);
+        } catch (e) {
+            logger.warn({ error: (e as Error).message, client: 'Vision' }, 'GCloud Sensory Client failure - Fallback active');
+        }
+
+        // 2. Translate Client (REST v2)
+        try {
             this.translateClient = new Translate(authOptions);
+        } catch (e) {
+            logger.warn({ error: (e as Error).message, client: 'Translate' }, 'GCloud Sensory Client failure - Fallback active');
+        }
+
+        // 3. NL Client (gRPC)
+        try {
             this.nlClient = new LanguageServiceClient(authOptions);
         } catch (e) {
-            logger.warn({ error: (e as Error).message }, 'Failed to initialize GCloud Sensory Clients - Fallback active');
+            logger.warn({ error: (e as Error).message, client: 'NL' }, 'GCloud Sensory Client failure - Fallback active');
         }
     }
 
     /**
      * Standardized error classification for Google APIs
      */
-    protected classifyError(error: any): { isQuota: boolean; isAuth: boolean; message: string } {
-        const message = error.message || String(error);
+    protected classifyError(error: unknown): { isQuota: boolean; isAuth: boolean; message: string } {
+        const message = error instanceof Error ? error.message : String(error);
         const lowerMessage = message.toLowerCase();
 
         return {
@@ -57,7 +70,7 @@ export class GoogleServices {
     /**
      * Analyze image using Google Vision API
      */
-    async analyzeImage(buffer: Buffer): Promise<Result<any>> {
+    async analyzeImage(buffer: Buffer): Promise<Result<unknown>> {
         if (!this.visionClient) return { ok: false, error: new Error('Vision Client not initialized') };
 
         try {
@@ -83,7 +96,7 @@ export class GoogleServices {
         if (!this.translateClient) return { ok: false, error: new Error('Translate Client not initialized') };
 
         try {
-            const [translation] = await this.translateClient.translate(text, target);
+            const [translation] = await (this.translateClient as any).translate(text, target);
             return { ok: true, value: translation };
         } catch (error) {
             logger.error({ error }, 'Translation API call failed');
@@ -94,7 +107,7 @@ export class GoogleServices {
     /**
      * Analyze entities using Google Natural Language API
      */
-    async analyzeEntities(text: string): Promise<Result<any>> {
+    async analyzeEntities(text: string): Promise<Result<unknown>> {
         if (!this.nlClient) return { ok: false, error: new Error('NL Client not initialized') };
 
         try {

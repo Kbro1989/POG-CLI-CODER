@@ -174,7 +174,7 @@ FLAWS:
 
     private parseCategorizedResponse(response: string): { score: number; flaws: string[]; shouldNotBe: string[] } {
         const scoreMatch = response.match(/SCORE:\s*(\d+)/);
-        const score = scoreMatch && scoreMatch[1] ? parseInt(scoreMatch[1]!) : 50;
+        const score = scoreMatch && scoreMatch[1] ? parseInt(scoreMatch[1]) : 50;
 
         const flaws: string[] = [];
         const shouldNotBe: string[] = [];

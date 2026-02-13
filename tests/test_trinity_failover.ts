@@ -5,10 +5,20 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const config: VibeConfig = {
+    projectId: 'trinity-test',
+    projectRoot: process.cwd(),
+    pogDir: './.pog',
     agentName: 'TrinityTester',
+    wsPort: 9003,
+    maxSnapshotAge: 3600,
+    circuitBreakerThreshold: 5,
+    circuitBreakerCooldown: 60000,
+    logLevel: 'info',
     enabledServices: ['gemini', 'cloudflare', 'ollama', 'mediaforge'],
-    ollamaModelsPath: 'D:\\ollama-models'
-} as any;
+    embeddingDimensions: 768,
+    gutenbergPath: undefined,
+    workspaces: [process.cwd()]
+};
 
 async function testFailover() {
     console.log('🚀 Starting Trinity Substrate Failover Test...');

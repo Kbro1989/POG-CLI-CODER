@@ -212,6 +212,16 @@ export const CapabilityRegistry: Record<string, AICapability> = {
         description: 'Specialized architectural cleanup and code quality forge.',
         passthroughEnabled: false
     },
+    'esoteric_reasoning': {
+        id: 'esoteric_reasoning',
+        name: 'Esoteric Reasoning Forge',
+        serviceType: 'HUGGINGFACE',
+        taskType: 'TEXT',
+        modelId: 'moonshotai/Kimi-K2.5:novita',
+        description: 'ULTIMATE TIER: High-intelligence reasoning forge for complex mental models.',
+        passthroughEnabled: true,
+        fallback: 'gold_gemini_2_5_pro'
+    },
     ...StaticModelRegistry,
     ...CloudflareModelRegistry
 };

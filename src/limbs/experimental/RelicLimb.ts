@@ -31,10 +31,10 @@ const KNOWN_RSC_FILENAMES = [
 export class RelicLimb extends BaseLimb {
     readonly id = 'relic_archaeology';
     readonly type = 'memory' as const;
-    private hashLookup: Map<number, string> = new Map();
+    private readonly hashLookup: Map<number, string> = new Map();
 
     // Stub environment for Cloudflare compatibility layer
-    private env: Record<string, any> = {};
+    private readonly env: Record<string, any> = {};
 
     constructor(
         config: VibeConfig,
@@ -59,8 +59,8 @@ export class RelicLimb extends BaseLimb {
                     cacheId: z.number().optional().describe('Priority cache target')
                 }),
                 handler: async (args) => {
-                    const res = await this.excavate_cache(args);
-                    return { ok: true, value: res };
+                    const res = await this.excavate_cache(args as Record<string, unknown>);
+                    return { ok: true, value: { output: res.message, data: res } };
                 }
             },
             {
@@ -78,9 +78,9 @@ export class RelicLimb extends BaseLimb {
                     path: z.string().describe('Relative path to the record'),
                     base64: z.boolean().optional().describe('Return as base64')
                 }),
-                handler: async (args: Record<string, any>) => {
-                    const res = await this.read_record(args);
-                    return { ok: true, value: res };
+                handler: async (args) => {
+                    const res = await this.read_record(args as Record<string, unknown>);
+                    return { ok: true, value: { output: res.status === 'success' ? 'Record read successfully' : res.message || 'Read failed', data: res } };
                 }
             },
             {
@@ -97,9 +97,9 @@ export class RelicLimb extends BaseLimb {
                     category: z.string().optional().describe('Archive category (config, models, maps, etc)'),
                     limit: z.number().optional().describe('Max items to return')
                 }),
-                handler: async (args: Record<string, any>) => {
-                    const res = await this.explore_museum(args);
-                    return { ok: true, value: res };
+                handler: async (args) => {
+                    const res = await this.explore_museum(args as Record<string, unknown>);
+                    return { ok: true, value: { output: res.status === 'success' ? `Found ${res.total} items` : res.message || 'Explore failed', data: res } };
                 }
             }
         ]);
@@ -108,23 +108,23 @@ export class RelicLimb extends BaseLimb {
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = intent.prompt.toLowerCase();
 
-        const context = intent.context as Record<string, any>;
-        // +1: Explicit relic/archaeology keywords or direct action
+        const context = intent.context as Record<string, unknown>;
+        // 'Yang': Explicit relic/archaeology keywords or direct action
         if (p.includes('relic') || p.includes('rsc archaeology') ||
             (context?.['action'] !== undefined && (context['action'] as string).startsWith('relic_'))) {
-            return 1;
+            return 'Yang';
         }
 
-        // 0: Related legacy/cache keywords = maybe
-        if (p.includes('legacy') || p.includes('read dat') || p.includes('.jag')) return 0;
+        // 'YinYang': Related legacy/cache keywords = maybe
+        if (p.includes('legacy') || p.includes('read dat') || p.includes('.jag')) return 'YinYang';
 
-        return -1;  // No match = skip
+        return 'Yin';  // No match = skip
     }
 
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
         // Dispatcher for Ported Methods
-        const context = intent.context as Record<string, any>;
+        const context = intent.context as Record<string, unknown>;
         const action = context?.['action'] as string | undefined;
         const params = context || {};
 
@@ -134,20 +134,14 @@ export class RelicLimb extends BaseLimb {
         try {
             // First try formal tool handling (Phase 14 refinement)
             if (action) {
-                const res = await this.handleToolCall(action, params);
+                const res = await this.spine.handleCall<Execution>(action, params);
                 if (res.ok) {
-                    return {
-                        ok: true,
-                        value: {
-                            output: typeof res.value.message === 'string' ? res.value.message : JSON.stringify(res.value),
-                            data: res.value
-                        }
-                    };
+                    return res;
                 }
             }
 
             // Fallback to legacy dispatcher if tool not found or no action
-            let result: any;
+            let result: unknown;
 
             if (action === 'relic_excavate_cache' || params['op'] === 'excavate') {
                 result = await this.excavate_cache(params);
@@ -174,8 +168,9 @@ export class RelicLimb extends BaseLimb {
                 }
             }
 
-            const outputText = typeof result === 'object' && result !== null && 'message' in result && typeof result.message === 'string'
-                ? result.message
+            const resultObj = result as Record<string, unknown>;
+            const outputText = typeof resultObj === 'object' && resultObj !== null && 'message' in resultObj && typeof (resultObj as any).message === 'string'
+                ? (resultObj as any).message
                 : JSON.stringify(result);
 
             return {
@@ -185,7 +180,7 @@ export class RelicLimb extends BaseLimb {
                     data: result
                 }
             };
-        } catch (e) {
+        } catch (e: unknown) {
             const error = e instanceof Error ? e : new Error(String(e));
             return { ok: false, error };
         }
@@ -193,7 +188,7 @@ export class RelicLimb extends BaseLimb {
 
     // --- PORTED METHODS FROM POG-ULTIMATE ---
 
-    async excavate_cache(params: Record<string, any>) {
+    async excavate_cache(params: Record<string, unknown>) {
         const { id: _cacheId = 0, major: _major = 0 } = params || {};
 
         // --- REAL CACHE DETECTION ---
@@ -242,7 +237,7 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async synchronize_relic_index(_params: Record<string, any>) {
+    async synchronize_relic_index(_params: Record<string, unknown>) {
         if (!this.env?.['RELIC_DO']) {
             // Local Simulation
             return { status: 'warning', message: 'RELIC_DO not bound (Local Mode). Indexing simulated.' };
@@ -252,7 +247,7 @@ export class RelicLimb extends BaseLimb {
     }
 
     // Adapted read_record for Local Access
-    async read_record(params: Record<string, any>) {
+    async read_record(params: Record<string, unknown>) {
         const { path: filePath, base64 } = params || {};
         if (!filePath) throw new Error("Missing path for read_record");
 
@@ -272,7 +267,7 @@ export class RelicLimb extends BaseLimb {
         }
 
         // 3. Try Local Filesystem (Maximal Operational Code)
-        const localPath = join(this.config.projectRoot, filePath);
+        const localPath = join(this.config.projectRoot, filePath as string);
         if (fs.existsSync(localPath)) {
             const buffer = fs.readFileSync(localPath);
             const content = base64 ? buffer.toString('base64') : buffer.toString('utf-8');
@@ -285,7 +280,7 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async scan_game_needs(params: Record<string, any>) {
+    async scan_game_needs(params: Record<string, unknown>) {
         // Cloud Native Mastery: Use __STATIC_CONTENT_MANIFEST stub
         let manifest: Record<string, string> = {};
         try {
@@ -311,7 +306,7 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async index_jag_archive_contents(_params: any) {
+    async index_jag_archive_contents(_params: Record<string, unknown>) {
         if (!this.env?.['RELIC_DO'] && !fs.existsSync(join(this.config.projectRoot, 'rsc-data'))) {
             return { status: 'error', message: 'RELIC_DO not bound and no local rsc-data found.' };
         }
@@ -346,11 +341,11 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async get_state(_params: Record<string, any>) {
+    async get_state(_params: Record<string, unknown>) {
         return { status: 'active', mode: 'local_hybrid' };
     }
 
-    async link_cache(params: Record<string, any>) {
+    async link_cache(params: Record<string, unknown>) {
         const { path: _cachePath } = params || {};
         // Stub for RSMV link
         return {
@@ -360,15 +355,15 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async salvage_relic(params: Record<string, any>) {
+    async salvage_relic(params: Record<string, unknown>) {
         const { relicId, relicType: _relicType } = params || {};
         // Stub for salvage
         return { status: 'success', type: 'rsc_salvage', url: `rsc://${relicId}`, message: 'Artifact salvaged (Simulated)' };
     }
 
-    async modify_relic(params: Record<string, any>) {
+    async modify_relic(params: Record<string, unknown>) {
         const { id: modId, changes, currentData } = params || {};
-        const updatedData = { ...currentData, ...changes };
+        const updatedData = { ...(currentData as object), ...(changes as object) };
         return {
             status: 'success',
             message: `Staged changes for model ${modId}.`,
@@ -376,21 +371,21 @@ export class RelicLimb extends BaseLimb {
         };
     }
 
-    async load_stage(params: Record<string, any>) {
+    async load_stage(params: Record<string, unknown>) {
         return { status: 'success', stageId: params['stageId'] };
     }
 
-    async commit_cache(_params: Record<string, any>) {
+    async commit_cache(_params: Record<string, unknown>) {
         return { status: 'success', message: 'Commit successful (Simulated)' };
     }
 
-    async fork_relic(_params: Record<string, any>) {
+    async fork_relic(_params: Record<string, unknown>) {
         return { status: 'success', message: 'Fork successful (Simulated)' };
     }
 
-    async fetch_relic_content(params: Record<string, any>) {
+    async fetch_relic_content(params: Record<string, unknown>) {
         const { path: relativePath } = params || {};
-        const localPath = join(this.config.projectRoot, relativePath);
+        const localPath = join(this.config.projectRoot, relativePath as string);
         if (fs.existsSync(localPath)) {
             return {
                 status: 'success',

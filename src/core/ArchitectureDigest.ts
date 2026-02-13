@@ -7,7 +7,7 @@ import { ArchitectureManifest } from './models.js';
  * Injects immutable architectural boundaries and domain constraints into prompts.
  */
 export class ArchitectureDigest {
-    private manifest: ArchitectureManifest;
+    private readonly manifest: ArchitectureManifest;
 
     constructor(private readonly projectRoot: string) {
         this.manifest = this.loadManifest();

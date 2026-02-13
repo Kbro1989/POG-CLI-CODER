@@ -32,8 +32,7 @@ If you have just cloned this repository, follow these steps to initialize the en
 - **NO MOCKS**: We operate against real project substrates.
 - **ZERO PLACEHOLDERS**: All logic is fully implemented or omitted.
 - **CLUSTER NATIVE**: Every intent is processed through a 9-node cognitive matrix (Sense-Think-Act-Reflect).
-- **SOVEREIGN STORAGE**: D:\pog-coder-vibe (Config), D:\ollama-models (AI), D:\pog-gutenberg (Knowledge).
-- **SOVEREIGN STORAGE**: D:\pog-coder-vibe (Config), D:\ollama-models (AI), D:\pog-gutenberg (Knowledge).
+- **SOVEREIGN STORAGE**: D:\pog-coder-vibe (Config), D:\ollama-models (AI), D:\pog-gutenberg (Knowledge) [Somatic Memory]
 
 ## 🧩 Multifunctional Limb Inventory
 
@@ -45,11 +44,27 @@ If you have just cloned this repository, follow these steps to initialize the en
 - **MCP (System)**: Universal Model Context Protocol substrate for dynamic tool bridging.
 - **MediaForge**: Creative asset generation (3D, Audio, Vibe).
 - **NeuralForge**: High-fidelity code generation and adversarial analysis.
-- **Omega**: Teleological goal seeking (Ghost Limb).
-- **Quantum**: Parallel hypothesis testing and superposition reasoning (Ghost Limb).
-- **Relic**: RSC Archaeology, .jag/.mem parsing, and legacy data excavation.
+- **Omega**: Teleological goal seeking (Ghost Limb - Cloud Fallback).
+- **Quantum**: Parallel hypothesis testing and superposition reasoning (Ghost Limb - Cloud Fallback).
+- **Relic**: RSC Archaeology and legacy excavation (Ghost Limb - Cloud Fallback).
 - **SovereignShell**: Root-level execution, SSH Gists, and Cloud CLI control.
 - **WebAppForge**: Full-stack manifest implementation and UI/Library scaffolding.
+
+## 🧠 System Capabilities
+
+### ⚡ Cognitive Sovereignty (CNS)
+- **Autonomous Research**: Can browse, audit, and map complex codebases (like this 530+ file system).
+- **Adversarial Loops**: Self-reviewing logic that prevents "Mocks" or "Placeholders" from entering production.
+- **Ternary Routing**: O(log₃ n) decision matrix between local (Ollama) and cloud (Gemini) layers.
+
+### 🛠️ DevOps & Maintenance (Medical/Immune)
+- **Substrate Hardening**: Automatic lint resolution and type-safety enforcement without deletion.
+- **Medical Diagnostics**: Real-time state audit via `tests/diag_env.ts` and `src/monitor/`.
+- **Sovereign Path Resolution**: Tiered storage (Sovereign D:, Home, Project) with zero hardcoded paths.
+
+### 🏺 Cloud Fallback & Archaeology (Ghost Class)
+- **RSC Archaeology**: Legacy .jag/.mem parsing and data excavation for game engine development.
+- **Edge Deployment**: Full-stack Cloudflare Worker and Pages orchestration (Cloud PNS).
 
 ---
 

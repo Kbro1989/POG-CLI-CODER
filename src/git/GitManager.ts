@@ -12,9 +12,9 @@ const logger = pino({
 });
 
 export class GitManager {
-    private git: SimpleGit;
+    private readonly git: SimpleGit;
 
-    constructor(private projectRoot: string) {
+    constructor(private readonly projectRoot: string) {
         this.git = simpleGit(projectRoot);
     }
 

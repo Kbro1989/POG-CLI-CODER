@@ -27,7 +27,7 @@ export interface PersistentState {
  */
 export class StateManager {
     private static instance: StateManager;
-    private state: PersistentState;
+    private readonly state: PersistentState;
 
     private constructor() {
         this.state = {

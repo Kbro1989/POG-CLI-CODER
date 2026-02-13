@@ -35,7 +35,7 @@ export class WebSensoryLimb extends BaseLimb {
                     query: z.string(),
                     limit: z.number().optional()
                 }),
-                handler: async (args: any) => this.performSearch(args['query'], args['limit'] || 5)
+                handler: async (args: Record<string, unknown>) => this.performSearch(args['query'] as string, (args['limit'] as number) || 5)
             },
             {
                 name: 'web_fetch',
@@ -50,12 +50,12 @@ export class WebSensoryLimb extends BaseLimb {
                 schema: z.object({
                     url: z.string().url()
                 }),
-                handler: async (args: any) => this.fetchUrl(args['url'])
+                handler: async (args: Record<string, unknown>) => this.fetchUrl(args['url'] as string)
             }
         ]);
     }
 
-    private async performSearch(query: string, limit: number): Promise<Result<any>> {
+    private async performSearch(query: string, limit: number): Promise<Result<Record<string, unknown>>> {
         const apiKey = process.env['GOOGLE_SEARCH_API_KEY'];
         const cx = process.env['GOOGLE_SEARCH_CX'];
 
@@ -82,8 +82,8 @@ export class WebSensoryLimb extends BaseLimb {
                 throw new Error(`Google Search API error: ${error}`);
             }
 
-            const data = (await response.json()) as any;
-            const results = (data.items || []).map((item: any) => ({
+            const data = (await response.json()) as { items?: Array<{ title: string; snippet: string; link: string }> };
+            const results = (data.items || []).map(item => ({
                 title: item.title,
                 snippet: item.snippet,
                 link: item.link
@@ -103,7 +103,7 @@ export class WebSensoryLimb extends BaseLimb {
         }
     }
 
-    private async fetchUrl(url: string): Promise<Result<any>> {
+    private async fetchUrl(url: string): Promise<Result<Record<string, unknown>>> {
         try {
             this.logger.info({ url }, 'Fetching web content');
             const response = await fetch(url, {

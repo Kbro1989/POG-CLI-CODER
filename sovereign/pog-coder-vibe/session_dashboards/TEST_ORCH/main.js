@@ -100,6 +100,23 @@ function connect() {
         else if (msg.type === 'pulse') {
             triggerPulseUI(msg.data);
         }
+        else if (msg.type === 'globe_forge_completed') {
+            renderForgedGlobe(msg.data);
+        }
+        else if (msg.type === 'spatial_health_update') {
+            if (window.constellation) window.constellation.updateNode(msg.data);
+        }
+        else if (msg.type === 'failover_tracer') {
+            if (window.constellation) window.constellation.addTracer(msg.data);
+        }
+        else if (msg.type === 'node_discovered') {
+            if (window.constellation) window.constellation.updateNode(msg.data);
+        }
+        else if (msg.type === 'boundary_negotiation') {
+            addConstitutionalLog(msg.data);
+            if (window.constellation) window.constellation.triggerPressure(msg.data);
+            if (window.constellationSov) window.constellationSov.triggerPressure(msg.data);
+        }
     };
     ws.onclose = () => {
         const dot = document.getElementById('ws-status');
@@ -124,9 +141,24 @@ function updateStateUI(state) {
     if (state.activeMemories) updateMemoryPulse(state.activeMemories);
     if (state.neuralHeatmap) renderNeuralHeatmap(state.neuralHeatmap);
     
+    if (state.gps) {
+        const gpsEl = document.getElementById('gps-coords');
+        if (gpsEl) gpsEl.innerText = `${state.gps.lat.toFixed(4)}, ${state.gps.lng.toFixed(4)}`;
+    }
+    
     if (state.sovereignVoice) {
         const narr = document.getElementById('sovereign-narrative');
         if (narr) narr.innerText = state.sovereignVoice;
+    }
+
+    if (state.boundaries) {
+        const link = document.getElementById('sovereign-link');
+        const status = document.getElementById('link-status');
+        if (link && status) {
+            const isActive = !state.boundaries.forceOffline;
+            link.classList.toggle('active', isActive);
+            status.innerText = isActive ? 'ACTIVE' : 'OFFLINE';
+        }
     }
 
     // Update footer statuses
@@ -254,7 +286,7 @@ function renderLimbHealth(limbs) {
         return `
             <div class="model-card">
                 <div style="display:flex;justify-content:space-between">
-                    <strong>${id.toUpperCase()}</strong>
+                    <strong>${(id || 'unknown').toUpperCase()}</strong>
                     <span style="color:${status === 'OK' || status === 'READY' ? '#00ff00' : '#ff4444'}">${status}</span>
                 </div>
             </div>
@@ -268,7 +300,7 @@ function renderModelGallery(models) {
     container.innerHTML = models.map(m => `
         <div class="model-card ${m.type}">
             <strong>${m.name}</strong><br>
-            <small style="color:var(--accent-primary)">${m.type.toUpperCase()}</small>
+            <small style="color:var(--accent-primary)">${(m.type || 'unknown').toUpperCase()}</small>
             <div style="font-size:0.6rem;color:#888;margin-top:5px">${m.capabilities.join(', ')}</div>
         </div>
     `).join('');
@@ -467,18 +499,147 @@ function switchWorkspace(p) {
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'control', command: 'switchWorkspace', data: { path: p } })); 
 }
 
-function closeReader() { 
-    const el = document.getElementById('reader-content');
-    if (el) el.innerHTML = '<div class="reader-placeholder">Select a book.</div>'; 
-    currentBook = null; 
+function addConstitutionalLog(data) {
+    const log = document.getElementById('constitutional-log');
+    if (!log) return;
+    const placeholder = log.querySelector('.muted');
+    if (placeholder) placeholder.remove();
+
+    const item = document.createElement('div');
+    item.className = 'log-entry';
+    item.style.borderLeft = '2px solid var(--accent-secondary)';
+    item.style.paddingLeft = '10px';
+    item.style.marginBottom = '10px';
+    item.innerHTML = `<div style="font-size:0.6rem; color:var(--text-muted)">${new Date().toLocaleTimeString()}</div>
+        <div style="font-weight:800; color:var(--accent-secondary)">${data.type}</div>
+            <div style="font-size:0.75rem">${data.reason}</div>`;
+log.prepend(item);
 }
 
-function forgeMedia() { 
-    const promptEl = document.getElementById('media-prompt');
+function closeReader() {
+    const el = document.getElementById('reader-content');
+    if (el) el.innerHTML = '<div class="reader-placeholder">Select a book.</div>';
+    currentBook = null;
+}
+
+function forgeMedia() {
+    const p = document.getElementById('media-prompt').value;
     const targetEl = document.getElementById('media-target');
-    const p = promptEl ? promptEl.value : ''; 
-    const t = targetEl ? targetEl.value : 'image'; 
+    const t = targetEl ? targetEl.value : 'image';
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'control', command: 'media_forge_request', data: { prompt: p, targetType: t } })); 
+}
+
+function forgeGlobe() {
+    const name = document.getElementById('globe-name').value || 'multiplayer-globe-' + Date.now();
+    addLog(`Forging Multiplayer Globe: ${name}...`, "stdout");
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'control', command: 'invoke_limb_tool', data: { limbId: 'cloudflare_ai', toolName: 'cf_forge_multiplayer_globe', args: { targetDir: './projects/' + name } } }));
+    }
+}
+
+function renderForgedGlobe(data) {
+    const canvas = document.getElementById('globe-canvas');
+    const meta = document.getElementById('globe-meta');
+    if (!canvas || !meta) return;
+
+    canvas.style.display = 'block';
+    meta.innerHTML = `<strong style="color:var(--accent-primary)">Globe Forged Successfully!</strong><br>Location: ${data.path}<br>Durable Object: Globe Registered`;
+
+    // Initialize Cobe Lite for the dashboard
+    // We dynamically load it to avoid heavy bundle if not needed
+    if (!window.createGlobe) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/cobe';
+        script.onload = () => initCobe(canvas);
+        document.head.appendChild(script);
+    } else {
+        initCobe(canvas);
+    }
+}
+
+function initCobe(canvas) {
+    if (window.constellation) return;
+    window.constellation = new ConstellationManager(canvas);
+}
+
+class ConstellationManager {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.phi = 0;
+        this.nodes = new Map();
+        this.tracers = [];
+        this.origin = [34.0522, -118.2437]; // Default
+        this.init();
+    }
+
+    init() {
+        this.globe = window.createGlobe(this.canvas, {
+            devicePixelRatio: 2,
+            width: 300 * 2,
+            height: 300 * 2,
+            phi: 0,
+            theta: 0.4,
+            dark: 1,
+            diffuse: 1.2,
+            mapSamples: 16000,
+            mapBrightness: 6,
+            baseColor: [0.1, 0.1, 0.1],
+            markerColor: [0.1, 0.8, 1],
+            glowColor: [0, 0.1, 0.2],
+            markers: this.getMarkers(),
+            onRender: (state) => {
+                state.phi = this.phi;
+                this.phi += 0.005;
+                state.markers = this.getMarkers();
+            },
+        });
+    }
+
+    getMarkers() {
+        const markers = [
+            { location: this.origin, size: 0.08 } // Origin node
+        ];
+        
+        this.nodes.forEach(node => {
+            const size = node.health === 'READY' ? 0.05 : 0.03;
+            markers.push({ location: [node.lat, node.lng], size });
+        });
+
+        // Add fading tracers as temporary markers for effect
+        this.tracers.forEach((t, i) => {
+            t.life -= 0.01;
+            if (t.life <= 0) {
+                this.tracers.splice(i, 1);
+            } else {
+                markers.push({ location: [t.lat, t.lng], size: t.life * 0.04 });
+            }
+        });
+
+        return markers;
+    }
+
+    updateNode(data) {
+        this.nodes.set(data.region, data);
+        if (data.region === 'local') this.origin = [data.lat, data.lng];
+    }
+
+    addTracer(data) {
+        // Find approximate location of the failover target
+        // For now, if cloud, we spark a tracer
+        this.tracers.push({
+            lat: 34.0522 + (Math.random() - 0.5) * 10,
+            lng: -118.2437 + (Math.random() - 0.5) * 10,
+            life: 1.0,
+            color: data.reason === 'RATE_LIMITED' ? [1, 0, 0.9] : [0, 0.9, 1]
+        });
+    }
+
+    triggerPressure(data) {
+        this.pressureLevel = 1.0;
+        this.pressureColor = data.strategy === 'YIELD' ? [1, 0, 0] : [1, 0.5, 0];
+        // Shift base color temporarily
+        setTimeout(() => this.pressureLevel = 0, 5000);
+    }
 }
 
 function updateMemoryPulse(memories) {

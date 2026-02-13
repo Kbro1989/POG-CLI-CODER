@@ -2,7 +2,7 @@
 import { Buffer } from 'buffer';
 
 export class Stream {
-    private data: Buffer;
+    private readonly data: Buffer;
     private scan: number;
 
     constructor(data: Buffer, scan = 0) {
@@ -19,7 +19,7 @@ export class Stream {
     }
 
     readBuffer(len = this.data.length - this.scan): Buffer {
-        let res = this.data.slice(this.scan, this.scan + len);
+        const res = this.data.slice(this.scan, this.scan + len);
         this.scan += len;
         return res;
     }
@@ -43,7 +43,7 @@ export class Stream {
     }
 
     readByte(): number {
-        var val = this.readUByte();
+        const val = this.readUByte();
         if (val > 127)
             return val - 256;
         return val;
@@ -54,7 +54,7 @@ export class Stream {
     }
 
     readShort(bigendian = false): number {
-        var val = this.readUShort(bigendian);
+        const val = this.readUShort(bigendian);
         if (val > 32767)
             return val - 65536;
         return val;
@@ -75,53 +75,53 @@ export class Stream {
     }
 
     readUShortSmart(): number {
-        let byte0 = this.readUByte();
+        const byte0 = this.readUByte();
         if ((byte0 & 0x80) == 0) {
             return byte0;
         }
-        let byte1 = this.readUByte();
+        const byte1 = this.readUByte();
         return ((byte0 & 0x7f) << 8) | byte1;
     }
 
     readShortSmart(): number {
-        let byte0 = this.readUByte();
+        const byte0 = this.readUByte();
         let byte0val = byte0 & 0x7f;
         byte0val = (byte0 < 0x40 ? byte0 : byte0 - 0x80);
         if ((byte0 & 0x80) == 0) {
             return byte0val;
         }
-        let byte1 = this.readUByte();
+        const byte1 = this.readUByte();
         return (byte0val << 8) | byte1;
     }
 
     readShortSmartBias(): number {
-        let byte0 = this.readUByte();
+        const byte0 = this.readUByte();
         if ((byte0 & 0x80) == 0) {
             return byte0 - 0x40;
         }
-        let byte1 = this.readUByte();
+        const byte1 = this.readUByte();
         return (((byte0 & 0x7f) << 8) | byte1) - 0x4000;
     }
 
     readUIntSmart(): number {
-        let byte0 = this.readUByte();
-        let byte1 = this.readUByte();
+        const byte0 = this.readUByte();
+        const byte1 = this.readUByte();
         if ((byte0 & 0x80) == 0) {
             return (byte0 << 8) | byte1;
         }
-        let byte2 = this.readUByte();
-        let byte3 = this.readUByte();
+        const byte2 = this.readUByte();
+        const byte3 = this.readUByte();
         return ((byte0 & 0x7f) << 24) | (byte1 << 16) | (byte2 << 8) | byte3;
     }
 
     readTribyte(): number {
-        let val = this.data.readIntBE(this.scan, 3);
+        const val = this.data.readIntBE(this.scan, 3);
         this.scan += 3;
         return val;
     }
 
     readFloat(bigendian = false, signage = false): number {
-        var upper = 0, mid = 0, lower = 0, exponent = 0;
+        let upper = 0, mid = 0, lower = 0, exponent = 0;
         if (bigendian) {
             exponent = this.data[this.scan++] ?? 0;
             lower = ((this.data[this.scan++] ?? 0) << 16) & 0xFF0000;
@@ -134,7 +134,7 @@ export class Stream {
             lower = ((this.data[this.scan++] ?? 0) << 16) & 0xFF0000;
             exponent = this.data[this.scan++] ?? 0;
         }
-        var mantissa = upper | mid | lower;
+        let mantissa = upper | mid | lower;
         if (signage) {
             exponent = (exponent << 1) & 0xFE;
             if ((mantissa & 0x800000) == 0x800000)
@@ -145,10 +145,10 @@ export class Stream {
     }
 
     readHalf(_flip = false): number {
-        var upper = this.data[this.scan++] ?? 0;
-        var lower = this.data[this.scan++] ?? 0;
-        var mantissa = lower | ((upper << 8) & 0x0300);
-        var exponent = (upper >> 2) & 0x1F;
+        const upper = this.data[this.scan++] ?? 0;
+        const lower = this.data[this.scan++] ?? 0;
+        let mantissa = lower | ((upper << 8) & 0x0300);
+        const exponent = (upper >> 2) & 0x1F;
         mantissa = mantissa * Math.pow(2.0, -10.0) + (exponent == 0 ? 0.0 : 1.0);
         mantissa *= Math.pow(2.0, exponent - 15.0);
         if ((upper & 0x80) == 0x80)

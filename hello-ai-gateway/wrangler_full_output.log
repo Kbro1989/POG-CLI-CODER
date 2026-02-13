@@ -1,0 +1,115 @@
+﻿
+ Γ¢à∩╕Å wrangler 4.65.0
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+node.exe : [33mΓû▓ [4
+3;33m[[43;30mWARNING[
+43;33m][0m 
+[1mProcessing 
+wrangler.toml 
+configuration:[0m
+At C:\nvm4w\nodejs\npx.
+ps1:16 char:5
++     & 
+"$basedir/node$exe"  "$
+basedir/node_modules/np
+m/bin/npx-cli.js" ...
++     ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: ([33mΓû▓ [43   
+ ;3...figuration:[    
+0m:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+
+    - In your 
+wrangler.toml file, 
+you have configured 
+`durable_objects` 
+exported by this 
+Worker (RSCServerDO, 
+PlayerDO), but no 
+`migrations` for them. 
+This may not work as 
+expected until you add 
+a `migrations` section 
+to your wrangler.toml 
+file. Add the 
+following 
+configuration:
+  
+      ```
+      [[migrations]]
+      tag = "v1"
+      
+new_sqlite_classes = [ 
+"RSCServerDO", 
+"PlayerDO" ]
+  
+      ```
+  
+      Refer to [4mhttp
+s://developers.cloudfla
+re.com/durable-objects/
+reference/durable-objec
+ts-migrations/[0m for 
+more details.
+
+
+
+[31mX [41;31m[[41;97
+mERROR[41;31m][0m 
+[1mYou seem to be 
+trying to use Durable 
+Objects in a Worker 
+written as a 
+service-worker.[0m
+
+  You can use Durable 
+Objects defined in 
+other Workers by 
+specifying a 
+`script_name` in your 
+wrangler.toml file, 
+where `script_name` is 
+the name of the Worker 
+that implements that 
+Durable Object. For 
+example:
+  { name = 
+DO_AMERICAS, 
+class_name = 
+RSCServerDO } ==> { 
+name = DO_AMERICAS, 
+class_name = 
+RSCServerDO, 
+script_name = 
+do-americas-worker }
+  { name = PlayerDO, 
+class_name = PlayerDO 
+} ==> { name = 
+PlayerDO, class_name = 
+PlayerDO, script_name 
+= playerdo-worker }
+  Alternatively, 
+migrate your worker to 
+ES Module syntax to 
+implement a Durable 
+Object in this Worker:
+  [4mhttps://developer
+s.cloudflare.com/worker
+s/learning/migrating-to
+-module-workers/[0m
+
+
+≡ƒ¬╡  Logs were 
+written to "C:\Users\De
+stiny\.wrangler\logs\wr
+angler-2026-02-13_21-53
+-38_550.log"

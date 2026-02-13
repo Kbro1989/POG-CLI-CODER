@@ -152,7 +152,7 @@ export class ModelExecutor {
                     };
                 }
 
-                return { ok: false, error: cliResult.error as Error };
+                return { ok: false, error: cliResult.error };
             }
         }
     }
@@ -183,7 +183,7 @@ export class ModelExecutor {
             const response = await fetch(finalUrl, {
                 method: 'POST',
                 headers,
-                body: (isBinaryInput ? (input as any) : JSON.stringify(input)) as any
+                body: (isBinaryInput ? (input as any) : JSON.stringify(input))
             });
 
             const latency = Date.now() - startTime;
@@ -261,7 +261,7 @@ export class ModelExecutor {
 
         try {
             // Use the passed model or a default
-            let cfModel = model.startsWith('@cf/') || model.startsWith('@hf/') ? model : "@cf/meta/llama-3.1-8b-instruct";
+            const cfModel = model.startsWith('@cf/') || model.startsWith('@hf/') ? model : "@cf/meta/llama-3.1-8b-instruct";
 
             const finalUrl = gatewayUrl.endsWith('/') ? `${gatewayUrl}ai/run/${cfModel}` : `${gatewayUrl}/ai/run/${cfModel}`;
             const response = await fetch(finalUrl, {

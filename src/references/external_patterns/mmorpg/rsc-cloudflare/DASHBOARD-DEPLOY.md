@@ -4,7 +4,7 @@
 
 1. **Navigate to project:**
    ```bash
-   cd c:\Users\Destiny\Desktop\ai-architect-mmorpg\copy-of-rsc-evolution-ai\rsc-cloudflare
+   cd \\ai-architect-mmorpg\copy-of-rsc-evolution-ai\rsc-cloudflare
    ```
 
 2. **Deploy dashboard to Cloudflare Pages:**

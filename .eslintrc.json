@@ -1,0 +1,35 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "./tsconfig.json"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    ],
+    "rules": {
+        "@typescript-eslint/require-await": "off",
+        "@typescript-eslint/explicit-function-return-type": "warn",
+        "@typescript-eslint/prefer-readonly": "off",
+        "@typescript-eslint/no-unsafe-enum-comparison": "off",
+        "no-console": "warn",
+        "no-case-declarations": "warn"
+    },
+    "overrides": [
+        {
+            "files": [
+                "cli/**/*.ts",
+                "tests/**/*.ts"
+            ],
+            "rules": {
+                "no-console": "off",
+                "@typescript-eslint/explicit-function-return-type": "off"
+            }
+        }
+    ]
+}

@@ -42,17 +42,20 @@ export class MemoryLimb extends BaseLimb {
                     query: z.string(),
                     limit: z.number().optional()
                 }),
-                handler: async (args: any): Promise<Result<{ status: string; results: any[] }>> => {
-                    this.logger.info({ query: args['query'] }, 'Searching memory via cognitive embedding');
+                handler: async (args: Record<string, unknown>): Promise<Result<{ status: string; results: unknown[] }>> => {
+                    const query = args['query'] as string;
+                    const limit = (args['limit'] as number) || 5;
+                    this.logger.info({ query, limit }, 'Searching memory via cognitive embedding');
 
                     // Reality Lock: 1. Generate real embedding via Gemini
-                    const embedResult = await this.gemini.embed(args['query']);
+                    const embedResult = await this.gemini.embed(query);
                     if (!embedResult.ok) {
+                        this.logger.error({ error: embedResult.error, query }, 'Cognitive embedding failed');
                         return { ok: false, error: embedResult.error };
                     }
 
                     // 2. Search VectorDB with high-fidelity Float32Array
-                    const results = await this.vectorDB.searchSimilar(embedResult.value, args['limit'] || 5);
+                    const results = await this.vectorDB.searchSimilar(embedResult.value, limit);
 
                     if (!results.ok) {
                         return { ok: false, error: results.error };
@@ -77,7 +80,7 @@ export class MemoryLimb extends BaseLimb {
                     }
                 },
                 schema: z.object({ force: z.boolean().optional() }),
-                handler: async (_args: { force?: boolean }): Promise<Result<Record<string, unknown>>> => {
+                handler: async (_args: Record<string, unknown>): Promise<Result<Record<string, unknown>>> => {
                     this.logger.info('Triggering manual project indexing');
                     const stats = await this.indexer.indexProject();
                     return { ok: true, value: stats as unknown as Record<string, unknown> };
@@ -100,19 +103,23 @@ export class MemoryLimb extends BaseLimb {
                     errorType: z.string().optional(),
                     regretLikelihood: z.number().optional()
                 }),
-                handler: async (args: any): Promise<Result<void>> => {
-                    this.logger.info({ text: args['text'].substring(0, 50) }, 'Injecting manual lesson into VectorDB');
+                handler: async (args: Record<string, unknown>): Promise<Result<void>> => {
+                    const text = args['text'] as string;
+                    const errorType = args['errorType'] as string | undefined;
+                    const regretLikelihood = (args['regretLikelihood'] as number) || 0.5;
 
-                    const embedResult = await this.gemini.embed(args['text']);
+                    this.logger.info({ text: text.substring(0, 50), errorType }, 'Injecting manual lesson into VectorDB');
+
+                    const embedResult = await this.gemini.embed(text);
                     if (!embedResult.ok) return { ok: false, error: embedResult.error };
 
                     const lesson = {
                         id: `manual_${Date.now()}`,
-                        text: args['text'],
+                        text,
                         embedding: embedResult.value,
                         createdAt: Date.now(),
-                        errorType: args['errorType'],
-                        regretLikelihood: args['regretLikelihood'] || 0.5,
+                        errorType: errorType || 'None',
+                        regretLikelihood,
                         projectId: this.config.projectId || 'global',
                         sessionId: process.env['SESSION_ID'] || 'manual'
                     };
@@ -136,5 +143,13 @@ export class MemoryLimb extends BaseLimb {
                 }
             }
         ]);
+    }
+
+    /**
+     * Proper Close: Ensures the VectorDB connection is cleanly severed.
+     */
+    public override async close(): Promise<void> {
+        this.logger.info('Closing MemoryLimb resources...');
+        await this.vectorDB.close();
     }
 }

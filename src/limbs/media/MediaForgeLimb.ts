@@ -40,18 +40,18 @@ export class MediaForgeLimb extends BaseLimb {
                     prompt: z.string(),
                     targetType: z.enum(['image', 'speech', 'vision', 'model'])
                 }),
-                handler: async (args: any) => {
+                handler: async (args: Record<string, unknown>) => {
                     let ability: MA;
-                    const target = args['targetType'].toLowerCase();
+                    const target = (args['targetType'] as string).toLowerCase();
 
                     if (target === 'vision') ability = MA.Vision;
                     else if (target === 'speech') ability = MA.TTS;
                     else if (target === 'model') ability = 'RSMV' as MA;
                     else ability = MA.ImageGen;
 
-                    this.logger.info({ ability, prompt: args['prompt'].substring(0, 50) + '...' }, 'Routing media task by ability');
+                    this.logger.info({ ability, prompt: (args['prompt'] as string).substring(0, 50) + '...' }, 'Routing media task by ability');
                     const model = this.router.routeByAbility(ability);
-                    const result = await this.modelExecutor.callCloudflareAI(model, { prompt: args['prompt'] });
+                    const result = await this.modelExecutor.callCloudflareAI(model, { prompt: args['prompt'] as string });
 
                     if (!result.ok) {
                         await this.pinPulse(YaoState.OldYin, `Media Forge Fail: ${target}`);
@@ -74,19 +74,19 @@ export class MediaForgeLimb extends BaseLimb {
 
     // Override canHandle for backward compatibility and broad detection
     override async canHandle(intent: import('../core/NeuralLimb.js').Intent): Promise<import('../core/NeuralLimb.js').TernaryDecision> {
-        if (!this.config.enabledServices.includes('MEDIA_FORGE')) return -1;
+        if (!this.config.enabledServices.includes('MEDIA_FORGE')) return 'Yin';
 
         const prompt = intent.prompt.toLowerCase();
 
-        // +1: Explicit creative keywords = optimal
+        // 'Yang': Explicit creative keywords = optimal
         const highEscalation = ['forge', 'rsmv', 'model', 'visual'];
-        if (highEscalation.some(k => prompt.includes(k))) return 1;
+        if (highEscalation.some(k => prompt.includes(k))) return 'Yang';
 
-        // 0: General media keywords = maybe
+        // 'YinYang': General media keywords = maybe
         const keywords = ['generate', 'create', 'image', 'video', 'music', 'sound', 'audio'];
-        if (keywords.some(k => prompt.includes(k))) return 0;
+        if (keywords.some(k => prompt.includes(k))) return 'YinYang';
 
-        return -1;
+        return 'Yin';
     }
 
 }

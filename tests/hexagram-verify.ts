@@ -8,6 +8,10 @@ import { homedir } from 'os';
 dotenv.config();
 
 const config: VibeConfig = {
+    gutenbergPath: undefined,
+    workspaces: [process.cwd()],
+    pogApiUrl: undefined,
+    aiContextPath: undefined,
     agentName: 'HEX-CHECK',
     projectRoot: process.cwd(),
     pogDir: join(homedir(), '.pog-coder-vibe'),

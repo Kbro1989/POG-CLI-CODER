@@ -39,9 +39,10 @@ export class FileSystemLimb extends BaseLimb {
                 schema: z.object({
                     path: z.string().describe('Relative path to the file.')
                 }),
-                handler: async (args: any) => {
-                    const absPath = join(this.config.projectRoot, args['path']);
-                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args['path']}`);
+                handler: async (args: Record<string, unknown>) => {
+                    const filePath = args['path'] as string;
+                    const absPath = join(this.config.projectRoot, filePath);
+                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${filePath}`);
                     return { ok: true, value: fs.readFileSync(absPath, 'utf8') };
                 }
             },
@@ -58,8 +59,9 @@ export class FileSystemLimb extends BaseLimb {
                 schema: z.object({
                     paths: z.array(z.string()).describe('Array of relative file paths.')
                 }),
-                handler: async (args: any) => {
-                    const absPaths = args['paths'].map((p: string) => join(this.config.projectRoot, p));
+                handler: async (args: Record<string, unknown>) => {
+                    const paths = (args['paths'] as string[]) || [];
+                    const absPaths = paths.map((p: string) => join(this.config.projectRoot, p));
                     return await readManyFiles(absPaths);
                 }
             },
@@ -78,10 +80,12 @@ export class FileSystemLimb extends BaseLimb {
                     path: z.string().describe('Relative path to the file.'),
                     content: z.string().describe('The new content of the file.')
                 }),
-                handler: async (args: any) => {
-                    const absPath = join(this.config.projectRoot, args['path']);
-                    const snapshot = await this.sandbox.createSnapshot(`write_file: ${args['path']}`);
-                    fs.writeFileSync(absPath, args['content']);
+                handler: async (args: Record<string, unknown>) => {
+                    const filePath = args['path'] as string;
+                    const content = args['content'] as string;
+                    const absPath = join(this.config.projectRoot, filePath);
+                    const snapshot = await this.sandbox.createSnapshot(`write_file: ${filePath}`);
+                    fs.writeFileSync(absPath, content);
                     return { ok: true, value: { status: 'persisted', snapshotId: snapshot.ok ? snapshot.value : 'none' } };
                 }
             },
@@ -102,22 +106,23 @@ export class FileSystemLimb extends BaseLimb {
                     search: z.string().describe('The exact string to search for.'),
                     replace: z.string().describe('The string to replace it with.')
                 }),
-                handler: async (args: any) => {
-                    const absPath = join(this.config.projectRoot, args['path']);
-                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args['path']}`);
+                handler: async (args: Record<string, unknown>) => {
+                    const filePath = args['path'] as string;
+                    const absPath = join(this.config.projectRoot, filePath);
+                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${filePath}`);
 
                     const content = fs.readFileSync(absPath, 'utf8');
                     const editResult = await SmartEdit.calculateReplacement(content, {
                         file_path: absPath,
-                        old_string: args['search'],
-                        new_string: args['replace']
+                        old_string: args['search'] as string,
+                        new_string: args['replace'] as string
                     });
 
                     if (editResult.occurrences === 0) {
                         throw new Error(`Patch failed: Search string not found in file (Strategies: Exact|Flexible|Regex failed).`);
                     }
 
-                    await this.sandbox.createSnapshot(`patch_file: ${args['path']} (Strategy: ${editResult.strategy})`);
+                    await this.sandbox.createSnapshot(`patch_file: ${filePath} (Strategy: ${editResult.strategy})`);
                     const finalContent = SmartEdit.restoreTrailingNewline(content, editResult.newContent);
                     fs.writeFileSync(absPath, finalContent);
 
@@ -143,22 +148,23 @@ export class FileSystemLimb extends BaseLimb {
                     new_string: z.string().describe('The new text block.'),
                     instruction: z.string().optional().describe('Instruction for the edit.')
                 }),
-                handler: async (args: any) => {
-                    const absPath = join(this.config.projectRoot, args['path']);
-                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args['path']}`);
+                handler: async (args: Record<string, unknown>) => {
+                    const filePath = args['path'] as string;
+                    const absPath = join(this.config.projectRoot, filePath);
+                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${filePath}`);
 
                     const content = fs.readFileSync(absPath, 'utf8');
                     const result = await SmartEdit.calculateReplacement(content, {
                         file_path: absPath,
-                        old_string: args['old_string'],
-                        new_string: args['new_string']
+                        old_string: args['old_string'] as string,
+                        new_string: args['new_string'] as string
                     });
 
                     if (result.occurrences === 0) {
                         return { ok: false, error: new Error('SmartEdit failed to find matching content for provided old_string.') };
                     }
 
-                    await this.sandbox.createSnapshot(`smart_edit: ${args['path']}`);
+                    await this.sandbox.createSnapshot(`smart_edit: ${filePath}`);
                     const finalContent = SmartEdit.restoreTrailingNewline(content, result.newContent);
                     fs.writeFileSync(absPath, finalContent);
 
@@ -177,8 +183,9 @@ export class FileSystemLimb extends BaseLimb {
                 schema: z.object({
                     dir: z.string().optional().describe('Relative directory path (defaults to root).')
                 }),
-                handler: async (args: any) => {
-                    const dir = join(this.config.projectRoot, args['dir'] || '');
+                handler: async (args: Record<string, unknown>) => {
+                    const dirPath = (args['dir'] as string) || '';
+                    const dir = join(this.config.projectRoot, dirPath);
                     const files = this.walk(dir).map(f => relative(this.config.projectRoot, f));
                     return { ok: true, value: files };
                 }
@@ -196,11 +203,12 @@ export class FileSystemLimb extends BaseLimb {
                 schema: z.object({
                     path: z.string().describe('Relative directory path to create.')
                 }),
-                handler: async (args: any) => {
-                    const absPath = join(this.config.projectRoot, args['path']);
+                handler: async (args: Record<string, unknown>) => {
+                    const path = args['path'] as string;
+                    const absPath = join(this.config.projectRoot, path);
                     if (fs.existsSync(absPath)) return { ok: true, value: { status: 'exists' } };
                     fs.mkdirSync(absPath, { recursive: true });
-                    return { ok: true, value: { status: 'created', path: args['path'] } };
+                    return { ok: true, value: { status: 'created', path: path } };
                 }
             },
             {
@@ -216,11 +224,12 @@ export class FileSystemLimb extends BaseLimb {
                 schema: z.object({
                     path: z.string().describe('Relative path to the file to delete.')
                 }),
-                handler: async (args: any) => {
-                    const absPath = join(this.config.projectRoot, args['path']);
-                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${args['path']}`);
+                handler: async (args: Record<string, unknown>) => {
+                    const filePath = args['path'] as string;
+                    const absPath = join(this.config.projectRoot, filePath);
+                    if (!fs.existsSync(absPath)) throw new Error(`File not found: ${filePath}`);
                     fs.unlinkSync(absPath);
-                    return { ok: true, value: { status: 'deleted', path: args['path'] } };
+                    return { ok: true, value: { status: 'deleted', path: filePath } };
                 }
             },
             {
@@ -238,12 +247,14 @@ export class FileSystemLimb extends BaseLimb {
                     source: z.string().describe('Relative source path.'),
                     destination: z.string().describe('Relative destination path.')
                 }),
-                handler: async (args: any) => {
-                    const srcAbs = join(this.config.projectRoot, args['source']);
-                    const dstAbs = join(this.config.projectRoot, args['destination']);
-                    if (!fs.existsSync(srcAbs)) throw new Error(`Source not found: ${args['source']}`);
+                handler: async (args: Record<string, unknown>) => {
+                    const source = args['source'] as string;
+                    const destination = args['destination'] as string;
+                    const srcAbs = join(this.config.projectRoot, source);
+                    const dstAbs = join(this.config.projectRoot, destination);
+                    if (!fs.existsSync(srcAbs)) throw new Error(`Source not found: ${source}`);
                     fs.renameSync(srcAbs, dstAbs);
-                    return { ok: true, value: { status: 'moved', from: args['source'], to: args['destination'] } };
+                    return { ok: true, value: { status: 'moved', from: source, to: destination } };
                 }
             },
             {
@@ -259,10 +270,11 @@ export class FileSystemLimb extends BaseLimb {
                 schema: z.object({
                     snapshotId: z.string().describe('The ID of the snapshot to restore.')
                 }),
-                handler: async (args: any) => {
-                    const rbResult = await this.sandbox.rollback(args['snapshotId']);
+                handler: async (args: Record<string, unknown>) => {
+                    const snapshotId = args['snapshotId'] as string;
+                    const rbResult = await this.sandbox.rollback(snapshotId);
                     if (!rbResult.ok) throw rbResult.error;
-                    return { ok: true, value: { status: 'rolled_back', snapshotId: args['snapshotId'] } };
+                    return { ok: true, value: { status: 'rolled_back', snapshotId: snapshotId } };
                 }
             },
             {
@@ -278,13 +290,14 @@ export class FileSystemLimb extends BaseLimb {
                 schema: z.object({
                     path: z.string().describe('Relative path to the directory.')
                 }),
-                handler: async (args: any) => {
-                    const absPath = join(this.config.projectRoot, args['path']);
+                handler: async (args: Record<string, unknown>) => {
+                    const dirPath = args['path'] as string;
+                    const absPath = join(this.config.projectRoot, dirPath);
                     if (!fs.existsSync(absPath) || !fs.statSync(absPath).isDirectory()) {
-                        throw new Error(`Directory not found: ${args['path']}`);
+                        throw new Error(`Directory not found: ${dirPath}`);
                     }
                     const dirFiles = fs.readdirSync(absPath);
-                    const manifestContent = `# 📁 Pog Manifest: ${args['path']}\n\nThis folder contains specialized code for the POG-VIBE system.\n\n## 📄 File Inventory\n\n${dirFiles.map(f => `- **${f}**: [Pending AI Description]`).join('\n')}\n\n---\n\n*Generated by POG-VIBE Project Portability Engine.*`;
+                    const manifestContent = `# 📁 Pog Manifest: ${dirPath}\n\nThis folder contains specialized code for the POG-VIBE system.\n\n## 📄 File Inventory\n\n${dirFiles.map(f => `- **${f}**: [Pending AI Description]`).join('\n')}\n\n---\n\n*Generated by POG-VIBE Project Portability Engine.*`;
                     const manifestPath = join(absPath, 'pog.md');
                     fs.writeFileSync(manifestPath, manifestContent);
                     return { ok: true, value: { status: 'manifest_generated', path: relative(this.config.projectRoot, manifestPath) } };

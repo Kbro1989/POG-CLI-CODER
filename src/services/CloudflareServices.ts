@@ -23,12 +23,12 @@ export interface CloudflareConfig {
  */
 export class CloudflareServices {
     private accountId: string | undefined;
-    private apiToken: string | undefined;
+    private readonly apiToken: string | undefined;
     private authEmail: string | undefined;
     private readonly baseUrl: string = 'https://api.cloudflare.com/client/v4/accounts';
 
     private readonly config: CloudflareConfig;
-    private hexagramManager: HexagramManager | undefined;
+    private readonly hexagramManager: HexagramManager | undefined;
 
     constructor(config: CloudflareConfig) {
         this.config = config;

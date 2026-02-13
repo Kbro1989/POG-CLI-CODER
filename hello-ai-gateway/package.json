@@ -1,17 +1,12 @@
 {
-    "name": "hello-ai-gateway",
-    "version": "1.0.0",
-    "private": true,
-    "scripts": {
-        "deploy": "wrangler deploy",
-        "dev": "wrangler dev",
-        "start": "wrangler dev",
-        "typecheck": "tsc --noEmit",
-        "build": "wrangler deploy --dry-run"
-    },
-    "devDependencies": {
-        "@cloudflare/workers-types": "^4.20240502.0",
-        "typescript": "^5.5.0",
-        "wrangler": "^3.53.0"
-    }
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "partyserver": "^0.0.75",
+    "partysocket": "^1.1.6"
+  },
+  "devDependencies": {
+    "wrangler": "^4.65.0"
+  }
 }

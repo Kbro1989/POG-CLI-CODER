@@ -16,7 +16,7 @@ async function verifyHealthRouting() {
     const bioResult = await bioLimb.canHandle({ prompt: 'health check' } as any);
 
     console.log(`BioIntelligenceLimb.canHandle('health check'): ${bioResult}`);
-    if (bioResult === -1) {
+    if (bioResult === 'Yin') {
         console.log('✅ PASS: BioIntelligence correctly ignored "health check"');
     } else {
         console.log('❌ FAIL: BioIntelligence still captured "health check"');

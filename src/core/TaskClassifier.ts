@@ -51,43 +51,42 @@ export class TaskClassifier {
         if (weightedTasks[TT.Generate] > 0.6) score += 2;
         if (weightedTasks[TT.Esoteric] > 0.4) score += 2; // Cloudflare/Specialized services
 
-        // 1: Cloud-preferred (Gemini/Cloudflare)
-        // 0: Mixed/Ambiguous
-        // -1: Local-sufficient (Ollama)
-        return score >= 3 ? 1 : score >= 1 ? 0 : -1;
+        // 'Yang': Cloud-preferred (Gemini/Cloudflare)
+        // 'YinYang': Mixed/Ambiguous
+        // 'Yin': Local-sufficient (Ollama)
+        return score >= 3 ? 'Yang' : score >= 1 ? 'YinYang' : 'Yin';
     }
 
     /**
      * AI-Powered Ternary Classification
-     * 1: Yes (Complex/Cloud)
-     * 0: Maybe (Ambiguous)
-     * -1: No (Simple/Local)
+     * 'Yang': Yes (Complex/Cloud)
+     * 'YinYang': Maybe (Ambiguous)
+     * 'Yin': No (Simple/Local)
      */
     static async assessComplexityAI(prompt: string, gemini: GeminiService): Promise<Ternary> {
         const classifierPrompt = `
 Classify the following user prompt into a TERNARY COMPLEXITY VALUE:
-1: HIGH COMPLEXITY / RESEARCH / MULTI-STEP / CLOUD-PREFERRED (Yes)
-0: MEDIUM / AMBIGUOUS / NEEDS CONTEXT / FALLBACK (Maybe)
--1: LOW COMPLEXITY / DIRECT / CODE-ONLY / LOCAL-PREFERRED (No)
+'Yang': HIGH COMPLEXITY / RESEARCH / MULTI-STEP / CLOUD-PREFERRED (Yes)
+'YinYang': MEDIUM / AMBIGUOUS / NEEDS CONTEXT / FALLBACK (Maybe)
+'Yin': LOW COMPLEXITY / DIRECT / CODE-ONLY / LOCAL-PREFERRED (No)
 
 User Prompt: "${prompt}"
 
-Respond ONLY with a JSON object: {"ternary": -1 | 0 | 1, "reason": "concise explanation"}
+Respond ONLY with a JSON object: {"ternary": "Yang" | "YinYang" | "Yin", "reason": "concise explanation"}
 `;
 
         try {
             const result = await gemini.generateContent(classifierPrompt, 'gemini-3-flash-preview');
-            if (!result.ok) return 0;
+            if (!result.ok) return 'YinYang';
 
             const jsonStr = result.value.response.match(/\{[\s\S]*\}/)?.[0];
-            if (!jsonStr) return 0;
+            if (!jsonStr) return 'YinYang';
 
             const decision = JSON.parse(jsonStr);
-            return (decision.ternary === 1 || decision.ternary === -1 || decision.ternary === 0)
-                ? decision.ternary
-                : 0;
+            const t = decision.ternary;
+            return (t === 'Yang' || t === 'Yin' || t === 'YinYang') ? t : 'YinYang';
         } catch {
-            return 0;
+            return 'YinYang';
         }
     }
 }

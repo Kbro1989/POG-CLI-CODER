@@ -31,18 +31,18 @@ export interface DispatchRequest {
 
 export interface DispatchResponse {
     readonly success: boolean;
-    readonly result: any;
+    readonly result: unknown;
     readonly error?: string;
     readonly serviceUsed: AIServiceType | 'NONE';
     readonly state: ServiceState;
 }
 
 export class AIDispatcher {
-    private genAI: GoogleGenAI | null = null;
-    private serviceStates: Map<AIServiceType, ServiceState> = new Map();
+    private readonly genAI: GoogleGenAI | null = null;
+    private readonly serviceStates: Map<AIServiceType, ServiceState> = new Map();
     private refreshTimeout: NodeJS.Timeout | null = null;
 
-    constructor(private config: VibeConfig) {
+    constructor(private readonly config: VibeConfig) {
         const apiKey = process.env['GOOGLE_API_KEY'];
         if (apiKey) {
             this.genAI = new GoogleGenAI({ apiKey });
@@ -154,15 +154,16 @@ export class AIDispatcher {
             }
 
             return response;
-        } catch (error: any) {
+        } catch (error: unknown) {
             this.setServiceState(capability.serviceType, 'ERROR');
+            const errorMessage = error instanceof Error ? error.message : String(error);
 
             // Handle recursive fallback on catch as well
             if (capability.fallback) {
                 logger.warn({
                     capabilityId: request.capabilityId,
                     fallbackId: capability.fallback,
-                    error: error.message
+                    error: errorMessage
                 }, 'Dispatch exception. Attempting failover to fallback.');
 
                 return await this.dispatch({
@@ -174,7 +175,7 @@ export class AIDispatcher {
             return {
                 success: false,
                 result: null,
-                error: (error as Error).message,
+                error: errorMessage,
                 serviceUsed: capability.serviceType,
                 state: 'ERROR'
             };
@@ -182,113 +183,126 @@ export class AIDispatcher {
     }
 
     private async handleCloudflare(capability: AICapability, request: DispatchRequest): Promise<DispatchResponse> {
-        this.setServiceState('CLOUDFLARE' as any, 'CONNECTING');
+        this.setServiceState('CLOUDFLARE', 'CONNECTING');
         const accountId = process.env['CLOUDFLARE_ACCOUNT_ID'];
-        const apiKey = process.env['CLOUDFLARE_API_KEY'];
-        const email = process.env['CLOUDFLARE_EMAIL'];
+        const apiToken = process.env['CLOUDFLARE_API_TOKEN'];
         const modelId = request.modelOverride || capability.modelId || '@cf/meta/llama-3.1-8b-instruct';
 
-        if (!accountId || !apiKey || !email) {
-            throw new Error('Cloudflare credentials (Account ID, API Key, Email) not configured');
+        if (!accountId || !apiToken) {
+            throw new Error('Cloudflare credentials (Account ID, API Token) not configured');
         }
 
         try {
             const resp = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${modelId}`, {
                 method: 'POST',
                 headers: {
-                    'X-Auth-Key': apiKey,
-                    'X-Auth-Email': email,
+                    'Authorization': `Bearer ${apiToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     messages: typeof request.payload === 'string'
                         ? [{ role: 'user', content: request.payload }]
-                        : (request.payload as any).map((p: any) => ({ role: 'user', content: p.text }))
+                        : (request.payload).map(p => ({ role: 'user', content: p.text }))
                 })
             });
 
-            const data: any = await resp.json();
+            const data = await resp.json() as Record<string, unknown>;
             if (!resp.ok) {
-                throw new Error(`Cloudflare AI Error (${resp.status}): ${JSON.stringify(data.errors)}`);
+                throw new Error(`Cloudflare AI Error (${resp.status}): ${JSON.stringify(data['errors'])}`);
             }
 
-            this.setServiceState('CLOUDFLARE' as any, 'READY');
+            const result = data['result'] as Record<string, unknown>;
+            this.setServiceState('CLOUDFLARE', 'READY');
             return {
                 success: true,
-                result: data.result.response || data.result,
-                serviceUsed: 'CLOUDFLARE' as any,
+                result: result['response'] || result,
+                serviceUsed: 'CLOUDFLARE',
                 state: 'READY'
             };
-        } catch (error: any) {
-            this.setServiceState('CLOUDFLARE' as any, 'ERROR');
+        } catch (error: unknown) {
+            this.setServiceState('CLOUDFLARE', 'ERROR');
             return {
                 success: false,
                 result: null,
-                error: error.message,
-                serviceUsed: 'CLOUDFLARE' as any,
+                error: error instanceof Error ? error.message : String(error),
+                serviceUsed: 'CLOUDFLARE',
                 state: 'ERROR'
             };
         }
     }
 
     private async handleHuggingFace(capability: AICapability, request: DispatchRequest): Promise<DispatchResponse> {
-        this.setServiceState('HUGGINGFACE' as any, 'CONNECTING');
+        this.setServiceState(capability.serviceType, 'CONNECTING');
         const apiKey = process.env['HUGGINGFACE_API_KEY'];
-        const modelId = request.modelOverride || capability.modelId || 'mistralai/Mistral-7B-Instruct-v0.3';
+        // Use Kimi as the default if not specified, since it's our new Reasoning Forge
+        const modelId = request.modelOverride || capability.modelId || 'moonshotai/Kimi-K2.5:novita';
 
         if (!apiKey) {
             throw new Error('Hugging Face API key not configured');
         }
 
         try {
-            const resp = await fetch(`https://api-inference.huggingface.co/models/${modelId}`, {
+            // Modern OpenAI-compatible endpoint on the HF Router
+            const endpoint = `https://router.huggingface.co/v1/chat/completions`;
+
+            // Normalize payload to OpenAI messages format
+            const messages = typeof request.payload === 'string'
+                ? [{ role: 'user', content: request.payload }]
+                : (Array.isArray(request.payload) ? request.payload : [request.payload]);
+
+            const resp = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    inputs: typeof request.payload === 'string' ? request.payload : JSON.stringify(request.payload),
-                    parameters: {
-                        return_full_text: false,
-                        max_new_tokens: 512
-                    }
+                    model: modelId,
+                    messages: messages,
+                    max_tokens: 1024,
+                    temperature: 0.7
                 })
             });
 
-            const data: any = await resp.json();
+            const data = (await resp.json()) as {
+                choices?: Array<{ message?: { content?: string } }>;
+                error?: any;
+            };
+
             if (!resp.ok) {
-                throw new Error(`Hugging Face Error (${resp.status}): ${JSON.stringify(data.error || data)}`);
+                throw new Error(`Hugging Face Router Error (${resp.status}): ${JSON.stringify(data.error || data)}`);
             }
 
-            this.setServiceState('HUGGINGFACE' as any, 'READY');
+            this.setServiceState(capability.serviceType, 'READY');
 
-            const generatedText = Array.isArray(data) ? data[0].generated_text : (data.generated_text || JSON.stringify(data));
+            // Extract completion content from OpenAI format
+            const generatedText = data.choices?.[0]?.message?.content || JSON.stringify(data);
 
             return {
                 success: true,
                 result: generatedText,
-                serviceUsed: 'HUGGINGFACE' as any,
+                serviceUsed: capability.serviceType,
                 state: 'READY'
             };
-        } catch (error: any) {
-            this.setServiceState('HUGGINGFACE' as any, 'ERROR');
+        } catch (error: unknown) {
+            this.setServiceState(capability.serviceType, 'ERROR');
+            const message = error instanceof Error ? error.message : String(error);
             return {
                 success: false,
                 result: null,
-                error: error.message,
-                serviceUsed: 'HUGGINGFACE' as any,
+                error: message,
+                serviceUsed: capability.serviceType,
                 state: 'ERROR'
             };
         }
     }
 
     private async handleOllama(capability: AICapability, request: DispatchRequest): Promise<DispatchResponse> {
-        this.setServiceState('OLLAMA' as any, 'CONNECTING');
+        this.setServiceState('OLLAMA', 'CONNECTING');
         const modelId = request.modelOverride || capability.modelId || 'qwen2.5-coder:7b';
         const prompt = typeof request.payload === 'string'
             ? request.payload
-            : (request.payload as any).map((p: any) => p.text).join('\n');
+            : (request.payload).map(p => p.text).join('\n');
 
         return new Promise((resolve) => {
             const child = spawn('ollama', ['run', modelId, prompt], {
@@ -303,32 +317,32 @@ export class AIDispatcher {
 
             child.on('close', (code: number | null) => {
                 if (code === 0) {
-                    this.setServiceState('OLLAMA' as any, 'READY');
+                    this.setServiceState('OLLAMA', 'READY');
                     resolve({
                         success: true,
                         result: stdout.trim(),
-                        serviceUsed: 'OLLAMA' as any,
+                        serviceUsed: 'OLLAMA',
                         state: 'READY'
                     });
                 } else {
-                    this.setServiceState('OLLAMA' as any, 'ERROR');
+                    this.setServiceState('OLLAMA', 'ERROR');
                     resolve({
                         success: false,
                         result: null,
                         error: `Ollama failed (${code}): ${stderr}`,
-                        serviceUsed: 'OLLAMA' as any,
+                        serviceUsed: 'OLLAMA',
                         state: 'ERROR'
                     });
                 }
             });
 
             child.on('error', (err: Error) => {
-                this.setServiceState('OLLAMA' as any, 'ERROR');
+                this.setServiceState('OLLAMA', 'ERROR');
                 resolve({
                     success: false,
                     result: null,
                     error: err.message,
-                    serviceUsed: 'OLLAMA' as any,
+                    serviceUsed: 'OLLAMA',
                     state: 'ERROR'
                 });
             });

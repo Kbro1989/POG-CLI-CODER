@@ -35,26 +35,25 @@ export class OmegaLimb extends BaseLimb {
                 schema: z.object({
                     goal: z.string().describe('The objective to measure against')
                 }),
-                handler: (args) => this.executeTeleology(args['goal'])
+                handler: (args) => this.executeTeleology(args['goal'] as string) as Promise<Result<unknown>>
             }
         ]);
     }
 
-    private async executeTeleology(goal: string): Promise<any> {
-        const res = await this.execute({ prompt: goal });
-        return res.ok ? res.value : { output: `Evaluation failed: ${res.error.message}`, data: { error: true } };
+    private async executeTeleology(goal: string): Promise<Result<import('../core/NeuralLimb.js').Execution>> {
+        return await this.execute({ prompt: goal });
     }
 
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const userIntent = this.getUserIntent(intent).toLowerCase();
 
-        // +1: Explicit omega/completion keywords = optimal
-        if (userIntent.includes('omega') || userIntent.includes('autonomous completion')) return 1;
+        // 'Yang': Explicit omega/completion keywords = optimal
+        if (userIntent.includes('omega') || userIntent.includes('autonomous completion')) return 'Yang';
 
-        // 0: Related completion keywords = maybe
-        if (userIntent.includes('finish') || userIntent.includes('complete') || userIntent.includes('finalize')) return 0;
+        // 'YinYang': Related completion keywords = maybe
+        if (userIntent.includes('finish') || userIntent.includes('complete') || userIntent.includes('finalize')) return 'YinYang';
 
-        return -1;  // No match = skip
+        return 'Yin';  // No match = skip
     }
 
     override async execute(intent: Intent): Promise<Result<Execution>> {

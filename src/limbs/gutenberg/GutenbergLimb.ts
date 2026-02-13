@@ -66,9 +66,9 @@ export class GutenbergLimb extends BaseLimb {
     private readonly GUTENDEX_API = 'https://gutendex.com/books';
     private readonly RATE_LIMIT_MS = 1000;
     private lastRequestTime = 0;
-    private vectorDB: VectorDB | undefined;
-    private gemini: GeminiService | undefined;
-    private modelExecutor: ModelExecutor | undefined;
+    private readonly vectorDB: VectorDB | undefined;
+    private readonly gemini: GeminiService | undefined;
+    private readonly modelExecutor: ModelExecutor | undefined;
 
     constructor(
         config: VibeConfig,
@@ -390,17 +390,17 @@ export class GutenbergLimb extends BaseLimb {
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const userIntent = this.getUserIntent(intent).toLowerCase();
 
-        // +1: Explicit gutenberg/literature keywords = optimal
+        // 'Yang': Explicit gutenberg/literature keywords = optimal
         const keywords = ['gutenberg', 'literature', 'author style', 'ingest book'];
-        if (keywords.some(k => userIntent.includes(k))) return 1;
+        if (keywords.some(k => userIntent.includes(k))) return 'Yang';
 
-        // 0: General book/corpus keywords = maybe
-        if (userIntent.includes('book') || userIntent.includes('corpus') || userIntent.includes('download')) return 0;
+        // 'YinYang': General book/corpus keywords = maybe
+        if (userIntent.includes('book') || userIntent.includes('corpus') || userIntent.includes('download')) return 'YinYang';
 
-        // 0: Capability matches = maybe
-        if (this.spine.getCapabilities().some(cap => userIntent.includes(cap))) return 0;
+        // 'YinYang': Capability matches = maybe
+        if (this.spine.getCapabilities().some(cap => userIntent.includes(cap))) return 'YinYang';
 
-        return -1;
+        return 'Yin';
     }
 
 
@@ -410,25 +410,25 @@ export class GutenbergLimb extends BaseLimb {
         // Determine action and route through spine
         if (userIntent.includes('search') || userIntent.includes('find') || userIntent.includes('retrieve') || userIntent.includes('get') || userIntent.includes('fetch')) {
             const params = this.parseSearchParams(userIntent);
-            const result = await this.spine.handleCall('gutenberg_search', params);
-            if (result.ok === true) return { ok: true, value: (result as { value: any }).value };
-            return { ok: false, error: (result as { error: any }).error };
+            const result = await this.spine.handleCall<Execution>('gutenberg_search', params as unknown as Record<string, unknown>);
+            if (result.ok) return result;
+            return { ok: false, error: result.error };
         } else if (userIntent.includes('ingest') || userIntent.includes('download')) {
             const params = this.parseSearchParams(userIntent);
-            const result = await this.spine.handleCall('gutenberg_ingest', params);
-            if (result.ok === true) return { ok: true, value: (result as { value: any }).value };
-            return { ok: false, error: (result as { error: any }).error };
+            const result = await this.spine.handleCall<Execution>('gutenberg_ingest', params as unknown as Record<string, unknown>);
+            if (result.ok) return result;
+            return { ok: false, error: result.error };
         } else if (userIntent.includes('styles') || userIntent.includes('authors')) {
-            const result = await this.spine.handleCall('gutenberg_styles', {});
-            if (result.ok === true) return { ok: true, value: (result as { value: any }).value };
-            return { ok: false, error: (result as { error: any }).error };
+            const result = await this.spine.handleCall<Execution>('gutenberg_styles', {});
+            if (result.ok) return result;
+            return { ok: false, error: result.error };
         }
 
         // Fallback to Sovereign Cognitive Response instead of failing
         return super.execute(intent);
     }
 
-    private async handleListStyles(): Promise<Result<any>> {
+    private async handleListStyles(): Promise<Result<Execution>> {
         const metadata = this.loadMetadataCache();
         const authors = new Set<string>();
         const domains = new Set<string>();

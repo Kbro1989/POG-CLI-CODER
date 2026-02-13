@@ -112,19 +112,19 @@ This index catalogs all source files, documentation, and artifacts in the produc
 ## 📘 Documentation Suite
 
 ### Root-Level Documentation
-- ✅ **[README.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/README.md)** - System overview and quick start
-- ✅ **[PROJECT_RULES.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/PROJECT_RULES.md)** - NO MOCKS/NO PLACEHOLDERS policy
-- ✅ **[PROJECT_SUMMARY.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/PROJECT_SUMMARY.md)** - Complete feature summary
-- ✅ **[QUICK_REFERENCE.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/QUICK_REFERENCE.md)** - Command cheat sheet
-- ✅ **[QUICKSTART.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/QUICKSTART.md)** - 5-minute setupguide
-- ✅ **[CODEBASE_MAP.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/CODEBASE_MAP.md)** - Complete architectural guide (incl. D:\ Substrate) (incl. D:\ Substrate)
-- ✅ **[EXECUTIVE_SUMMARY.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/EXECUTIVE_SUMMARY.md)** - Phase 3 completion overview
-- ✅ **[TERNARY_TREE_GUIDE.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/TERNARY_TREE_GUIDE.md)** - Routing algorithm explained
-- ✅ **[GEMINI.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/GEMINI.md)** - Gemini SDK integration status
-- ✅ **[FILE_INDEX.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/FILE_INDEX.md)** - This file
+- ✅ **[README.md](./README.md)
+- ✅ **[PROJECT_RULES.md](./PROJECT_RULES.md)**
+- ✅ **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)**
+- ✅ **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)**
+- ✅ **[QUICKSTART.md](./QUICKSTART.md)**
+- ✅ **[CODEBASE_MAP.md](./CODEBASE_MAP.md)**
+- ✅ **[EXECUTIVE_SUMMARY.md](./EXECUTIVE_SUMMARY.md)**
+- ✅ **[TERNARY_TREE_GUIDE.md](./TERNARY_TREE_GUIDE.md)**
+- ✅ **[GEMINI.md](./GEMINI.md)**
+- ✅ **[FILE_INDEX.md](./FILE_INDEX.md)**
 
 ### Technical Documentation (`/docs`)
-- ✅ **[API_KEY_FAILOVER.md](file:///c:/Users/Destiny/Desktop/Ollama_Code_Editor_Quant/docs/API_KEY_FAILOVER.md)** - Multi-key resilience system
+- ✅ **[API_KEY_FAILOVER.md](./docs/API_KEY_FAILOVER.md)**
 
 ### Phase 3 Artifacts (`.gemini/antigravity/brain/*`)
 - ✅ **`task.md`** - Development roadmap with Phase 3 completion status

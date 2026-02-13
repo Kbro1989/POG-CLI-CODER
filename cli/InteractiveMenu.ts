@@ -14,7 +14,7 @@ export class InteractiveMenu {
     private readonly pageSize: number = 10;
 
     constructor(
-        private items: MenuItem[],
+        private readonly items: MenuItem[],
         _rl: any // Unused but passed for API compatibility
     ) { }
 
@@ -42,7 +42,7 @@ export class InteractiveMenu {
         });
     }
 
-    private handleInput = (_str: string, key: readline.Key) => {
+    private readonly handleInput = (_str: string, key: readline.Key) => {
         if (!this.isActive) return;
 
         if (key.name === 'up') {
@@ -69,7 +69,7 @@ export class InteractiveMenu {
         const startIdx = Math.max(0, this.selectedIndex - Math.floor(this.pageSize / 2));
         const endIdx = Math.min(this.items.length, startIdx + this.pageSize);
 
-        let output = '\n' + chalk.bold.cyan('⚡ SELECT COMMAND (Arrow Keys + Enter, Esc to cancel)') + '\n';
+        let output = '\n' + chalk.bold.cyan('⚡ NEUROLOGICAL COMMANDS (Arrow Keys + Enter, Esc to cancel)') + '\n';
         output += chalk.gray('──────────────────────────────────────────────────────────────────────────────') + '\n';
 
         for (let i = startIdx; i < endIdx; i++) {

@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const TXT_PATH = 'C:/Users/Destiny/Desktop/ai-architect-mmorpg/copy-of-rsc-evolution-ai/rsc-vanilla/rsc-server/src/plugins/items/item_list.txt';
-const JSON_PATH = 'c:/Users/Destiny/Desktop/New folder/POG-Ultimate/rsc-data/config/items.json';
+const TXT_PATH = process.env.ITEM_LIST_PATH || path.join(__dirname, '../rsc-vanilla/rsc-server/src/plugins/items/item_list.txt');
+const JSON_PATH = process.env.ITEMS_JSON_PATH || path.join(__dirname, 'items.json');
 
 // Parse arguments
 const args = process.argv.slice(2);

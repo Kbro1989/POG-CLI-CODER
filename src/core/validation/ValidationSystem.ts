@@ -6,7 +6,7 @@ import { Validator } from './Validator.js';
  * rejection logic.
  */
 export class ValidationSystem {
-    private validators: Validator[] = [];
+    private readonly validators: Validator[] = [];
 
     constructor(validators: Validator[] = []) {
         this.validators = validators;

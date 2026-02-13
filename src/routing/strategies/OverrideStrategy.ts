@@ -11,8 +11,43 @@ export class OverrideStrategy implements RoutingStrategy {
     async route(context: RoutingContext): Promise<RoutingDecision | null> {
         const startTime = performance.now();
         const prompt = context.prompt.toLowerCase();
-        const { weightedTasks } = context;
+        const { weightedTasks, metadata } = context;
         const availableModels = context.availableModels || [];
+
+        // 0. GHOST FAILOVER (Highest Priority)
+        // If the Ghost has taken control (HealthStatus.Ready / +1), all intents are diverted
+        // to the deterministic terminator to bypass cloud heuristics entirely.
+        if (metadata?.['ghostEngagementLevel'] === 1) {
+            return {
+                model: 'ghost-terminator',
+                metadata: {
+                    source: 'ghost-override',
+                    latencyMs: Math.round(performance.now() - startTime),
+                    reasoning: 'GHOST_CONTROL_ACTIVE: Deterministic failover engaged. Bypassing cloud heuristics.',
+                },
+            };
+        }
+
+        // 0.1 ESOTERIC ESCALATION (Reasoning Forge)
+        // If we are "stuck" (turn > 2) or explicit esoteric intent is detected, escalate to Kimi.
+        const isStuck = metadata?.['isStuck'] === true;
+        const esotericWeight = weightedTasks?.['esoteric'] || 0;
+
+        if (isStuck || esotericWeight > 0.8 || prompt.includes('kimi') || prompt.includes('esoteric')) {
+            // Only escalate if Ghost is NOT in control
+            const reasoning = isStuck
+                ? 'SYSTEM_STUCK: Cloud loops repeating without progress. Escalating to Kimi Reasoning Forge.'
+                : 'ESOTERIC_INTENT: High-complexity mental model detected. Routing to Kimi.';
+
+            return {
+                model: 'gold_huggingface_kimi',
+                metadata: {
+                    source: 'esoteric-escalation',
+                    latencyMs: Math.round(performance.now() - startTime),
+                    reasoning: reasoning
+                }
+            };
+        }
 
         // 0. Respect Sovereign User Preference (Explicit Model Request)
         // If the user explicitly names a model, we yield to the Analytical/Selection strategies

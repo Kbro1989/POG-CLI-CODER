@@ -15,7 +15,7 @@ import { z } from 'zod';
 export class AIModelLimb extends BaseLimb {
     readonly id = 'aimodel_limb';
     readonly type = 'cloud';
-    private registry = HealthRegistry.getInstance();
+    private readonly registry = HealthRegistry.getInstance();
 
     constructor(config: VibeConfig) {
         super(config);
@@ -43,17 +43,17 @@ export class AIModelLimb extends BaseLimb {
                     required: ['prompt']
                 },
                 schema: z.object({ prompt: z.string() }),
-                handler: async (args: any) => this.suggestSmartRoute(args['prompt'])
+                handler: async (args: Record<string, unknown>) => this.suggestSmartRoute(args['prompt'] as string)
             }
         ]);
     }
 
-    private async getModelHealth(): Promise<Result<any>> {
+    private async getModelHealth(): Promise<Result<Record<string, unknown>>> {
         const health = this.registry.getAllHealth();
         return { ok: true, value: health };
     }
 
-    private async benchmarkModels(): Promise<Result<any>> {
+    private async benchmarkModels(): Promise<Result<unknown[]>> {
         const models = ModelInventory.getAvailableModels();
         const results = models.map(m => ({
             name: m.name,
@@ -66,14 +66,14 @@ export class AIModelLimb extends BaseLimb {
         return { ok: true, value: results };
     }
 
-    private async suggestSmartRoute(prompt: string): Promise<Result<any>> {
+    private async suggestSmartRoute(prompt: string): Promise<Result<Record<string, unknown>>> {
         const weights = TaskClassifier.analyzeProbabilities(prompt);
         const complexity = TaskClassifier.assessComplexity(prompt, weights);
 
         // Naive but effective heuristic for tool call advice
         let suggestion = 'local:qwen2.5-coder';
-        if (complexity > 0) suggestion = 'cloud:gemini-3-pro';
-        else if (weights['api-orchestration']! > 0.5) suggestion = 'edge:llama-3.1-8b';
+        if (complexity === 'Yang' || complexity === 'YinYang') suggestion = 'cloud:gemini-3-pro';
+        else if ((weights['api-orchestration'] || 0) > 0.5) suggestion = 'edge:llama-3.1-8b';
 
         return {
             ok: true,

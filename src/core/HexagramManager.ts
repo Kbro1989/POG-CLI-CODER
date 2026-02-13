@@ -49,12 +49,12 @@ export class HexagramManager {
     async initialize(): Promise<void> {
         const result = await this.vectorDB.getHexagramContext(this.projectId);
         if (result.ok) {
-            this.lines = result.value.map(row => ({
-                lineIndex: row.lineIndex,
-                title: row.title,
-                content: row.content,
-                importance: row.importance || 1,
-                state: row.state as YaoState
+            this.lines = (result.value as any[]).map((row: any) => ({
+                lineIndex: row.lineIndex as number,
+                title: (row.title as string) || 'Untitled',
+                content: (row.content as string) || '',
+                importance: (row.importance as number) || 1,
+                state: (row.state as number) as YaoState
             }));
         }
 

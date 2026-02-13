@@ -12,8 +12,8 @@ import pino from 'pino';
  */
 export class AnalyticalStrategy implements RoutingStrategy {
     readonly name = 'analytical';
-    private logger: Logger;
-    private decisionTree: TernaryNode;
+    private readonly logger: Logger;
+    private readonly decisionTree: TernaryNode;
 
     constructor() {
         this.logger = pino({ name: 'AnalyticalStrategy' });
@@ -22,12 +22,12 @@ export class AnalyticalStrategy implements RoutingStrategy {
 
     async route(context: RoutingContext): Promise<RoutingDecision | null> {
         const startTime = performance.now();
-        const { prompt, weightedTasks = {}, complexity = 0 } = context;
+        const { prompt, weightedTasks = {}, complexity = 'Yin' } = context;
 
         this.logger.debug({ prompt: prompt.substring(0, 50) }, 'Processing analytical route');
 
         // Bypass for simple intents (Allow TernaryClassifier or Default to handle)
-        if (complexity < 1 && (weightedTasks['architecture'] || 0) < 0.3 && (weightedTasks['generate'] || 0) < 0.3) {
+        if (complexity === 'Yin' && (weightedTasks[TT.Architecture] || 0) < 0.3 && (weightedTasks[TT.Generate] || 0) < 0.3) {
             return null;
         }
 
@@ -51,21 +51,27 @@ export class AnalyticalStrategy implements RoutingStrategy {
     }
 
     private performSimulations(context: RoutingContext): string[] {
-        const { complexity = 0, weightedTasks = {} } = context;
-        const biases: Ternary[] = [-1, 0, 1];
+        const { complexity = 'YinYang', weightedTasks = {} } = context;
+        const biases: Ternary[] = ['Yin', 'YinYang', 'Yang'];
 
         return biases.map(bias => {
-            const blendedComplexity = Math.max(-1, Math.min(1, bias + complexity)) as Ternary;
-            return this.traverseTree(this.decisionTree, blendedComplexity, weightedTasks);
+            // Simulation is a weighted blend: if bias is Yang and complexity is Yin, return YinYang
+            let blended: Ternary = complexity;
+            if (bias === 'Yang' && complexity === 'Yin') blended = 'YinYang';
+            if (bias === 'Yin' && complexity === 'Yang') blended = 'YinYang';
+            if (bias === 'Yang' && complexity === 'Yang') blended = 'Yang';
+            if (bias === 'Yin' && complexity === 'Yin') blended = 'Yin';
+
+            return this.traverseTree(this.decisionTree, blended, weightedTasks);
         });
     }
 
     private synthesizeDecision(simulations: string[], context: RoutingContext): string {
-        const { complexity = 0, availableModels = [] } = context;
+        const { complexity = 'Yin', availableModels = [] } = context;
 
         // Pick tier based on simulations and complexity
         let selectedTier: 'cloud' | 'edge' | 'local' = 'local';
-        if (complexity === 1) {
+        if (complexity === 'Yang') {
             selectedTier = simulations.includes('cloud') ? 'cloud' : 'edge';
         } else if (simulations.includes('cloud')) {
             selectedTier = 'cloud';
@@ -91,7 +97,7 @@ export class AnalyticalStrategy implements RoutingStrategy {
         };
 
         const candidates = available
-            .filter(m => m.health?.isAvailable && (m.health?.circuitLevel ?? 0) >= 0)
+            .filter(m => m.health?.isAvailable && (m.health?.circuitLevel !== 'Yin'))
             .filter(tierFilter);
 
         if (candidates.length === 0) return null;
@@ -104,7 +110,7 @@ export class AnalyticalStrategy implements RoutingStrategy {
         if (node.kind === 'leaf') return node.modelName;
 
         const result = node.condition({ complexity, weightedTasks: weights } as any);
-        const nextNode = result < 0 ? node.left : result === 0 ? node.center : node.right;
+        const nextNode = result === 'Yin' ? node.left : result === 'YinYang' ? node.center : node.right;
 
         return this.traverseTree(nextNode, complexity, weights);
     }
@@ -120,7 +126,7 @@ export class AnalyticalStrategy implements RoutingStrategy {
             left: {
                 kind: 'branch',
                 description: 'Optimize for speed/syntax (Local Preferred)',
-                condition: (ctx) => ctx.weightedTasks[TT.Syntax] > 0.7 ? -1 : 0,
+                condition: (ctx) => ctx.weightedTasks[TT.Syntax] > 0.7 ? 'Yin' : 'YinYang',
                 left: leaf('local'),
                 center: leaf('edge'),
                 right: leaf('cloud')
@@ -129,7 +135,7 @@ export class AnalyticalStrategy implements RoutingStrategy {
             center: {
                 kind: 'branch',
                 description: 'Moderate Complexity (Cloudflare Intermediate Tier)',
-                condition: (_ctx) => 0 as Ternary,
+                condition: (_ctx) => 'YinYang',
                 left: leaf('local'),
                 center: leaf('edge'),
                 right: leaf('cloud')
@@ -138,7 +144,7 @@ export class AnalyticalStrategy implements RoutingStrategy {
             right: {
                 kind: 'branch',
                 description: 'High Complexity / Architecture (Pro Tier)',
-                condition: (ctx) => (ctx.weightedTasks[TT.Architecture] > 0.4 || ctx.weightedTasks[TT.Generate] > 0.4) ? 1 : 0,
+                condition: (ctx) => (ctx.weightedTasks[TT.Architecture] > 0.4 || ctx.weightedTasks[TT.Generate] > 0.4) ? 'Yang' : 'YinYang',
                 left: leaf('edge'),
                 center: leaf('cloud'),
                 right: leaf('cloud')

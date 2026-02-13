@@ -8,6 +8,9 @@
     ],
     "outDir": "./dist",
     "rootDir": ".",
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -64,6 +67,11 @@
     "dist",
     "vscode-extension",
     "src/references",
-    "src/workers"
+    "src/workers",
+    "hello-ai-gateway",
+    "gemini-test",
+    "test-project",
+    "temp_pog_test",
+    "~*"
   ]
 }

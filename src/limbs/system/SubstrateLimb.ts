@@ -103,7 +103,7 @@ export class SubstrateLimb extends BaseLimb {
             this.logger.info('Sensory Interception: Triggering proactive OCR pre-processing');
             const result = await this.google.analyzeImage(Buffer.from(context['imageBase64'], 'base64'));
             if (result.ok) {
-                return `[SENSORY_DATA: OCR_RESULT]\n${JSON.stringify(result.value.fullTextAnnotation?.text || 'No text detected')}\n[/SENSORY_DATA]`;
+                return `[SENSORY_DATA: OCR_RESULT]\n${JSON.stringify((result.value as any).fullTextAnnotation?.text || 'No text detected')}\n[/SENSORY_DATA]`;
             }
         }
 

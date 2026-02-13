@@ -23,7 +23,9 @@ const mockConfig: VibeConfig = {
     embeddingDimensions: 768,
     logLevel: 'info',
     projectId: 'TEST_PROJECT',
-    enabledServices: []
+    enabledServices: [],
+    gutenbergPath: undefined,
+    workspaces: [process.cwd()]
 };
 
 async function runTest() {

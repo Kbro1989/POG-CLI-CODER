@@ -1,0 +1,197 @@
+[
+    {
+        "filePath": "C:\\Users\\\\Desktop\\Ollama_Code_Editor_Quant\\src\\core\\GeminiService.ts",
+        "messages": [
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-enum-comparison",
+                "severity": 2,
+                "message": "The two values in this comparison do not have a shared enum type.",
+                "line": 115,
+                "column": 17,
+                "nodeType": "BinaryExpression",
+                "messageId": "mismatchedCondition",
+                "endLine": 115,
+                "endColumn": 42,
+                "suggestions": [
+                    {
+                        "messageId": "replaceValueWithEnum",
+                        "fix": {
+                            "range": [
+                                4752,
+                                4760
+                            ],
+                            "text": "FinishReason.SAFETY"
+                        },
+                        "desc": "Replace with an enum value comparison."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-enum-comparison",
+                "severity": 2,
+                "message": "The two values in this comparison do not have a shared enum type.",
+                "line": 115,
+                "column": 46,
+                "nodeType": "BinaryExpression",
+                "messageId": "mismatchedCondition",
+                "endLine": 115,
+                "endColumn": 75,
+                "suggestions": [
+                    {
+                        "messageId": "replaceValueWithEnum",
+                        "fix": {
+                            "range": [
+                                4781,
+                                4793
+                            ],
+                            "text": "FinishReason.RECITATION"
+                        },
+                        "desc": "Replace with an enum value comparison."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-enum-comparison",
+                "severity": 2,
+                "message": "The two values in this comparison do not have a shared enum type.",
+                "line": 115,
+                "column": 79,
+                "nodeType": "BinaryExpression",
+                "messageId": "mismatchedCondition",
+                "endLine": 115,
+                "endColumn": 103,
+                "suggestions": [
+                    {
+                        "messageId": "replaceValueWithEnum",
+                        "fix": {
+                            "range": [
+                                4814,
+                                4821
+                            ],
+                            "text": "FinishReason.OTHER"
+                        },
+                        "desc": "Replace with an enum value comparison."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 128,
+                "column": 26,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 128,
+                "endColumn": 29,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                5343,
+                                5346
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                5343,
+                                5346
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .functionCall on an `any` value.",
+                "line": 129,
+                "column": 27,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 129,
+                "endColumn": 39
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .functionCall on an `any` value.",
+                "line": 131,
+                "column": 37,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 131,
+                "endColumn": 49
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .functionCall on an `any` value.",
+                "line": 132,
+                "column": 37,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 132,
+                "endColumn": 49
+            },
+            {
+                "ruleId": "@typescript-eslint/no-redundant-type-constituents",
+                "severity": 2,
+                "message": "'unknown' overrides all other types in this union type.",
+                "line": 163,
+                "column": 32,
+                "nodeType": "TSUnknownKeyword",
+                "messageId": "overrides",
+                "endLine": 163,
+                "endColumn": 39
+            },
+            {
+                "ruleId": "@typescript-eslint/explicit-function-return-type",
+                "severity": 2,
+                "message": "Missing return type on function.",
+                "line": 241,
+                "column": 13,
+                "nodeType": "FunctionDeclaration",
+                "messageId": "missingReturnType",
+                "endLine": 241,
+                "endColumn": 44
+            },
+            {
+                "ruleId": "no-inner-declarations",
+                "severity": 2,
+                "message": "Move function declaration to function body root.",
+                "line": 241,
+                "column": 13,
+                "nodeType": "FunctionDeclaration",
+                "messageId": "moveDeclToRoot",
+                "endLine": 246,
+                "endColumn": 14
+            }
+        ],
+        "suppressedMessages": [],
+        "errorCount": 10,
+        "fatalErrorCount": 0,
+        "warningCount": 0,
+        "fixableErrorCount": 0,
+        "fixableWarningCount": 0,
+        "source": "import { GoogleGenAI, Tool, HarmCategory, HarmBlockThreshold } from '@google/genai';\r\nimport pino from 'pino';\r\nimport { Result, ModelResponse, FunctionCall } from './models.js';\r\nimport { KeyVault } from '../utils/KeyVault.js';\r\nimport { HealthRegistry } from './HealthRegistry.js';\r\nimport { GoogleServices } from '../services/GoogleServices.js';\r\n\r\nconst logger = pino({\r\n    name: 'GeminiService',\r\n    base: { hostname: 'POG-VIBE' }\r\n});\r\n\r\nexport interface GeminiConfig {\r\n    apiKey: string;\r\n    useVertexAI?: boolean;\r\n    apiEndpoint?: string;\r\n    customHeaders?: Record<string, string>;\r\n    modelName?: string;\r\n}\r\n\r\nexport type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE';\r\n\r\n/**\r\n * GeminiService - Unified Intelligence Layer (Sovereign Substrate)\r\n * \r\n * Incorporates automated failover, key rotation, and sensory integration.\r\n */\r\nexport class GeminiService extends GoogleServices {\r\n    private genAI: GoogleGenAI;\r\n    private readonly keyVault: KeyVault | undefined;\r\n    private healthState: ServiceHealthState = 'READY';\r\n    private lastBackoffUntil: number = 0;\r\n    private readonly currentModel: string;\r\n\r\n    constructor(config: GeminiConfig | string, keyVault?: KeyVault) {\r\n        if (typeof config === 'string') {\r\n            super({ apiKey: config });\r\n            this.currentModel = 'gemini-2.0-flash';\r\n        } else {\r\n            super({ apiKey: config.apiKey });\r\n            this.currentModel = config.modelName || 'gemini-2.0-flash';\r\n        }\r\n\r\n        this.keyVault = keyVault;\r\n\r\n        this.genAI = new GoogleGenAI({\r\n            apiKey: this.config.apiKey,\r\n            ...(typeof config !== 'string' && config.customHeaders ? { customHeaders: config.customHeaders } : {}),\r\n            ...(typeof config !== 'string' && config.apiEndpoint ? { apiEndpoint: config.apiEndpoint } : {})\r\n        } as { apiKey: string; customHeaders?: Record<string, string>; apiEndpoint?: string });\r\n\r\n        // Register health provider\r\n        HealthRegistry.getInstance().registerProvider('gemini', () => this.getHealth());\r\n    }\r\n\r\n    public getHealth(): { state: ServiceHealthState; cooldownSeconds: number } {\r\n        const now = Date.now();\r\n        if (this.healthState === 'RATE_LIMITED' && now < this.lastBackoffUntil) {\r\n            return { state: 'RATE_LIMITED', cooldownSeconds: Math.ceil((this.lastBackoffUntil - now) / 1000) };\r\n        }\r\n\r\n        if (this.healthState === 'RATE_LIMITED' && now >= this.lastBackoffUntil) {\r\n            this.healthState = 'READY';\r\n        }\r\n\r\n        return { state: this.healthState, cooldownSeconds: 0 };\r\n    }\r\n\r\n    async generateContent(\r\n        prompt: string,\r\n        modelOverride?: string,\r\n        tools?: Tool[]\r\n    ): Promise<Result<ModelResponse>> {\r\n        const health = this.getHealth();\r\n        if (health.state === 'RATE_LIMITED') {\r\n            return { ok: false, error: new Error(`Gemini API is rate limited. Cooldown: ${health.cooldownSeconds}s`) };\r\n        }\r\n\r\n        return this.retryWithBackoff<ModelResponse>(async () => {\r\n            const startTime = Date.now();\r\n            const targetModel = modelOverride || this.currentModel;\r\n\r\n            // 1. Prepare contents\r\n            const contents = [{ role: 'user', parts: [{ text: prompt }] }];\r\n\r\n            // 2. Prepare tools\r\n            const genTools = (tools && tools.length > 0) ? tools : undefined;\r\n\r\n            const response = await this.genAI.models.generateContent({\r\n                model: targetModel,\r\n                contents,\r\n                config: {\r\n                    ...(genTools ? { tools: genTools } : {}),\r\n                    safetySettings: [\r\n                        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },\r\n                        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },\r\n                        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },\r\n                        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE }\r\n                    ]\r\n                }\r\n            });\r\n\r\n            // 3. Robust candidate validation\r\n            const candidates = response.candidates || [];\r\n            if (candidates.length === 0) {\r\n                throw new Error('EMPTY_RESPONSE: Gemini returned no candidates');\r\n            }\r\n\r\n            const candidate = candidates[0];\r\n            if (!candidate) {\r\n                throw new Error('MALFORMED_RESPONSE: Candidate is undefined');\r\n            }\r\n            const finishReason = candidate.finishReason;\r\n\r\n            if (finishReason === 'SAFETY' || finishReason === 'RECITATION' || finishReason === 'OTHER') {\r\n                throw new Error(`BLOCKED_RESPONSE: ${finishReason}`);\r\n            }\r\n\r\n            const content = candidate.content;\r\n            if (!content || !content.parts || content.parts.length === 0) {\r\n                throw new Error('MALFORMED_RESPONSE: No content parts');\r\n            }\r\n\r\n            const text = response.text || content.parts?.[0]?.text || '';\r\n\r\n            const rawParts = content.parts || [];\r\n            const functionCalls: FunctionCall[] = rawParts\r\n                .map((p: any) => {\r\n                    if (p.functionCall) {\r\n                        return {\r\n                            name: p.functionCall.name as string,\r\n                            args: p.functionCall.args as Record<string, unknown>\r\n                        };\r\n                    }\r\n                    return null;\r\n                })\r\n                .filter((p: FunctionCall | null): p is FunctionCall => p !== null);\r\n\r\n            if (this.keyVault) {\r\n                this.keyVault.resetFailCount();\r\n            }\r\n            this.healthState = 'READY';\r\n\r\n            const modelResponse: ModelResponse = {\r\n                model: targetModel,\r\n                response: text,\r\n                latency: Date.now() - startTime,\r\n                ...(functionCalls.length > 0 ? { functionCalls } : {})\r\n            };\r\n\r\n            return { ok: true, value: modelResponse };\r\n        }, modelOverride || this.currentModel, prompt, tools);\r\n    }\r\n\r\n    private async retryWithBackoff<T>(\r\n        fn: () => Promise<Result<T>>,\r\n        model: string,\r\n        prompt: string,\r\n        tools?: Tool[],\r\n        maxAttempts = 3,\r\n        initialDelay = 1000\r\n    ): Promise<Result<T>> {\r\n        let lastError: Error | unknown;\r\n        for (let attempt = 1; attempt <= maxAttempts; attempt++) {\r\n            try {\r\n                const result = await fn();\r\n                if (result.ok) return result;\r\n\r\n                // If the error is quota/auth, we might still want to handle it via rotateKey\r\n                // but let's see if we should retry first\r\n                lastError = result.error;\r\n            } catch (error: unknown) {\r\n                lastError = error;\r\n                const { isQuota, isAuth, message } = this.classifyError(error);\r\n\r\n                if (isQuota && model !== 'gemini-2.0-flash-lite') {\r\n                    logger.warn({ model }, 'Quota hit, falling back to Flash Lite for retry attempt');\r\n                    return (this.generateContent(prompt, 'gemini-2.0-flash-lite', tools) as Promise<Result<T>>);\r\n                }\r\n\r\n                if ((isQuota || isAuth) && this.keyVault) {\r\n                    const rotated = this.keyVault.rotateKey(isQuota ? 'rate_limit' : 'auth_error');\r\n                    if (rotated) {\r\n                        const newKey = this.keyVault.getCurrentKey();\r\n                        if (newKey) {\r\n                            logger.info('Retrying with rotated key');\r\n                            this.genAI = new GoogleGenAI({ apiKey: newKey });\r\n                            // Reset model connection\r\n                            return (this.generateContent(prompt, model, tools) as Promise<Result<T>>);\r\n                        }\r\n                    }\r\n                }\r\n\r\n                if (!this.isRetryable(error) || attempt === maxAttempts) {\r\n                    if (isQuota) {\r\n                        this.healthState = 'RATE_LIMITED';\r\n                        this.lastBackoffUntil = Date.now() + 60000;\r\n                        logger.error({ model, cooldown: 60 }, 'Gemini rate limit hit - entering cooldown');\r\n                    } else if (isAuth) {\r\n                        this.healthState = 'CRITICAL_FAILURE';\r\n                    }\r\n                    break;\r\n                }\r\n\r\n                const delay = initialDelay * Math.pow(2, attempt - 1);\r\n                logger.warn({ attempt, delay, error: message }, 'Retrying Gemini request after backoff');\r\n                await new Promise(resolve => setTimeout(resolve, delay));\r\n            }\r\n        }\r\n\r\n        const message = lastError instanceof Error ? lastError.message : 'Unknown Gemini error';\r\n        logger.error({\r\n            error: message,\r\n            model,\r\n            stack: lastError instanceof Error ? lastError.stack : undefined\r\n        }, 'Gemini generation failed after retries');\r\n        return { ok: false, error: (lastError instanceof Error ? lastError : new Error(message)) };\r\n    }\r\n\r\n    private isRetryable(error: unknown): boolean {\r\n        const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();\r\n        return message.includes('empty_response') ||\r\n            message.includes('malformed_response') ||\r\n            message.includes('500') ||\r\n            message.includes('503') ||\r\n            message.includes('deadline') ||\r\n            message.includes('econnreset');\r\n    }\r\n\r\n    async generateContentStream(prompt: string, modelOverride?: string): Promise<Result<AsyncGenerator<string, void, unknown>>> {\r\n        const health = this.getHealth();\r\n        if (health.state !== 'READY') return { ok: false, error: new Error('Gemini not ready') };\r\n\r\n        const targetModel = modelOverride || this.currentModel;\r\n        try {\r\n            const responseStream = await this.genAI.models.generateContentStream({\r\n                model: targetModel,\r\n                contents: [{ role: 'user', parts: [{ text: prompt }] }]\r\n            });\r\n\r\n            async function* streamGenerator() {\r\n                for await (const chunk of responseStream) {\r\n                    const text = chunk.text || '';\r\n                    if (text) yield text;\r\n                }\r\n            }\r\n\r\n            if (this.keyVault) {\r\n                this.keyVault.resetFailCount();\r\n            }\r\n\r\n            return { ok: true, value: streamGenerator() };\r\n        } catch (error: unknown) {\r\n            const err = error instanceof Error ? error : new Error(String(error));\r\n            logger.error({ error: err.message, model: targetModel }, 'Gemini stream failed');\r\n            return { ok: false, error: err };\r\n        }\r\n    }\r\n\r\n    async embed(text: string): Promise<Result<Float32Array>> {\r\n        try {\r\n            const result = await this.genAI.models.embedContent({\r\n                model: 'text-embedding-004',\r\n                contents: [{ role: 'user', parts: [{ text }] }]\r\n            });\r\n            const embedding = result.embeddings?.[0];\r\n\r\n            if (!embedding || !embedding.values) {\r\n                throw new Error('No embedding returned');\r\n            }\r\n\r\n            return { ok: true, value: new Float32Array(embedding.values) };\r\n        } catch (error: unknown) {\r\n            const err = error instanceof Error ? error : new Error(String(error));\r\n            logger.error({ error: err.message }, 'Embedding generation failed');\r\n            return { ok: false, error: err };\r\n        }\r\n    }\r\n}\r\n\r\n",
+        "usedDeprecatedRules": [
+            {
+                "ruleId": "no-extra-semi",
+                "replacedBy": []
+            },
+            {
+                "ruleId": "no-mixed-spaces-and-tabs",
+                "replacedBy": []
+            }
+        ]
+    }
+]

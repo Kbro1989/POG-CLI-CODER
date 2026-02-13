@@ -1,6 +1,6 @@
 {
   "pogDir": "D:\\pog-coder-vibe",
-  "projectRoot": "C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant",
+  "projectRoot": "C:\\Users\\Destiny\\Desktop\\projects\\New folder\\New folder",
   "agentName": "POG-VIBE-AGENT",
   "wsPort": 8765,
   "maxSnapshotAge": 86400000,
@@ -24,7 +24,6 @@
     "dashboard",
     "help",
     "vibe",
-    "gemini",
     "vs"
   ],
   "cloudflareGatewayUrl": "https://gateway.ai.cloudflare.com/v1/6872653edcee9c791787c1b783173793/pick-of-gods/compat",
@@ -33,5 +32,7 @@
   "criticModel": "deepseek-coder:6.7b-instruct-q4_K_M",
   "planningModel": "qwen2.5-coder:14b-instruct-q5_K_M",
   "codingModel": "qwen2.5-coder:7b-instruct-q4_K_M",
-  "sovereignRoot": "D:\\pog-coder-vibe"
+  "sovereignRoot": "D:\\pog-coder-vibe",
+  "pogApiUrl": "http://localhost:8765",
+  "aiContextPath": "C:\\Users\\\\Desktop\\Ollama_Code_Editor_Quant\\docs\\ai-context"
 }

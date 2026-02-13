@@ -32,7 +32,7 @@ export class AILimb implements NeuralLimb {
     type = 'analytical' as const;
     capabilities = Object.keys(CapabilityRegistry);
 
-    private catalog = {
+    private readonly catalog = {
         models: CapabilityRegistry,
         tasks: CatalogMetadata.tasks,
         providers: CatalogMetadata.providers
@@ -48,14 +48,14 @@ export class AILimb implements NeuralLimb {
 
     async canHandle(intent: Intent): Promise<TernaryDecision> {
         if (!this.config.enabledServices.includes('AI') && !this.config.enabledServices.includes('ai')) {
-            return -1;
+            return 'Yin';
         }
 
         const p = intent.prompt.toLowerCase();
 
-        // +1: Support for Meta-queries = optimal
+        // 'Yang': Support for Meta-queries = optimal
         const metaKeywords = ['how many', 'list all', 'what is new', 'what\'s new', 'capabilities', 'supported providers', 'supported tasks'];
-        if (metaKeywords.some(k => p.includes(k))) return 1;
+        if (metaKeywords.some(k => p.includes(k))) return 'Yang';
 
         // Check if any registry ID or description keywords are in the prompt
         const match = Object.values(CapabilityRegistry).some(cap => {
@@ -64,8 +64,8 @@ export class AILimb implements NeuralLimb {
             return idMatch || nameMatch;
         });
 
-        // 0: Registry matches = maybe
-        return match ? 0 : -1;
+        // 'YinYang': Registry matches = maybe
+        return match ? 'YinYang' : 'Yin';
     }
 
 

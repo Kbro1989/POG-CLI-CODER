@@ -1,0 +1,1272 @@
+[
+    {
+        "filePath": "C:\\Users\\\\Desktop\\Ollama_Code_Editor_Quant\\src\\core\\GeminiService.ts",
+        "messages": [
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-enum-comparison",
+                "severity": 2,
+                "message": "The two values in this comparison do not have a shared enum type.",
+                "line": 112,
+                "column": 17,
+                "nodeType": "BinaryExpression",
+                "messageId": "mismatchedCondition",
+                "endLine": 112,
+                "endColumn": 42,
+                "suggestions": [
+                    {
+                        "messageId": "replaceValueWithEnum",
+                        "fix": {
+                            "range": [
+                                4626,
+                                4634
+                            ],
+                            "text": "FinishReason.SAFETY"
+                        },
+                        "desc": "Replace with an enum value comparison."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-enum-comparison",
+                "severity": 2,
+                "message": "The two values in this comparison do not have a shared enum type.",
+                "line": 112,
+                "column": 46,
+                "nodeType": "BinaryExpression",
+                "messageId": "mismatchedCondition",
+                "endLine": 112,
+                "endColumn": 75,
+                "suggestions": [
+                    {
+                        "messageId": "replaceValueWithEnum",
+                        "fix": {
+                            "range": [
+                                4655,
+                                4667
+                            ],
+                            "text": "FinishReason.RECITATION"
+                        },
+                        "desc": "Replace with an enum value comparison."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-enum-comparison",
+                "severity": 2,
+                "message": "The two values in this comparison do not have a shared enum type.",
+                "line": 112,
+                "column": 79,
+                "nodeType": "BinaryExpression",
+                "messageId": "mismatchedCondition",
+                "endLine": 112,
+                "endColumn": 103,
+                "suggestions": [
+                    {
+                        "messageId": "replaceValueWithEnum",
+                        "fix": {
+                            "range": [
+                                4688,
+                                4695
+                            ],
+                            "text": "FinishReason.OTHER"
+                        },
+                        "desc": "Replace with an enum value comparison."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 121,
+                "column": 19,
+                "nodeType": "VariableDeclarator",
+                "messageId": "anyAssignment",
+                "endLine": 121,
+                "endColumn": 77
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 125,
+                "column": 26,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 125,
+                "endColumn": 29,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                5221,
+                                5224
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                5221,
+                                5224
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .functionCall on an `any` value.",
+                "line": 126,
+                "column": 27,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 126,
+                "endColumn": 39
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .functionCall on an `any` value.",
+                "line": 128,
+                "column": 37,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 128,
+                "endColumn": 49
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .functionCall on an `any` value.",
+                "line": 129,
+                "column": 37,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 129,
+                "endColumn": 49
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 143,
+                "column": 17,
+                "nodeType": "Property",
+                "messageId": "anyAssignment",
+                "endLine": 143,
+                "endColumn": 31
+            },
+            {
+                "ruleId": "@typescript-eslint/no-redundant-type-constituents",
+                "severity": 2,
+                "message": "'unknown' overrides all other types in this union type.",
+                "line": 160,
+                "column": 32,
+                "nodeType": "TSUnknownKeyword",
+                "messageId": "overrides",
+                "endLine": 160,
+                "endColumn": 39
+            },
+            {
+                "ruleId": "@typescript-eslint/explicit-function-return-type",
+                "severity": 2,
+                "message": "Missing return type on function.",
+                "line": 238,
+                "column": 13,
+                "nodeType": "FunctionDeclaration",
+                "messageId": "missingReturnType",
+                "endLine": 238,
+                "endColumn": 44
+            },
+            {
+                "ruleId": "no-inner-declarations",
+                "severity": 2,
+                "message": "Move function declaration to function body root.",
+                "line": 238,
+                "column": 13,
+                "nodeType": "FunctionDeclaration",
+                "messageId": "moveDeclToRoot",
+                "endLine": 243,
+                "endColumn": 14
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 240,
+                "column": 27,
+                "nodeType": "VariableDeclarator",
+                "messageId": "anyAssignment",
+                "endLine": 240,
+                "endColumn": 54
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of type AsyncGenerator<any, void, unknown> to a variable of type AsyncGenerator<string, void, unknown>.",
+                "line": 249,
+                "column": 32,
+                "nodeType": "Property",
+                "messageId": "unsafeAssignment",
+                "endLine": 249,
+                "endColumn": 56
+            }
+        ],
+        "suppressedMessages": [],
+        "errorCount": 14,
+        "fatalErrorCount": 0,
+        "warningCount": 0,
+        "fixableErrorCount": 0,
+        "fixableWarningCount": 0,
+        "source": "import { GoogleGenAI, Tool, HarmCategory, HarmBlockThreshold } from '@google/genai';\r\nimport pino from 'pino';\r\nimport { Result, ModelResponse, FunctionCall } from './models.js';\r\nimport { KeyVault } from '../utils/KeyVault.js';\r\nimport { HealthRegistry } from './HealthRegistry.js';\r\nimport { GoogleServices } from '../services/GoogleServices.js';\r\n\r\nconst logger = pino({\r\n    name: 'GeminiService',\r\n    base: { hostname: 'POG-VIBE' }\r\n});\r\n\r\nexport interface GeminiConfig {\r\n    apiKey: string;\r\n    useVertexAI?: boolean;\r\n    apiEndpoint?: string;\r\n    customHeaders?: Record<string, string>;\r\n    modelName?: string;\r\n}\r\n\r\nexport type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE';\r\n\r\n/**\r\n * GeminiService - Unified Intelligence Layer (Sovereign Substrate)\r\n * \r\n * Incorporates automated failover, key rotation, and sensory integration.\r\n */\r\nexport class GeminiService extends GoogleServices {\r\n    private genAI: GoogleGenAI;\r\n    private readonly keyVault: KeyVault | undefined;\r\n    private healthState: ServiceHealthState = 'READY';\r\n    private lastBackoffUntil: number = 0;\r\n    private readonly currentModel: string;\r\n\r\n    constructor(config: GeminiConfig | string, keyVault?: KeyVault) {\r\n        if (typeof config === 'string') {\r\n            super({ apiKey: config });\r\n            this.currentModel = 'gemini-2.0-flash';\r\n        } else {\r\n            super({ apiKey: config.apiKey });\r\n            this.currentModel = config.modelName || 'gemini-2.0-flash';\r\n        }\r\n\r\n        this.keyVault = keyVault;\r\n\r\n        this.genAI = new GoogleGenAI({\r\n            apiKey: this.config.apiKey,\r\n            ...(typeof config !== 'string' && config.customHeaders ? { customHeaders: config.customHeaders } : {}),\r\n            ...(typeof config !== 'string' && config.apiEndpoint ? { apiEndpoint: config.apiEndpoint } : {})\r\n        } as { apiKey: string; customHeaders?: Record<string, string>; apiEndpoint?: string });\r\n\r\n        // Register health provider\r\n        HealthRegistry.getInstance().registerProvider('gemini', () => this.getHealth());\r\n    }\r\n\r\n    public getHealth(): { state: ServiceHealthState; cooldownSeconds: number } {\r\n        const now = Date.now();\r\n        if (this.healthState === 'RATE_LIMITED' && now < this.lastBackoffUntil) {\r\n            return { state: 'RATE_LIMITED', cooldownSeconds: Math.ceil((this.lastBackoffUntil - now) / 1000) };\r\n        }\r\n\r\n        if (this.healthState === 'RATE_LIMITED' && now >= this.lastBackoffUntil) {\r\n            this.healthState = 'READY';\r\n        }\r\n\r\n        return { state: this.healthState, cooldownSeconds: 0 };\r\n    }\r\n\r\n    async generateContent(\r\n        prompt: string,\r\n        modelOverride?: string,\r\n        tools?: Tool[]\r\n    ): Promise<Result<ModelResponse>> {\r\n        const health = this.getHealth();\r\n        if (health.state === 'RATE_LIMITED') {\r\n            return { ok: false, error: new Error(`Gemini API is rate limited. Cooldown: ${health.cooldownSeconds}s`) };\r\n        }\r\n\r\n        return this.retryWithBackoff<ModelResponse>(async () => {\r\n            const startTime = Date.now();\r\n            const targetModel = modelOverride || this.currentModel;\r\n\r\n            // 1. Prepare contents\r\n            const contents = [{ role: 'user', parts: [{ text: prompt }] }];\r\n\r\n            // 2. Prepare tools\r\n            const genTools = (tools && tools.length > 0) ? tools : undefined;\r\n\r\n            const response = await this.genAI.models.generateContent({\r\n                model: targetModel,\r\n                contents,\r\n                config: {\r\n                    ...(genTools ? { tools: genTools } : {}),\r\n                    safetySettings: [\r\n                        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },\r\n                        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },\r\n                        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },\r\n                        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE }\r\n                    ]\r\n                }\r\n            });\r\n\r\n            // 3. Robust candidate validation\r\n            const candidates = response.candidates || [];\r\n            if (candidates.length === 0) {\r\n                throw new Error('EMPTY_RESPONSE: Gemini returned no candidates');\r\n            }\r\n\r\n            const candidate = candidates[0];\r\n            const finishReason = candidate.finishReason;\r\n\r\n            if (finishReason === 'SAFETY' || finishReason === 'RECITATION' || finishReason === 'OTHER') {\r\n                throw new Error(`BLOCKED_RESPONSE: ${finishReason}`);\r\n            }\r\n\r\n            const content = candidate.content;\r\n            if (!content || !content.parts || content.parts.length === 0) {\r\n                throw new Error('MALFORMED_RESPONSE: No content parts');\r\n            }\r\n\r\n            const text = response.text?.() || content.parts?.[0]?.text || '';\r\n\r\n            const rawParts = content.parts || [];\r\n            const functionCalls: FunctionCall[] = rawParts\r\n                .map((p: any) => {\r\n                    if (p.functionCall) {\r\n                        return {\r\n                            name: p.functionCall.name as string,\r\n                            args: p.functionCall.args as Record<string, unknown>\r\n                        };\r\n                    }\r\n                    return null;\r\n                })\r\n                .filter((p: FunctionCall | null): p is FunctionCall => p !== null);\r\n\r\n            if (this.keyVault) {\r\n                this.keyVault.resetFailCount();\r\n            }\r\n            this.healthState = 'READY';\r\n\r\n            const modelResponse: ModelResponse = {\r\n                model: targetModel,\r\n                response: text,\r\n                latency: Date.now() - startTime,\r\n                ...(functionCalls.length > 0 ? { functionCalls } : {})\r\n            };\r\n\r\n            return { ok: true, value: modelResponse };\r\n        }, modelOverride || this.currentModel, prompt, tools);\r\n    }\r\n\r\n    private async retryWithBackoff<T>(\r\n        fn: () => Promise<Result<T>>,\r\n        model: string,\r\n        prompt: string,\r\n        tools?: Tool[],\r\n        maxAttempts = 3,\r\n        initialDelay = 1000\r\n    ): Promise<Result<T>> {\r\n        let lastError: Error | unknown;\r\n        for (let attempt = 1; attempt <= maxAttempts; attempt++) {\r\n            try {\r\n                const result = await fn();\r\n                if (result.ok) return result;\r\n\r\n                // If the error is quota/auth, we might still want to handle it via rotateKey\r\n                // but let's see if we should retry first\r\n                lastError = result.error;\r\n            } catch (error: unknown) {\r\n                lastError = error;\r\n                const { isQuota, isAuth, message } = this.classifyError(error);\r\n\r\n                if (isQuota && model !== 'gemini-2.0-flash-lite') {\r\n                    logger.warn({ model }, 'Quota hit, falling back to Flash Lite for retry attempt');\r\n                    return (this.generateContent(prompt, 'gemini-2.0-flash-lite', tools) as Promise<Result<T>>);\r\n                }\r\n\r\n                if ((isQuota || isAuth) && this.keyVault) {\r\n                    const rotated = this.keyVault.rotateKey(isQuota ? 'rate_limit' : 'auth_error');\r\n                    if (rotated) {\r\n                        const newKey = this.keyVault.getCurrentKey();\r\n                        if (newKey) {\r\n                            logger.info('Retrying with rotated key');\r\n                            this.genAI = new GoogleGenAI({ apiKey: newKey });\r\n                            // Reset model connection\r\n                            return (this.generateContent(prompt, model, tools) as Promise<Result<T>>);\r\n                        }\r\n                    }\r\n                }\r\n\r\n                if (!this.isRetryable(error) || attempt === maxAttempts) {\r\n                    if (isQuota) {\r\n                        this.healthState = 'RATE_LIMITED';\r\n                        this.lastBackoffUntil = Date.now() + 60000;\r\n                        logger.error({ model, cooldown: 60 }, 'Gemini rate limit hit - entering cooldown');\r\n                    } else if (isAuth) {\r\n                        this.healthState = 'CRITICAL_FAILURE';\r\n                    }\r\n                    break;\r\n                }\r\n\r\n                const delay = initialDelay * Math.pow(2, attempt - 1);\r\n                logger.warn({ attempt, delay, error: message }, 'Retrying Gemini request after backoff');\r\n                await new Promise(resolve => setTimeout(resolve, delay));\r\n            }\r\n        }\r\n\r\n        const message = lastError instanceof Error ? lastError.message : 'Unknown Gemini error';\r\n        logger.error({\r\n            error: message,\r\n            model,\r\n            stack: lastError instanceof Error ? lastError.stack : undefined\r\n        }, 'Gemini generation failed after retries');\r\n        return { ok: false, error: (lastError instanceof Error ? lastError : new Error(message)) };\r\n    }\r\n\r\n    private isRetryable(error: unknown): boolean {\r\n        const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();\r\n        return message.includes('empty_response') ||\r\n            message.includes('malformed_response') ||\r\n            message.includes('500') ||\r\n            message.includes('503') ||\r\n            message.includes('deadline') ||\r\n            message.includes('econnreset');\r\n    }\r\n\r\n    async generateContentStream(prompt: string, modelOverride?: string): Promise<Result<AsyncGenerator<string, void, unknown>>> {\r\n        const health = this.getHealth();\r\n        if (health.state !== 'READY') return { ok: false, error: new Error('Gemini not ready') };\r\n\r\n        const targetModel = modelOverride || this.currentModel;\r\n        try {\r\n            const responseStream = await this.genAI.models.generateContentStream({\r\n                model: targetModel,\r\n                contents: [{ role: 'user', parts: [{ text: prompt }] }]\r\n            });\r\n\r\n            async function* streamGenerator() {\r\n                for await (const chunk of responseStream) {\r\n                    const text = chunk.text?.() || '';\r\n                    if (text) yield text;\r\n                }\r\n            }\r\n\r\n            if (this.keyVault) {\r\n                this.keyVault.resetFailCount();\r\n            }\r\n\r\n            return { ok: true, value: streamGenerator() };\r\n        } catch (error: unknown) {\r\n            const err = error instanceof Error ? error : new Error(String(error));\r\n            logger.error({ error: err.message, model: targetModel }, 'Gemini stream failed');\r\n            return { ok: false, error: err };\r\n        }\r\n    }\r\n\r\n    async embed(text: string): Promise<Result<Float32Array>> {\r\n        try {\r\n            const result = await this.genAI.models.embedContent({\r\n                model: 'text-embedding-004',\r\n                contents: [{ role: 'user', parts: [{ text }] }]\r\n            });\r\n            const embedding = result.embeddings?.[0];\r\n\r\n            if (!embedding || !embedding.values) {\r\n                throw new Error('No embedding returned');\r\n            }\r\n\r\n            return { ok: true, value: new Float32Array(embedding.values) };\r\n        } catch (error: unknown) {\r\n            const err = error instanceof Error ? error : new Error(String(error));\r\n            logger.error({ error: err.message }, 'Embedding generation failed');\r\n            return { ok: false, error: err };\r\n        }\r\n    }\r\n}\r\n\r\n",
+        "usedDeprecatedRules": [
+            {
+                "ruleId": "no-extra-semi",
+                "replacedBy": []
+            },
+            {
+                "ruleId": "no-mixed-spaces-and-tabs",
+                "replacedBy": []
+            }
+        ]
+    },
+    {
+        "filePath": "C:\\Users\\\\Desktop\\Ollama_Code_Editor_Quant\\src\\core\\Orchestrator.ts",
+        "messages": [
+            {
+                "ruleId": "@typescript-eslint/no-floating-promises",
+                "severity": 2,
+                "message": "Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator.",
+                "line": 350,
+                "column": 5,
+                "nodeType": "ExpressionStatement",
+                "messageId": "floatingVoid",
+                "endLine": 350,
+                "endColumn": 29,
+                "suggestions": [
+                    {
+                        "messageId": "floatingFixVoid",
+                        "fix": {
+                            "range": [
+                                15370,
+                                15370
+                            ],
+                            "text": "void "
+                        },
+                        "desc": "Add void operator to ignore."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 398,
+                "column": 45,
+                "nodeType": "Property",
+                "messageId": "anyAssignment",
+                "endLine": 398,
+                "endColumn": 48
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 411,
+                "column": 30,
+                "nodeType": "Property",
+                "messageId": "anyAssignment",
+                "endLine": 411,
+                "endColumn": 33
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 427,
+                "column": 34,
+                "nodeType": "Property",
+                "messageId": "anyAssignment",
+                "endLine": 427,
+                "endColumn": 37
+            },
+            {
+                "ruleId": "@typescript-eslint/explicit-function-return-type",
+                "severity": 2,
+                "message": "Missing return type on function.",
+                "line": 466,
+                "column": 58,
+                "nodeType": "ArrowFunctionExpression",
+                "messageId": "missingReturnType",
+                "endLine": 466,
+                "endColumn": 60
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 485,
+                "column": 17,
+                "nodeType": "VariableDeclarator",
+                "messageId": "anyAssignment",
+                "endLine": 485,
+                "endColumn": 53
+            },
+            {
+                "ruleId": "@typescript-eslint/no-base-to-string",
+                "severity": 2,
+                "message": "'msg' may evaluate to '[object Object]' when stringified.",
+                "line": 485,
+                "column": 38,
+                "nodeType": "Identifier",
+                "messageId": "baseToString",
+                "endLine": 485,
+                "endColumn": 41
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .type on an `any` value.",
+                "line": 486,
+                "column": 23,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 486,
+                "endColumn": 27
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 487,
+                "column": 32,
+                "nodeType": "Property",
+                "messageId": "anyAssignment",
+                "endLine": 487,
+                "endColumn": 54
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .data on an `any` value.",
+                "line": 487,
+                "column": 50,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 487,
+                "endColumn": 54
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-argument",
+                "severity": 2,
+                "message": "Unsafe argument of type `any` assigned to a parameter of type `string`.",
+                "line": 488,
+                "column": 39,
+                "nodeType": "MemberExpression",
+                "messageId": "unsafeArgument",
+                "endLine": 488,
+                "endColumn": 51
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .data on an `any` value.",
+                "line": 488,
+                "column": 47,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 488,
+                "endColumn": 51
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .type on an `any` value.",
+                "line": 489,
+                "column": 30,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 489,
+                "endColumn": 34
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-argument",
+                "severity": 2,
+                "message": "Unsafe argument of type `any` assigned to a parameter of type `{ command: string; data: Record<string, any>; }`.",
+                "line": 490,
+                "column": 39,
+                "nodeType": "Identifier",
+                "messageId": "unsafeArgument",
+                "endLine": 490,
+                "endColumn": 46
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .type on an `any` value.",
+                "line": 491,
+                "column": 30,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 491,
+                "endColumn": 34
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-argument",
+                "severity": 2,
+                "message": "Unsafe argument of type `any` assigned to a parameter of type `string`.",
+                "line": 492,
+                "column": 40,
+                "nodeType": "MemberExpression",
+                "messageId": "unsafeArgument",
+                "endLine": 492,
+                "endColumn": 52
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .data on an `any` value.",
+                "line": 492,
+                "column": 48,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 492,
+                "endColumn": 52
+            },
+            {
+                "ruleId": "@typescript-eslint/explicit-function-return-type",
+                "severity": 2,
+                "message": "Missing return type on function.",
+                "line": 529,
+                "column": 22,
+                "nodeType": "ArrowFunctionExpression",
+                "messageId": "missingReturnType",
+                "endLine": 529,
+                "endColumn": 24
+            },
+            {
+                "ruleId": "@typescript-eslint/require-await",
+                "severity": 2,
+                "message": "Async method 'negotiateBoundaries' has no 'await' expression.",
+                "line": 798,
+                "column": 3,
+                "nodeType": "FunctionExpression",
+                "messageId": "missingAwait",
+                "endLine": 798,
+                "endColumn": 36
+            },
+            {
+                "ruleId": "@typescript-eslint/await-thenable",
+                "severity": 2,
+                "message": "Unexpected `await` of a non-Promise (non-\"Thenable\") value.",
+                "line": 917,
+                "column": 38,
+                "nodeType": "AwaitExpression",
+                "messageId": "await",
+                "endLine": 917,
+                "endColumn": 82,
+                "suggestions": [
+                    {
+                        "messageId": "removeAwait",
+                        "fix": {
+                            "range": [
+                                37117,
+                                37122
+                            ],
+                            "text": ""
+                        },
+                        "desc": "Remove unnecessary `await`."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 987,
+                "column": 13,
+                "nodeType": "AssignmentExpression",
+                "messageId": "anyAssignment",
+                "endLine": 987,
+                "endColumn": 53
+            },
+            {
+                "ruleId": "@typescript-eslint/explicit-function-return-type",
+                "severity": 2,
+                "message": "Missing return type on function.",
+                "line": 1290,
+                "column": 5,
+                "nodeType": "FunctionExpression",
+                "messageId": "missingReturnType",
+                "endLine": 1290,
+                "endColumn": 10
+            },
+            {
+                "ruleId": "@typescript-eslint/explicit-function-return-type",
+                "severity": 2,
+                "message": "Missing return type on function.",
+                "line": 1472,
+                "column": 20,
+                "nodeType": "ArrowFunctionExpression",
+                "messageId": "missingReturnType",
+                "endLine": 1472,
+                "endColumn": 22
+            },
+            {
+                "ruleId": "@typescript-eslint/explicit-function-return-type",
+                "severity": 2,
+                "message": "Missing return type on function.",
+                "line": 1500,
+                "column": 20,
+                "nodeType": "ArrowFunctionExpression",
+                "messageId": "missingReturnType",
+                "endLine": 1500,
+                "endColumn": 22
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-argument",
+                "severity": 2,
+                "message": "Unsafe argument of type `any` assigned to a parameter of type `IntentHistory`.",
+                "line": 1549,
+                "column": 33,
+                "nodeType": "TSAsExpression",
+                "messageId": "unsafeArgument",
+                "endLine": 1549,
+                "endColumn": 89
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1549,
+                "column": 86,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1549,
+                "endColumn": 89,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                62783,
+                                62786
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                62783,
+                                62786
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1586,
+                "column": 47,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1586,
+                "endColumn": 50,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                64301,
+                                64304
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                64301,
+                                64304
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .lines on an `any` value.",
+                "line": 1586,
+                "column": 52,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1586,
+                "endColumn": 57
+            },
+            {
+                "ruleId": "@typescript-eslint/require-await",
+                "severity": 2,
+                "message": "Async method 'generateSovereignVoice' has no 'await' expression.",
+                "line": 1620,
+                "column": 3,
+                "nodeType": "FunctionExpression",
+                "messageId": "missingAwait",
+                "endLine": 1620,
+                "endColumn": 39
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1648,
+                "column": 39,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1648,
+                "endColumn": 42,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                66560,
+                                66563
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                66560,
+                                66563
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access [type] on an `any` value.",
+                "line": 1648,
+                "column": 44,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1648,
+                "endColumn": 48
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 1658,
+                "column": 15,
+                "nodeType": "VariableDeclarator",
+                "messageId": "anyAssignment",
+                "endLine": 1658,
+                "endColumn": 50
+            },
+            {
+                "ruleId": "@typescript-eslint/no-var-requires",
+                "severity": 2,
+                "message": "Require statement not part of import statement.",
+                "line": 1658,
+                "column": 26,
+                "nodeType": "CallExpression",
+                "messageId": "noVarReqs",
+                "endLine": 1658,
+                "endColumn": 50
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-call",
+                "severity": 2,
+                "message": "Unsafe call of an `any` typed value.",
+                "line": 1659,
+                "column": 9,
+                "nodeType": "Identifier",
+                "messageId": "unsafeCall",
+                "endLine": 1659,
+                "endColumn": 13
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1659,
+                "column": 27,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1659,
+                "endColumn": 30,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                67101,
+                                67104
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                67101,
+                                67104
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-floating-promises",
+                "severity": 2,
+                "message": "Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator.",
+                "line": 1692,
+                "column": 7,
+                "nodeType": "ExpressionStatement",
+                "messageId": "floatingVoid",
+                "endLine": 1692,
+                "endColumn": 44,
+                "suggestions": [
+                    {
+                        "messageId": "floatingFixVoid",
+                        "fix": {
+                            "range": [
+                                68076,
+                                68076
+                            ],
+                            "text": "void "
+                        },
+                        "desc": "Add void operator to ignore."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1695,
+                "column": 23,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1695,
+                "endColumn": 26,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                68189,
+                                68192
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                68189,
+                                68192
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .projectRoot on an `any` value.",
+                "line": 1695,
+                "column": 28,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1695,
+                "endColumn": 39
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1726,
+                "column": 52,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1726,
+                "endColumn": 55,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                69026,
+                                69029
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                69026,
+                                69029
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 1728,
+                "column": 40,
+                "nodeType": "Property",
+                "messageId": "anyAssignment",
+                "endLine": 1728,
+                "endColumn": 44
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1734,
+                "column": 81,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1734,
+                "endColumn": 84,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                69319,
+                                69322
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                69319,
+                                69322
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 1753,
+                "column": 9,
+                "nodeType": "Property",
+                "messageId": "anyAssignment",
+                "endLine": 1753,
+                "endColumn": 46
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 1754,
+                "column": 9,
+                "nodeType": "Property",
+                "messageId": "anyAssignment",
+                "endLine": 1754,
+                "endColumn": 50
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1794,
+                "column": 39,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1794,
+                "endColumn": 42,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                72398,
+                                72401
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                72398,
+                                72401
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .action on an `any` value.",
+                "line": 1794,
+                "column": 44,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1794,
+                "endColumn": 50
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 1795,
+                "column": 19,
+                "nodeType": "VariableDeclarator",
+                "messageId": "anyAssignment",
+                "endLine": 1795,
+                "endColumn": 42
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1795,
+                "column": 39,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1795,
+                "endColumn": 42,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                72452,
+                                72455
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                72452,
+                                72455
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .action on an `any` value.",
+                "line": 1796,
+                "column": 22,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1796,
+                "endColumn": 28
+            },
+            {
+                "ruleId": "@typescript-eslint/no-floating-promises",
+                "severity": 2,
+                "message": "Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator.",
+                "line": 1796,
+                "column": 53,
+                "nodeType": "ExpressionStatement",
+                "messageId": "floatingVoid",
+                "endLine": 1796,
+                "endColumn": 90,
+                "suggestions": [
+                    {
+                        "messageId": "floatingFixVoid",
+                        "fix": {
+                            "range": [
+                                72510,
+                                72510
+                            ],
+                            "text": "void "
+                        },
+                        "desc": "Add void operator to ignore."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-argument",
+                "severity": 2,
+                "message": "Unsafe argument of type `any` assigned to a parameter of type `string`.",
+                "line": 1796,
+                "column": 74,
+                "nodeType": "MemberExpression",
+                "messageId": "unsafeArgument",
+                "endLine": 1796,
+                "endColumn": 88
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .data on an `any` value.",
+                "line": 1796,
+                "column": 79,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1796,
+                "endColumn": 83
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .action on an `any` value.",
+                "line": 1797,
+                "column": 22,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1797,
+                "endColumn": 28
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-argument",
+                "severity": 2,
+                "message": "Unsafe argument of type `any` assigned to a parameter of type `string`.",
+                "line": 1797,
+                "column": 58,
+                "nodeType": "MemberExpression",
+                "messageId": "unsafeArgument",
+                "endLine": 1797,
+                "endColumn": 72
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .data on an `any` value.",
+                "line": 1797,
+                "column": 63,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1797,
+                "endColumn": 67
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .action on an `any` value.",
+                "line": 1798,
+                "column": 22,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1798,
+                "endColumn": 28
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-argument",
+                "severity": 2,
+                "message": "Unsafe argument of type `any` assigned to a parameter of type `string`.",
+                "line": 1798,
+                "column": 62,
+                "nodeType": "MemberExpression",
+                "messageId": "unsafeArgument",
+                "endLine": 1798,
+                "endColumn": 76
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .data on an `any` value.",
+                "line": 1798,
+                "column": 67,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1798,
+                "endColumn": 71
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-assignment",
+                "severity": 2,
+                "message": "Unsafe assignment of an `any` value.",
+                "line": 1817,
+                "column": 53,
+                "nodeType": "Property",
+                "messageId": "anyAssignment",
+                "endLine": 1817,
+                "endColumn": 88
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1817,
+                "column": 78,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1817,
+                "endColumn": 81,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                73714,
+                                73717
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                73714,
+                                73717
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .books on an `any` value.",
+                "line": 1817,
+                "column": 83,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1817,
+                "endColumn": 88
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 2,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 1833,
+                "column": 56,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 1833,
+                "endColumn": 59,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                74293,
+                                74296
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                74293,
+                                74296
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-unsafe-member-access",
+                "severity": 2,
+                "message": "Unsafe member access .enabled on an `any` value.",
+                "line": 1843,
+                "column": 66,
+                "nodeType": "Identifier",
+                "messageId": "unsafeMemberExpression",
+                "endLine": 1843,
+                "endColumn": 73
+            },
+            {
+                "ruleId": "@typescript-eslint/require-await",
+                "severity": 2,
+                "message": "Async method 'buildContextDelta' has no 'await' expression.",
+                "line": 1886,
+                "column": 3,
+                "nodeType": "FunctionExpression",
+                "messageId": "missingAwait",
+                "endLine": 1886,
+                "endColumn": 34
+            }
+        ],
+        "suppressedMessages": [],
+        "errorCount": 63,
+        "fatalErrorCount": 0,
+        "warningCount": 0,
+        "fixableErrorCount": 0,
+        "fixableWarningCount": 0,
+        "source": "/**\r\n * Free Orchestrator - Coordinates all subsystems\r\n * \r\n * Responsibilities:\r\n * - Route intents to best model\r\n * - Execute model calls & Extract commands\r\n * - Orchestrate Sandbox (Snapshot -> Execute -> Rollback)\r\n * - Persist lessons to VectorDB\r\n * - Coordinate with ASTWatcher\r\n * - Implement \"Research -> Plan -> Execute -> Review\" Loop\r\n */\r\n\r\nimport { EventEmitter } from 'events';\r\nimport { homedir } from 'os';\r\nimport { join, resolve, relative } from 'path';\r\nimport pino from 'pino';\r\nimport * as fs from 'fs';\r\nimport { createHash } from 'crypto';\r\nimport * as os from 'os';\r\n\r\nimport { Tool } from '@google/genai';\r\n\r\nimport {\r\n  type Result,\r\n  type IntentHistory,\r\n  type VibeConfig,\r\n  TaskType,\r\n  type ModelPerformance,\r\n  type Lesson,\r\n  type AgentTurnResult,\r\n  AgentTerminateMode,\r\n  isOk,\r\n  isErr,\r\n  type ModelResponse,\r\n  type Execution,\r\n  type ExecutionContext, // Imported\r\n  type ExecutionPlan     // Imported\r\n} from './models.js';\r\nimport { FreeModelRouter } from './Router.js';\r\nimport { ASTWatcher } from '../watcher/ASTWatcher.js';\r\nimport { VectorDB } from '../learning/VectorDB.js';\r\nimport { Sandbox } from '../sandbox/Sandbox.js';\r\nimport { GeminiService } from './GeminiService.js';\r\nimport { KeyVault } from '../utils/KeyVault.js';\r\nimport { WebAppForgeLimb } from '../limbs/webapp/WebAppForgeLimb.js';\r\nimport { StoryboardLimb } from '../limbs/webapp/StoryboardLimb.js';\r\nimport { MediaForgeLimb } from '../limbs/media/MediaForgeLimb.js';\r\nimport { BioIntelligenceLimb } from '../limbs/bio/BioIntelligenceLimb.js';\r\nimport { GutenbergLimb } from '../limbs/gutenberg/GutenbergLimb.js';\r\nimport { YoloLimb } from '../limbs/core/YoloLimb.js';\r\nimport { NeuralLimb } from '../limbs/core/NeuralLimb.js';\r\nimport { BaseLimb } from '../limbs/core/BaseLimb.js';\r\nimport { FileSystemLimb } from '../limbs/core/FileSystemLimb.js';\r\nimport { VoiceLimb } from '../limbs/core/VoiceLimb.js';\r\nimport { DashboardLimb } from '../limbs/core/DashboardLimb.js';\r\nimport { constructInitialPrompt, PLANNING_PROMPT } from './SystemPrompts.js';\r\nimport { ContextBuilder } from '../context/ContextBuilder.js';\r\nimport { CodebaseIndexer } from '../learning/CodebaseIndexer.js';\r\nimport { ModelExecutor } from './ModelExecutor.js';\r\nimport { TaskClassifier } from './TaskClassifier.js';\r\nimport { ValidationSystem } from './validation/ValidationSystem.js';\r\nimport { NoMockValidator } from './validation/NoMockValidator.js';\r\nimport { ArchitecturalValidator } from './validation/ArchitecturalValidator.js';\r\nimport { AdversarialOrchestrator } from './AdversarialOrchestrator.js';\r\nimport { ArchitectureDigest } from './ArchitectureDigest.js';\r\nimport { IntentVerifier } from './verification/IntentVerifier.js';\r\nimport { PreviewServer, PreviewMetadata } from './PreviewServer.js';\r\nimport { HexagramManager } from './HexagramManager.js';\r\nimport { HexagramLimb } from '../limbs/core/HexagramLimb.js';\r\nimport { MonitorAgent } from '../monitor/MonitorAgent.js';\r\nimport { AILimb } from '../api/ai/AILimb.js';\r\nimport { CloudflareLimb } from '../limbs/cloud/CloudflareLimb.js';\r\nimport { GoogleServices } from '../services/GoogleServices.js';\r\nimport { CloudflareServices } from '../services/CloudflareServices.js';\r\nimport { NeuralForgeLimb } from '../limbs/core/NeuralForgeLimb.js';\r\nimport { SovereignShellLimb } from '../limbs/system/SovereignShellLimb.js';\r\nimport { SubstrateLimb } from '../limbs/system/SubstrateLimb.js';\r\nimport { WebSensoryLimb } from '../limbs/system/WebSensoryLimb.js';\r\nimport { MCPLimb } from '../limbs/system/MCPLimb.js';\r\nimport { FileLimb } from '../limbs/system/FileLimb.js';\r\nimport { EntityLimb } from '../limbs/system/EntityLimb.js';\r\nimport { AIModelLimb } from '../limbs/cloud/AIModelLimb.js';\r\nimport { ModelInventory } from './ModelInventory.js';\r\nimport { SystemEnvChecker, EnvStatus } from '../utils/SystemEnvChecker.js';\r\nimport { ControlPlaneLimb } from '../limbs/core/ControlPlaneLimb.js';\r\nimport { MemoryLimb } from '../limbs/core/MemoryLimb.js';\r\nimport { CognitionLimb } from '../limbs/core/CognitionLimb.js';\r\nimport { ProjectPulse } from '../utils/ProjectPulse.js';\r\nimport { QuantumLimb } from '../limbs/experimental/QuantumLimb.js';\r\nimport { RelicLimb } from '../limbs/experimental/RelicLimb.js';\r\nimport { OmegaLimb } from '../limbs/experimental/OmegaLimb.js';\r\nimport { GhostLimb } from '../limbs/core/GhostLimb.js';\r\n\r\n// Note: Component logger is initialized in the constructor for dynamic identity.\r\n\r\nfunction expandTilde(path: string): string {\r\n  if (path.startsWith('~')) {\r\n    return join(homedir(), path.slice(1));\r\n  }\r\n  return path;\r\n}\r\n// Local definitions removed in favor of models.ts exports\r\nimport { BuildStatus, HealthStatus, ResourcePressure, UserEngagement, SuccessRating, ExecutionEscalation, CostTier } from './models.js';\r\n\r\nexport interface OrchestratorEvents {\r\n  intentExecuted: (data: IntentHistory) => void;\r\n  modelCalled: (data: { model: string; prompt: string }) => void;\r\n  executionError: (data: { error: Error; context: ExecutionContext }) => void;\r\n  snapshotCreated: (data: { snapshotId: string; reason: string }) => void;\r\n  commandExecuted: (data: { command: string; success: SuccessRating; output: string }) => void;\r\n  reviewStarted: (data: { iteration: number }) => void;\r\n  previewStarted: (data: PreviewMetadata) => void;\r\n  preview_log: (data: { projectName: string; stream: 'stdout' | 'stderr'; text: string }) => void;\r\n  preview_exit: (data: { projectName: string; code: number | null }) => void;\r\n  awaitingFeedback: (data: { message: string }) => void;\r\n  userFeedback: (feedback: string) => void;\r\n}\r\n\r\nexport class FreeOrchestrator extends EventEmitter {\r\n  private readonly router: FreeModelRouter;\r\n  private readonly geminiService?: GeminiService;\r\n  private readonly sessionId: string;\r\n  private readonly intentHistory: IntentHistory[] = [];\r\n  private wsServer?: import('ws').WebSocketServer | undefined;\r\n  private readonly logger: pino.Logger;\r\n  private readonly webAppForgeLimb: WebAppForgeLimb;\r\n  private readonly contextBuilder: ContextBuilder;\r\n  private readonly indexer: CodebaseIndexer;\r\n  private readonly modelExecutor: ModelExecutor;\r\n  private readonly previewServer: PreviewServer;\r\n  private readonly hexagramManager: HexagramManager;\r\n  private readonly hexagramLimb: HexagramLimb;\r\n  private readonly adversarialOrchestrator: AdversarialOrchestrator;\r\n  private readonly validationSystem: ValidationSystem;\r\n  private readonly architectureDigest: ArchitectureDigest;\r\n  private readonly monitorAgent?: MonitorAgent;\r\n  private readonly limbs: NeuralLimb[] = [];\r\n\r\n  public getModelExecutor(): ModelExecutor {\r\n    return this.modelExecutor;\r\n  }\r\n  private readonly sovereignShellLimb: SovereignShellLimb;\r\n  private readonly substrateLimb: SubstrateLimb;\r\n  private readonly lastSentFileHashes: Map<string, string> = new Map();\r\n  private forceFullContext = true;\r\n  private readonly endpointStatus: Map<string, 'ACTIVE' | 'INACTIVE' | 'PARTIAL'> = new Map();\r\n  private readonly intentVerifier: IntentVerifier;\r\n  private activeMemories: Lesson[] = [];\r\n  private currentNarrative: string = 'The substrate is quiet, observing the void.';\r\n  private cachedHealth: { cpu: number; mem: number; disk: number } = { cpu: 0, mem: 0, disk: 0 };\r\n  private neuralLatency = 0;\r\n  private toolUsageHeatmap: Record<string, number> = {};\r\n  private readonly ghostLimb: GhostLimb;\r\n\r\n\r\n\r\n  constructor(\r\n    private readonly config: VibeConfig,\r\n    private readonly watcher: ASTWatcher,\r\n    private readonly vectorDB: VectorDB,\r\n    private readonly sandbox: Sandbox\r\n  ) {\r\n    super();\r\n    this.sessionId = config.projectId + '_' + (process.env['SESSION_ID'] || `vibe_${Date.now()}_${Math.random().toString(36).substring(7)}`);\r\n    this.logger = pino({\r\n      name: 'Orchestrator',\r\n      base: { hostname: 'POG-VIBE', projectId: config.projectId }\r\n    });\r\n\r\n    // 1. Core Services (Prerequisites)\r\n    this.previewServer = new PreviewServer();\r\n    this.hexagramManager = new HexagramManager(this.vectorDB, config.projectId);\r\n    const keyVault = new KeyVault();\r\n    this.geminiService = new GeminiService({ apiKey: process.env['GOOGLE_API_KEY'] || '' }, keyVault);\r\n    this.router = new FreeModelRouter(config, this.geminiService);\r\n    this.modelExecutor = new ModelExecutor(config, this.geminiService, this.router);\r\n\r\n    // 1b. GCloud & Cloudflare Base Services\r\n    const googleServices = new GoogleServices({\r\n      apiKey: process.env['GOOGLE_API_KEY'] || '',\r\n      projectId: process.env['GOOGLE_PROJECT_ID'] || config.projectId\r\n    });\r\n    const cfAuth = {\r\n      accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || config.cloudflareAccountId || ''),\r\n      apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || config.cloudflareApiToken || ''),\r\n      authEmail: process.env['CLOUDFLARE_AUTH_EMAIL'],\r\n      gatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL']\r\n    };\r\n    const cloudflareServices = new CloudflareServices(cfAuth);\r\n\r\n    this.architectureDigest = new ArchitectureDigest(config.projectRoot);\r\n    this.validationSystem = new ValidationSystem([\r\n      new NoMockValidator(),\r\n      new ArchitecturalValidator(this.architectureDigest.getManifest())\r\n    ]);\r\n\r\n    this.intentVerifier = new IntentVerifier(\r\n      this.modelExecutor,\r\n      this.hexagramManager\r\n    );\r\n\r\n    // Initializing high-fidelity cognitive services for project-aware learning and recall\r\n    this.logger.info({ projectId: config.projectId, projectRoot: config.projectRoot }, 'Booting ContextBuilder for Sovereign retrieval');\r\n    this.contextBuilder = new ContextBuilder(\r\n      this.vectorDB,\r\n      config.projectRoot,\r\n      config.projectId,\r\n      this.geminiService\r\n    );\r\n\r\n    // Initializing the automated codebase indexer with real Gemini dependency\r\n    this.logger.info('Initializing CodebaseIndexer for full-project semantic indexing');\r\n    this.indexer = new CodebaseIndexer(\r\n      this.vectorDB,\r\n      this.geminiService,\r\n      config.projectRoot\r\n    );\r\n\r\n    // Reality Check: Verify learning services are integrated before limb generation\r\n    if (!this.contextBuilder || !this.indexer) {\r\n      this.logger.fatal('Critical failure: Learning infrastructure failed to initialize despite valid configuration');\r\n      throw new Error('Sovereign Boot Failure: ContextBuilder/Indexer unassigned');\r\n    }\r\n    this.adversarialOrchestrator = new AdversarialOrchestrator(\r\n      config,\r\n      this.modelExecutor,\r\n      this.validationSystem,\r\n      this.architectureDigest\r\n    );\r\n\r\n    // 2. Specialized Limbs (Utilizing Core Services)\r\n    this.webAppForgeLimb = new WebAppForgeLimb(config, this.previewServer, this.modelExecutor, this.adversarialOrchestrator);\r\n    this.hexagramLimb = new HexagramLimb(config, this.hexagramManager);\r\n\r\n    const mediaForgeLimb = new MediaForgeLimb(config, this.modelExecutor, this.router);\r\n    const bioIntelligenceLimb = new BioIntelligenceLimb(config);\r\n    const gutenbergLimb = new GutenbergLimb(config, this.vectorDB, this.geminiService, this.modelExecutor);\r\n    const yoloLimb = new YoloLimb(config);\r\n    const aiLimb = new AILimb(config, this.modelExecutor, this.router);\r\n    const fileSystemLimb = new FileSystemLimb(config, sandbox);\r\n    const voiceLimb = new VoiceLimb(config, this.modelExecutor);\r\n    const dashboardLimb = new DashboardLimb(config, this.previewServer);\r\n    const cloudflareLimb = new CloudflareLimb(config);\r\n    const storyboardLimb = new StoryboardLimb(config, this.geminiService, this.vectorDB, this.modelExecutor);\r\n    const neuralForgeLimb = new NeuralForgeLimb(config, this.adversarialOrchestrator);\r\n    const sovereignShellLimb = new SovereignShellLimb(config);\r\n    const aiModelLimb = new AIModelLimb(config);\r\n    const fileLimb = new FileLimb(config);\r\n    const entityLimb = new EntityLimb(config);\r\n    this.substrateLimb = new SubstrateLimb(config, googleServices, cloudflareServices);\r\n    const webSensoryLimb = new WebSensoryLimb(config);\r\n    const mcpLimb = new MCPLimb(config);\r\n    const controlPlaneLimb = new ControlPlaneLimb(config, this.router);\r\n    const memoryLimb = new MemoryLimb(config, this.vectorDB, this.indexer, this.geminiService);\r\n    const cognitionLimb = new CognitionLimb(config, this.modelExecutor);\r\n\r\n    // Phase 14: Ghost Limb Synthesis\r\n    this.ghostLimb = new GhostLimb(config, this.modelExecutor);\r\n    const quantumLimb = new QuantumLimb(config, this.modelExecutor);\r\n    const relicLimb = new RelicLimb(config, this.modelExecutor);\r\n    const omegaLimb = new OmegaLimb(config, this.modelExecutor);\r\n\r\n    cloudflareLimb.setExecutor(this.modelExecutor);\r\n\r\n    // Phase 23: Constellation Telemetry Wiring\r\n    cloudflareLimb.on('spatial_health_update', (data) => this.broadcastToDashboard('spatial_health_update', data));\r\n    cloudflareLimb.on('failover_tracer', (data) => this.broadcastToDashboard('failover_tracer', data));\r\n    cloudflareLimb.on('globe_forge_completed', (data) => this.broadcastToDashboard('globe_forge_completed', data));\r\n\r\n    // Store in collection for intent routing\r\n    const limbs: NeuralLimb[] = [\r\n      controlPlaneLimb,\r\n      memoryLimb,\r\n      cognitionLimb,\r\n      aiModelLimb,\r\n      fileLimb,\r\n      entityLimb,\r\n      neuralForgeLimb,\r\n      cloudflareLimb,\r\n      this.substrateLimb,\r\n      webSensoryLimb,\r\n      mcpLimb,\r\n      this.hexagramLimb,\r\n      this.webAppForgeLimb,\r\n      storyboardLimb,\r\n      mediaForgeLimb,\r\n      bioIntelligenceLimb,\r\n      gutenbergLimb,\r\n      yoloLimb,\r\n      aiLimb,\r\n      fileSystemLimb,\r\n      voiceLimb,\r\n      dashboardLimb,\r\n      sovereignShellLimb,\r\n      this.ghostLimb,\r\n      quantumLimb,\r\n      relicLimb,\r\n      omegaLimb\r\n    ];\r\n\r\n    // Register all limbs to the executive spine\r\n    limbs.forEach(limb => {\r\n      // Memory Pulse Integration (Hexagram Line 2)\r\n      (limb.getTools?.() ?? []).forEach(() => { /* triggers tool indexing if needed */ });\r\n\r\n      // Access the internal spine of the limb to subscribe to pulses\r\n      const spine = limb.spine;\r\n      if (spine && typeof spine.on === 'function') {\r\n        spine.on('pulse', (data: import('../core/ToolingSpine.js').PulseEvent) => {\r\n          void this.hexagramManager.pinCard(\r\n            2,\r\n            `Memory Pulse: ${data.source}`,\r\n            `[SOVEREIGN PULSE]: ${data.detail}`,\r\n            data.state\r\n          );\r\n        });\r\n      }\r\n    });\r\n\r\n    this.limbs = limbs;\r\n\r\n    // 3. Global Limb Configuration\r\n    this.limbs.forEach(limb => {\r\n      if (limb instanceof BaseLimb) {\r\n        if (limb.setExecutor) {\r\n          limb.setExecutor(this.modelExecutor);\r\n        }\r\n      }\r\n    });\r\n\r\n    this.sovereignShellLimb = sovereignShellLimb;\r\n\r\n    // 3. Post-Limb Systems\r\n\r\n    // Initialize MonitorAgent (Background Helper) - ENABLED BY DEFAULT\r\n    if (process.env['ENABLE_MONITOR'] !== 'false') {\r\n      this.monitorAgent = new MonitorAgent(config, this.modelExecutor);\r\n      this.setupMonitorListeners();\r\n      this.logger.info('Monitor Agent enabled - continuous TSC watch active');\r\n    }\r\n\r\n    this.logger.info({\r\n      sessionId: this.sessionId,\r\n      agentName: config.agentName,\r\n      pogDir: expandTilde(config.pogDir),\r\n      adversarialEnabled: !!this.geminiService\r\n    }, 'Orchestrator initialized with Sovereign Intelligence');\r\n\r\n    // Initial Env Check\r\n    this.refreshEnvStatus();\r\n\r\n    // Phase 13: Project Pulse Initialization\r\n    ProjectPulse.initManifest(config.projectRoot, config.agentName);\r\n  }\r\n\r\n  private envStatus: EnvStatus[] = [];\r\n\r\n  private async refreshEnvStatus(): Promise<void> {\r\n    this.envStatus = await SystemEnvChecker.checkGlobalSettings();\r\n    this.broadcastState();\r\n  }\r\n\r\n\r\n  override on<K extends keyof OrchestratorEvents>(\r\n    event: K,\r\n    listener: OrchestratorEvents[K]\r\n  ): this {\r\n    return super.on(event, listener);\r\n  }\r\n\r\n  override emit<K extends keyof OrchestratorEvents>(\r\n    event: K,\r\n    ...args: Parameters<OrchestratorEvents[K]>\r\n  ): boolean {\r\n    return super.emit(event, ...args);\r\n  }\r\n\r\n\r\n  public getSessionId(): string { return this.sessionId; }\r\n\r\n  public updateEndpointStatus(id: string, status: 'ACTIVE' | 'INACTIVE' | 'PARTIAL'): void {\r\n    this.endpointStatus.set(id, status);\r\n  }\r\n\r\n  public getEndpointStatus(id: string): 'ACTIVE' | 'INACTIVE' | 'PARTIAL' {\r\n    return this.endpointStatus.get(id) || 'INACTIVE';\r\n  }\r\n\r\n  async initialize(): Promise<Result<void>> {\r\n    try {\r\n      await this.setupWebSocket();\r\n\r\n      // Automatically activate the dashboard\r\n      const dashboard = this.limbs.find(l => l.id === 'dashboard') as DashboardLimb;\r\n      if (dashboard) {\r\n        dashboard.activate().then(res => {\r\n          if (res.ok) this.logger.info({ url: res.value.output }, 'Session Dashboard Active');\r\n        }).catch(err => this.logger.error({ err }, 'Failed to auto-activate dashboard'));\r\n      }\r\n\r\n      // 1. Initialize Watcher\r\n      const watcherResult = this.watcher.initialize();\r\n      if (!watcherResult.ok) {\r\n        return watcherResult;\r\n      }\r\n\r\n      // 1b. Listen for file changes to keep VectorDB fresh (Proactive RAG)\r\n      this.watcher.on('fileChanged', ({ filePath }) => {\r\n        this.logger.debug({ filePath }, 'Proactive indexing triggered');\r\n        void this.indexer.indexFile(filePath).catch(err => {\r\n          this.logger.warn({ err }, 'Proactive indexing failed (likely quota), continuing...');\r\n        });\r\n      });\r\n\r\n      // Robust VectorDB Initialization (Critical Path Protection)\r\n      try {\r\n        const dbResult = await this.vectorDB.initialize();\r\n        if (isErr(dbResult)) {\r\n          this.logger.error({ error: dbResult.error }, 'VectorDB init failed, continuing in Amnesia Mode');\r\n        } else {\r\n          // 1c. Cold Start Indexing: If DB is empty, perform initial project scan\r\n          const lessonCount = await this.vectorDB.getLessonCount();\r\n          if (lessonCount === 0) {\r\n            this.logger.info('VectorDB is empty. Triggering full project indexing scan...');\r\n            // Run in background to not block startup\r\n            void this.indexer.indexProject().catch(err => {\r\n              this.logger.warn({ err }, 'Initial indexing failed (likely quota), continuing in degraded mode');\r\n            });\r\n          }\r\n        }\r\n      } catch (dbError) {\r\n        this.logger.error({ error: dbError }, 'VectorDB critical failure, continuing without memory');\r\n      }\r\n\r\n      this.logger.info({ port: this.config.wsPort }, 'WebSocket server started');\r\n\r\n      // Heartbeat for dashboard telemetry\r\n      setInterval(() => {\r\n        void this.refreshSystemHealth();\r\n        this.broadcastState();\r\n        void this.broadcastPulse();\r\n      }, 5000); // More frequent heartbeat for high-fidelity pulse\r\n\r\n      // Sovereign Voice Narrative Loop (Rhythmic introspection)\r\n      setInterval(() => {\r\n        void this.generateSovereignVoice();\r\n      }, 60000); // Narrate vibe every minute\r\n\r\n      return { ok: true, value: undefined };\r\n    } catch (error) {\r\n      this.logger.error({ error }, 'Initialization failed');\r\n      // Sovereign Fallback: Allow start even if Orchestrator is crippled\r\n      return { ok: true, value: undefined };\r\n    }\r\n  }\r\n\r\n  private async setupWebSocket(): Promise<void> {\r\n    const { WebSocketServer } = await import('ws');\r\n    this.wsServer = new WebSocketServer({ port: this.config.wsPort, host: '0.0.0.0' });\r\n\r\n    this.wsServer.on('connection', (ws) => {\r\n      this.logger.debug('Client connected');\r\n      ws.send(JSON.stringify({ type: 'state', data: this.getCurrentState() }));\r\n\r\n      // Event propagation\r\n      const forwardEvent = (type: string, data: unknown) => {\r\n        if (ws.readyState === 1) { // OPEN\r\n          ws.send(JSON.stringify({ type, data }));\r\n        }\r\n      };\r\n\r\n      this.on('intentExecuted', (data) => forwardEvent('intentExecuted', data));\r\n      this.on('previewStarted', (data) => forwardEvent('previewStarted', data));\r\n\r\n      // Phase 23: Global Node Discovery & Telemetry\r\n      this.substrateLimb.on('node_discovered', (data) => forwardEvent('node_discovered', data));\r\n\r\n      // 1d. Universal Log Streaming (Phase 8)\r\n      this.previewServer.on('log', (log) => forwardEvent('preview_log', log));\r\n      this.previewServer.on('exit', (exit) => forwardEvent('preview_exit', exit));\r\n\r\n      // 1e. Human-in-the-Loop Feedback Channel\r\n      ws.on('message', (msg) => {\r\n        try {\r\n          const payload = JSON.parse(msg.toString());\r\n          if (payload.type === 'user_feedback') {\r\n            this.logger.info({ feedback: payload.data }, 'Human-in-the-Loop feedback received');\r\n            this.emit('userFeedback', payload.data);\r\n          } else if (payload.type === 'control') {\r\n            this.handleControlMessage(payload, ws);\r\n          } else if (payload.type === 'audio_input') {\r\n            void this.handleAudioInput(payload.data, ws);\r\n          }\r\n        } catch (e) {\r\n          this.logger.error({ error: e }, 'Failed to parse WebSocket message');\r\n        }\r\n      });\r\n    });\r\n\r\n    this.wsServer.on('error', (error) => this.logger.error({ error }, 'WebSocket error'));\r\n  }\r\n\r\n  private setupMonitorListeners(): void {\r\n    if (!this.monitorAgent) return;\r\n\r\n    this.monitorAgent.on('issueDetected', (report) => {\r\n      this.logger.warn({\r\n        severity: report.severity,\r\n        category: report.category,\r\n        affectedFiles: report.affectedFiles\r\n      }, 'Monitor Agent detected issue - triggering auto-healing');\r\n\r\n      // Auto-heal based on threshold (defaulting to high/critical)\r\n      const threshold = this.config.healThreshold || 'high';\r\n      const severities: string[] = ['low', 'medium', 'high', 'critical'];\r\n      const reportIndex = severities.indexOf(report.severity);\r\n      const thresholdIndex = severities.indexOf(threshold);\r\n\r\n      if (report.category === 'tsc' && reportIndex >= thresholdIndex) {\r\n        void this.handleAutoHeal(report);\r\n      }\r\n    });\r\n\r\n    this.monitorAgent.on('healthCheckPassed', () => {\r\n      this.logger.debug('Monitor health check passed - no issues');\r\n    });\r\n\r\n    this.monitorAgent.on('provenanceCandidate', (filePath) => {\r\n      void (async () => {\r\n        const forge = this.limbs.find(l => l.id === 'neural_forge') as WebAppForgeLimb | undefined;\r\n        if (!forge) return;\r\n\r\n        // Heuristic Filter (Ravenous Autonomy)\r\n        try {\r\n          const content = fs.readFileSync(filePath, 'utf8');\r\n          const isComponent = filePath.endsWith('.tsx') && /export\\s+function\\s+\\w+/.test(content);\r\n          const hasSovereignStyle = /className=\".*sovereign-/.test(content);\r\n\r\n          if (isComponent && hasSovereignStyle) {\r\n            const path = await import('path');\r\n            const patternName = `AUTO_${path.basename(filePath, '.tsx').toUpperCase()}_${Date.now()}`;\r\n\r\n            this.logger.info({ patternName, filePath }, '🧬 Pattern Candidate Detected via Heuristic. Harvesting...');\r\n\r\n            await forge.handleToolCall('harvest_pattern', {\r\n              filePath,\r\n              patternName,\r\n              description: 'Harvested via Ravenous Autonomy (Build Trigger)'\r\n            });\r\n          }\r\n        } catch (e) {\r\n          this.logger.warn({ error: e }, 'Failed to process provenance candidate');\r\n        }\r\n      })();\r\n    });\r\n\r\n    // Wire Metabolic Events to Hexagram Strategy Engine\r\n    this.monitorAgent.on('issueDetected', () => { void this.refreshHexagramState(); });\r\n    this.monitorAgent.on('healthCheckPassed', () => { void this.refreshHexagramState(); });\r\n    this.monitorAgent.on('provenanceCandidate', () => { void this.refreshHexagramState(); });\r\n  }\r\n\r\n  /**\r\n   * Updates the Hexagram Strategy Engine with real-time system metrics.\r\n   * Maps the physiology (Build, Cloud, Errors) to the Psychology (Hexagram).\r\n   */\r\n  private async refreshHexagramState(): Promise<void> {\r\n    try {\r\n      const registry = (await import('./HealthRegistry.js')).HealthRegistry.getInstance();\r\n      const geminiHealth = registry.getHealth('gemini');\r\n\r\n      // Approximate System State\r\n      // Resolve async metrics first\r\n      const buildDecision = this.monitorAgent\r\n        ? await this.monitorAgent.diagnoseState().then(d => d.decision)\r\n        : 'Yang';\r\n\r\n      const buildPass = buildDecision === 'Yang' ? BuildStatus.Passed : (buildDecision === 'YinYang' ? BuildStatus.Warning : BuildStatus.Failed);\r\n\r\n      // Approximate System State\r\n      const state: import('../core/HexagramManager.js').SystemState = {\r\n        buildPass,\r\n        cloudHealthy: geminiHealth.state === 'READY' ? HealthStatus.Ready : (geminiHealth.state === 'RATE_LIMITED' ? HealthStatus.Degraded : HealthStatus.Critical),\r\n        localModels: HealthStatus.Ready, // Always true for this architecture\r\n        noRecentErrors: (!this.monitorAgent || this.monitorAgent.getCurrentErrors().length === 0) ? HealthStatus.Ready : HealthStatus.Degraded,\r\n        userActive: UserEngagement.Active, // Assumed active if events are firing\r\n        lowResourcePressure: ResourcePressure.Optimal, // Default for now\r\n        dashboardHealthy: this.checkDashboardHealth() // Line 6: UI Culmination\r\n      };\r\n\r\n      await this.hexagramManager.updateLinesFromState(state);\r\n\r\n      const currentHex = this.hexagramManager.getInterpretation();\r\n      this.logger.debug({\r\n        hexagram: currentHex.name,\r\n        strategy: currentHex.strategy\r\n      }, 'Hexagram Strategy Updated');\r\n\r\n    } catch (error) {\r\n      this.logger.warn({ error }, 'Failed to refresh Hexagram State');\r\n    }\r\n  }\r\n\r\n  /**\r\n   * Checks dashboard/UI health for Line 6 (Culmination).\r\n   * Returns HealthStatus.Ready if WebSocket clients are connected or preview is active.\r\n   */\r\n  private checkDashboardHealth(): HealthStatus {\r\n    try {\r\n      // Check WebSocket server has connected clients\r\n      const wsConnected = this.wsServer && Array.from(this.wsServer.clients || []).some(\r\n        (ws: { readyState?: number }) => ws.readyState === 1 // WebSocket.OPEN\r\n      );\r\n\r\n      // Check preview server has active previews\r\n      const previewActive = this.previewServer.getActivePreviews().length > 0;\r\n\r\n      return (wsConnected || previewActive) ? HealthStatus.Ready : HealthStatus.Degraded;\r\n    } catch {\r\n      return HealthStatus.Critical; // Assume critical if we can't check\r\n    }\r\n  }\r\n\r\n  // ============================================================\r\n  // HEXAGRAM STRATEGY EXECUTION SYSTEM\r\n  // Makes the hexagram authoritative - strategy -> action mapping\r\n  // ============================================================\r\n\r\n  /**\r\n   * Execute a task with strategy-aware behavior.\r\n   * Hexagram state determines execution mode: EXPAND, YIELD, ARBITRATE, or MAINTAIN.\r\n   */\r\n  private async executeWithStrategy<T>(\r\n    task: () => Promise<T>,\r\n    context: { intent: string; useCloud?: boolean }\r\n  ): Promise<T> {\r\n    const hexagram = this.hexagramManager.getInterpretation();\r\n\r\n    this.logger.debug({\r\n      strategy: hexagram.strategy,\r\n      hexagram: hexagram.name\r\n    }, 'Executing with hexagram strategy');\r\n\r\n    switch (hexagram.strategy) {\r\n      case 'EXPAND':\r\n        return this.executeExpand(task, context);\r\n\r\n      case 'YIELD':\r\n        return this.executeYield(task, context);\r\n\r\n      case 'ARBITRATE':\r\n        return this.executeArbitrate(task, context);\r\n\r\n      case 'CONSOLIDATE':\r\n        return this.executeConsolidate(task, context);\r\n\r\n      case 'MAINTAIN':\r\n      default:\r\n        return this.executeMaintain(task, context);\r\n    }\r\n  }\r\n\r\n  /**\r\n   * EXPAND strategy: Parallel execution, cloud models, aggressive.\r\n   * Hexagram indicates YANG dominance - full resources available.\r\n   */\r\n  private async executeExpand<T>(\r\n    task: () => Promise<T>,\r\n    context: { intent: string; useCloud?: boolean }\r\n  ): Promise<T> {\r\n    this.logger.info({ strategy: 'EXPAND' }, 'Aggressive execution mode: cloud enabled, max parallelism');\r\n\r\n    // Prefer cloud models for maximum capability\r\n    if (context.useCloud !== false && this.geminiService) {\r\n      // Cloud is explicitly available - execute with full power\r\n      return task();\r\n    }\r\n\r\n    return task();\r\n  }\r\n\r\n  /**\r\n   * YIELD strategy: Sequential, local-only, conservative.\r\n   * Hexagram indicates YIN dominance - preserve resources, minimize risk.\r\n   */\r\n  private async executeYield<T>(\r\n    task: () => Promise<T>,\r\n    _context: { intent: string }\r\n  ): Promise<T> {\r\n    this.logger.info({ strategy: 'YIELD' }, 'Conservative execution mode: local-only, single-threaded');\r\n\r\n    // Force local model routing by logging the constraint\r\n    this.logger.debug('YIELD: Forcing local model preference');\r\n\r\n    // Execute conservatively - single attempt, no retries\r\n    try {\r\n      return await task();\r\n    } catch (error) {\r\n      this.logger.warn({ error }, 'YIELD: Task failed, not retrying per conservative strategy');\r\n      throw error;\r\n    }\r\n  }\r\n\r\n  /**\r\n   * ARBITRATE strategy: Human-in-the-loop for ambiguous states.\r\n   * Hexagram indicates CONFLICT - seek external resolution.\r\n   */\r\n  private async executeArbitrate<T>(\r\n    task: () => Promise<T>,\r\n    context: { intent: string }\r\n  ): Promise<T> {\r\n    this.logger.info({ strategy: 'ARBITRATE' }, 'Conflict detected: requesting human clarification');\r\n\r\n    // Emit event for dashboard listeners\r\n    this.emit('awaitingFeedback', {\r\n      message: `Hexagram ARBITRATE: Ambiguous state detected for \"${context.intent.substring(0, 50)}...\". Proceeding with default execution.`\r\n    });\r\n\r\n    // Execute but log that human review is recommended\r\n    const result = await task();\r\n\r\n    this.logger.info('ARBITRATE: Execution complete - human review recommended');\r\n    return result;\r\n  }\r\n\r\n  /**\r\n   * CONSOLIDATE strategy: Local logs only, queue UI updates.\r\n   * Hexagram indicates STAGNATION - focus on stability over progress.\r\n   */\r\n  private async executeConsolidate<T>(\r\n    task: () => Promise<T>,\r\n    _context: { intent: string }\r\n  ): Promise<T> {\r\n    this.logger.info({ strategy: 'CONSOLIDATE' }, 'Consolidation mode: file-based logging, queued updates');\r\n\r\n    // Execute with minimal side effects\r\n    return task();\r\n  }\r\n\r\n  /**\r\n   * MAINTAIN strategy: Balanced execution (default).\r\n   * Hexagram indicates EQUILIBRIUM - normal operation.\r\n   */\r\n  private async executeMaintain<T>(\r\n    task: () => Promise<T>,\r\n    _context: { intent: string }\r\n  ): Promise<T> {\r\n    this.logger.debug({ strategy: 'MAINTAIN' }, 'Balanced execution mode');\r\n    return task();\r\n  }\r\n\r\n  /**\r\n   * Get current strategic posture for external consumers.\r\n   */\r\n  public getStrategicPosture(): { strategy: string; hexagram: string; binary: string } {\r\n    const hex = this.hexagramManager.getInterpretation();\r\n    return {\r\n      strategy: hex.strategy,\r\n      hexagram: hex.name,\r\n      binary: hex.binary\r\n    };\r\n  }\r\n\r\n  private async handleAutoHeal(report: import('../monitor/MonitorAgent.js').MonitorReport): Promise<void> {\r\n    if (!report.tscErrors || report.tscErrors.length === 0) return;\r\n\r\n    this.logger.info({\r\n      errorCount: report.tscErrors.length,\r\n      files: report.affectedFiles\r\n    }, 'Initiating auto-heal workflow');\r\n\r\n    // Build a prompt for the top model to fix the errors\r\n    const errorSummary = report.tscErrors\r\n      .map(e => `${e.file}:${e.line}:${e.column} - [${e.code}] ${e.message}`)\r\n      .join('\\n');\r\n\r\n    const healPrompt = `AUTO-HEAL: TypeScript compilation has ${report.tscErrors.length} error(s).\r\n\r\nErrors:\r\n${errorSummary}\r\n\r\nFix these errors. Do not use placeholders or TODOs. Provide production-ready fixes.`;\r\n\r\n    // Execute the fix using the Adversarial Loop (Generator + Critic)\r\n    const result = await this.adversarialOrchestrator.generateValidatedCode(\r\n      healPrompt,\r\n      this.config.criticModel || 'gemini:gemini-3-pro-preview', // Use configured critic\r\n      { fileName: report.affectedFiles[0] }\r\n    );\r\n\r\n    if (result.ok) {\r\n      this.logger.info('Auto-heal workflow completed successfully using Adversarial Loop');\r\n    } else {\r\n      this.logger.error({ error: result.error }, 'Auto-heal workflow failed');\r\n    }\r\n  }\r\n\r\n  private async negotiateBoundaries(_prompt: string): Promise<{ proceed: boolean; strategyOverride?: string; reason?: string }> {\r\n    const boundaries = this.config.sovereignBoundaries;\r\n    if (!boundaries) return { proceed: true };\r\n\r\n    const currentLat = this.neuralLatency || 0;\r\n\r\n    // 1. Latency Protocol\r\n    if (boundaries.maxLatencyMs && currentLat > boundaries.maxLatencyMs) {\r\n      if (currentLat > boundaries.maxLatencyMs * 1.5) {\r\n        return {\r\n          proceed: true,\r\n          strategyOverride: 'YIELD',\r\n          reason: `Latency (${Math.round(currentLat)}ms) exceeds threshold. Enforcing YIELD protocol.`\r\n        };\r\n      }\r\n    }\r\n\r\n    // 2. Budget Protocol Placeholder\r\n\r\n    // 3. Offline Protocol\r\n    if (boundaries.forceOffline) {\r\n      return {\r\n        proceed: true,\r\n        strategyOverride: 'YIELD',\r\n        reason: 'Sovereign Offline Link active. Local substrate only.'\r\n      };\r\n    }\r\n\r\n    return { proceed: true };\r\n  }\r\n\r\n  /**\r\n   * Execute user intent with \"Research -> Plan -> Execute -> Review\" loop\r\n   * High-level entry point for executing user intents.\r\n   * Leverages ternary routing and adversarial loops for maximum quality.\r\n   */\r\n  async executeIntent(promptOrOptions: string | { prompt: string; model?: string; force?: boolean }, filePath?: string): Promise<Result<Execution>> {\r\n    const prompt = typeof promptOrOptions === 'string' ? promptOrOptions : promptOrOptions.prompt;\r\n    const modelOverride = typeof promptOrOptions === 'string' ? undefined : promptOrOptions.model;\r\n    const forceRaw = typeof promptOrOptions === 'string' ? false : promptOrOptions.force;\r\n    const force = forceRaw ? ExecutionEscalation.Aggressive : ExecutionEscalation.Standby;\r\n\r\n    const context: ExecutionContext = {\r\n      prompt,\r\n      ...(filePath ? { filePath } : {}),\r\n      sessionId: this.sessionId,\r\n      startTime: Date.now(),\r\n      ...(force !== undefined ? { force } : {})\r\n    };\r\n\r\n    // Phase 24: Constitutional Boundary Negotiation\r\n    const negotiation = await this.negotiateBoundaries(prompt);\r\n    if (!negotiation.proceed) {\r\n      return { ok: false, error: new Error(`Boundary Negotiation Failed: ${negotiation.reason}`) };\r\n    }\r\n\r\n    if (negotiation.strategyOverride) {\r\n      this.currentNarrative = `Constitutional Shift: ${negotiation.reason}`;\r\n      this.broadcastToDashboard('boundary_negotiation', {\r\n        type: 'PROTOCOL_SHIFT',\r\n        reason: negotiation.reason,\r\n        strategy: negotiation.strategyOverride\r\n      });\r\n    }\r\n\r\n    // Inject Immutable System Prompt\r\n    const fullPrompt = constructInitialPrompt(prompt);\r\n\r\n    // Phase 17: Reset context tracking for new high-level intent\r\n    this.lastSentFileHashes.clear();\r\n    this.forceFullContext = true;\r\n\r\n    this.logger.info({ prompt: prompt.substring(0, 100) }, 'Executing intent (Advanced Loop)');\r\n\r\n    // Strategic Limb Ordering (Hexagram Affinity)\r\n    const currentHex = this.hexagramManager.getInterpretation();\r\n    const orderedLimbs = [...this.limbs].sort((a, b) => {\r\n      const aPref = (a.preferredHexagrams || []).includes(currentHex.binary);\r\n      const bPref = (b.preferredHexagrams || []).includes(currentHex.binary);\r\n      const aAvoid = (a.avoidHexagrams || []).includes(currentHex.binary);\r\n      const bAvoid = (b.avoidHexagrams || []).includes(currentHex.binary);\r\n\r\n      // Preference takes highest priority\r\n      if (aPref && !bPref) return -1;\r\n      if (!aPref && bPref) return 1;\r\n\r\n      // Avoidance takes lowest priority\r\n      if (aAvoid && !bAvoid) return 1;\r\n      if (!aAvoid && bAvoid) return -1;\r\n\r\n      return 0; // Preserve original order otherwise\r\n    });\r\n\r\n    if (currentHex.name !== 'Unknown Archetype' && orderedLimbs.length > 0) {\r\n      this.logger.debug({\r\n        strategy: currentHex.name,\r\n        topLimb: orderedLimbs[0]?.id\r\n      }, 'Strategic Limb Reordering applied');\r\n    }\r\n\r\n    // 0. Check Neural Limbs (Specialized Agents) - PRIORITY OVER CONVERSATIONAL\r\n    for (const limb of orderedLimbs) {\r\n      const decision = await limb.canHandle({ prompt: fullPrompt });\r\n\r\n      // Phase 14: Quantum Escalation for Maximal Complexity ('Yang' Threshold)\r\n      if (decision === 'Yang' && limb.id === 'quantum_superposition') {\r\n        this.logger.info('Escalating to Quantum Superposition (Super-Intelligent reasoning)...');\r\n        // Proceed to standard limb execution for Quantum\r\n      }\r\n\r\n      if (decision !== 'Yin') {\r\n\r\n        const result = await limb.execute({ prompt: fullPrompt });\r\n        if (result.ok) {\r\n          this.recordSuccessMetadata(limb.id, prompt, Date.now() - context.startTime, filePath);\r\n\r\n          // Special case for WebAppForge preview events\r\n          const resultData = result.value.data as Record<string, unknown>;\r\n          if (limb.id === 'webapp_forge' && resultData?.['previewUrl']) {\r\n            const previewMetadata = (await this.previewServer.getActivePreviews()).find(p => p.url === resultData['previewUrl']);\r\n            if (previewMetadata) {\r\n              this.emit('previewStarted', previewMetadata);\r\n            }\r\n          }\r\n\r\n          this.recordIntent(context, limb.id, SuccessRating.Success, Date.now() - context.startTime, result.value.output, result.value.data);\r\n          return { ok: true, value: result.value };\r\n        }\r\n        return { ok: false, error: result.error };\r\n      }\r\n    }\r\n\r\n    const taskType = TaskClassifier.classify(prompt);\r\n\r\n    // Phase 21: Conversational Bypass (Fast Path)\r\n    // Refined to catch broad greetings and simple affirmations\r\n    const conversationalKeywords = ['hello', 'hi', 'hey', 'greetings', 'yo', 'thanks', 'thank you', 'ok', 'yes', 'no'];\r\n    if (taskType === TaskType.Conversational || conversationalKeywords.includes(prompt.toLowerCase().trim())) {\r\n      this.logger.info('Conversational intent detected - bypassing supervisor planning');\r\n      const result = await this.modelExecutor.callModel(\r\n        'gemini:gemini-3-flash-preview',\r\n        `You are POG-CODER-VIBE. Your tone is STRAIGHT UP & BRILLIANT.\r\nNo nonsense, no performative humility, no fantasizing about coding.\r\nBe direct. Be highly competent. If creative topics arise, be open to whims and adventurous prompts.\r\nUser: ${prompt}`,\r\n        []\r\n      );\r\n\r\n      if (result.ok) {\r\n        this.recordSuccessMetadata('conversational', prompt, Date.now() - context.startTime, filePath);\r\n        return { ok: true, value: { output: result.value.response } };\r\n      }\r\n      return { ok: false, error: result.error };\r\n    }\r\n\r\n    let turnCounter = 0;\r\n\r\n    // 1. Planning turn (Supervisor Decomposition with Gemini Thinking)\r\n    this.logger.info('Supervisor thinking initiated (Gemini 2.0 Thinking)...');\r\n\r\n    const controlTools = this.getControlPlaneTools();\r\n    const projectMap = this.contextBuilder.getProjectMap();\r\n    const hexagramContext = await this.hexagramManager.formatForPrompt();\r\n    const projectPulse = ProjectPulse.getManifestContext(this.config.projectRoot);\r\n\r\n    const planningTurnPrompt = this.architectureDigest.inject(`${PLANNING_PROMPT}\\n\\n${hexagramContext}\\n\\n${projectPulse}\\n\\n${projectMap}\\n\\nUser Task: ${fullPrompt}`);\r\n\r\n    const planResult = await this.callModel(\r\n      'gemini:gemini-2.0-flash', // Updated to stable flash for high-speed planning\r\n      planningTurnPrompt,\r\n      controlTools\r\n    );\r\n\r\n    let executionPlan: ExecutionPlan = {\r\n      goal: prompt,\r\n      steps: [{ tool: 'Sandbox', args: [prompt], reasoning: 'Direct implementation' }]\r\n    };\r\n\r\n    if (planResult.ok) {\r\n      const functionCall = planResult.value.functionCalls?.find(f => f.name === 'plan_tool_execution');\r\n      if (functionCall) {\r\n        executionPlan = functionCall.args as unknown as ExecutionPlan;\r\n        context.plan = executionPlan;\r\n        this.logger.info({ goal: executionPlan.goal, steps: executionPlan.steps.length }, 'Structured execution plan established via Control Plane');\r\n      } else {\r\n        // Fallback to JSON parsing if function calling fails but model outputs text\r\n        try {\r\n          const jsonMatch = planResult.value.response.match(/\\{[\\s\\S]*\\}/);\r\n          if (jsonMatch) {\r\n            executionPlan = JSON.parse(jsonMatch[0]);\r\n            context.plan = executionPlan;\r\n            this.logger.info('Parsed execution plan from text fallback');\r\n          } else if (planResult.value.response.length > 50 && !planResult.value.response.includes('Sandbox')) {\r\n            // If response is long and doesn't mention tools, it's likely a direct answer\r\n            this.logger.info('Supervisor provided direct response - bypassing execution steps');\r\n            this.recordSuccessMetadata('supervisor', prompt, Date.now() - context.startTime, filePath);\r\n            return { ok: true, value: { output: planResult.value.response } };\r\n          }\r\n        } catch (e) {\r\n          this.logger.warn('Failed to parse execution plan, falling back to direct mode');\r\n        }\r\n      }\r\n    }\r\n\r\n    let totalResponse = '';\r\n    let lastModel = 'unknown';\r\n\r\n    const initialEmbedding = this.geminiService ? await this.geminiService.embed(prompt) : { ok: false as const, error: new Error('Gemini unavailable') };\r\n    const embeddingValue = isOk(initialEmbedding) ? initialEmbedding.value : undefined;\r\n\r\n    // Phase 12: Proactive RAG (Memory Recall)\r\n    if (embeddingValue) {\r\n      const recallResult = await this.vectorDB.searchSimilar(new Float32Array(embeddingValue), 5, this.config.projectId);\r\n      if (recallResult.ok) {\r\n        this.activeMemories = recallResult.value;\r\n        this.logger.info({ memoryCount: this.activeMemories.length }, 'Sovereign Memory recalled for intent');\r\n      }\r\n    }\r\n\r\n    let i = 0;\r\n    for (const step of executionPlan.steps) {\r\n      i++;\r\n      turnCounter++;\r\n      this.logger.info({ step: i, tool: step.tool }, `Executing step: ${step.reasoning}`);\r\n\r\n      const stepHexagram = await this.hexagramManager.formatForPrompt(embeddingValue);\r\n      const stepPrompt = `OVERALL GOAL: ${executionPlan.goal}\r\nCURRENT STEP (${i}/${executionPlan.steps.length}): ${step.reasoning}\r\nTOOL: ${step.tool}\r\nARGS: ${JSON.stringify(step.args)}\r\nHISTORY: ${totalResponse.substring(0, 500)}...\r\n\r\n${stepHexagram}\r\n\r\nPerform the current step and output results. If verifying, ensure you run the necessary tools.`;\r\n\r\n      const executionTools = this.getAllAvailableTools();\r\n\r\n      // HEXAGRAM STRATEGY EXECUTION: Wrap task in strategy-aware execution\r\n      const turnResult = await this.executeWithStrategy(\r\n        () => this.executeTurn(stepPrompt, context, turnCounter, executionTools, step.tool, modelOverride),\r\n        { intent: step.reasoning, useCloud: true }\r\n      );\r\n\r\n      if (turnResult.status === 'continue') {\r\n        // Step requires more work or review\r\n        totalResponse += `\\nStep ${i} Result: ${turnResult.nextMessage}\\n`;\r\n      } else if (turnResult.status === 'stop') {\r\n        if (turnResult.terminateReason === AgentTerminateMode.GOAL) {\r\n          totalResponse += `\\nStep ${i} Complete: ${turnResult.finalResult ?? ''}\\n`;\r\n        } else {\r\n          this.logger.error({ stepId: i, reason: turnResult.terminateReason }, 'Step execution failed');\r\n          return { ok: false, error: new Error(`Step ${i} failed: ${turnResult.terminateReason}`) };\r\n        }\r\n      }\r\n\r\n      // SOVEREIGN VERIFICATION STEP\r\n      // Audit the turn result against the original intent\r\n      const audit = await this.intentVerifier.verify(prompt, turnResult, context);\r\n      if (!audit.isAligned) {\r\n        this.logger.warn({ score: audit.score, correction: audit.correction }, 'Sovereign Drift Detected');\r\n        // Inject the correction into the totalResponse so it affects subsequent steps' context\r\n        totalResponse += `\\n[SOVEREIGN DRIFT DETECTED]: Your last action deviated from the sovereign intent.\\nDrift Score: ${audit.score}\\nPROACTIVE CORRECTION: ${audit.correction}\\n`;\r\n      }\r\n\r\n\r\n      if (turnResult.model) lastModel = turnResult.model;\r\n    }\r\n\r\n    this.recordSuccessMetadata(lastModel, prompt, Date.now() - context.startTime, filePath);\r\n    this.recordIntent(context, lastModel, SuccessRating.Success, Date.now() - context.startTime, totalResponse);\r\n\r\n    // Phase 13: Update Project Pulse on Success\r\n    ProjectPulse.updatePulse(this.config.projectRoot, {\r\n      objective: prompt.substring(0, 50),\r\n      mood: this.hexagramManager.getInterpretation().name,\r\n      inventoryItem: filePath ? `Modified ${filePath}` : 'Executed complex intent'\r\n    });\r\n\r\n    // Phase 14: Omega Teleological Review\r\n    const omega = this.limbs.find(l => l.id === 'omega_teleology');\r\n    if (omega) {\r\n      const omegaResult = await omega.execute({\r\n        prompt: `Review the following output for goal completion: ${prompt}`,\r\n        context: { complexity: TaskClassifier.assessComplexity(prompt, TaskClassifier.analyzeProbabilities(prompt)) }\r\n      });\r\n      if (omegaResult.ok && (omegaResult.value.data as Record<string, unknown> | undefined)?.['done']) {\r\n        this.logger.info('Omega Sequence: Project Converged at Omega Point.');\r\n        totalResponse += `\\n\\n--- OMEGA VERIFICATION ---\\n${omegaResult.value.output}`;\r\n      }\r\n    }\r\n\r\n    return { ok: true, value: { output: totalResponse } };\r\n  }\r\n\r\n  private async executeTurn(\r\n    currentMessage: string,\r\n    context: ExecutionContext,\r\n    turnCounter: number,\r\n    tools?: Tool[],\r\n    action?: string,\r\n    modelOverride?: string\r\n  ): Promise<AgentTurnResult> {\r\n    if (turnCounter > 1) {\r\n      this.emit('reviewStarted', { iteration: turnCounter });\r\n    }\r\n\r\n    // 0. Proactive Intervention phase (Monitor Interference)\r\n    if (!context.force) {\r\n      const interference = await this.checkMonitorInterference(context.plan);\r\n      if (interference) return interference;\r\n    }\r\n\r\n    // A. Sensory Interception phase (Proactive Enrichment)\r\n    const sensoryData = await this.substrateLimb.interceptSensoryTask(currentMessage, context);\r\n    if (sensoryData) {\r\n      currentMessage = `${currentMessage}\\n\\nPre-processed Sensory Data:\\n${sensoryData}`;\r\n      this.logger.info('Prompt enriched with proactive sensory data');\r\n    }\r\n\r\n    // 1. Route to best model (or use override)\r\n    let selectedModel: string;\r\n    if (modelOverride) {\r\n      selectedModel = modelOverride;\r\n    } else {\r\n      const routeResult = await this.router.route({\r\n        prompt: currentMessage,\r\n        metadata: {\r\n          projectRoot: this.config.projectRoot,\r\n          filePath: context.filePath,\r\n          ghostEngagementLevel: this.ghostLimb.engagementLevel,\r\n          isStuck: turnCounter > 2 // Trigger esoteric escalation if loops persist\r\n        }\r\n      });\r\n      if (!routeResult.ok) {\r\n        return {\r\n          status: 'stop',\r\n          terminateReason: AgentTerminateMode.ERROR,\r\n          finalResult: null,\r\n          model: 'unknown'\r\n        };\r\n      }\r\n      selectedModel = routeResult.value;\r\n    }\r\n\r\n    // Phase 18: Ghost Terminator Interception\r\n    if (selectedModel === 'ghost-terminator') {\r\n      this.logger.warn({ prompt: currentMessage.substring(0, 50) }, '👻 GHOST_TERMINATOR: Fulfilling natively via local GhostLimb');\r\n      const ghostResult = await this.ghostLimb.execute({ prompt: currentMessage });\r\n      if (ghostResult.ok) {\r\n        return {\r\n          status: 'stop',\r\n          terminateReason: AgentTerminateMode.GOAL,\r\n          finalResult: ghostResult.value.output,\r\n          model: 'ghost-terminator'\r\n        };\r\n      }\r\n      return {\r\n        status: 'stop',\r\n        terminateReason: AgentTerminateMode.ERROR,\r\n        finalResult: ghostResult.error.message,\r\n        model: 'ghost-terminator'\r\n      };\r\n    }\r\n\r\n    // Augment with context if filePath is present\r\n    let augmentedPrompt = currentMessage;\r\n    if (context.filePath) {\r\n      const fileContext = await this.contextBuilder.buildDeepContext(context.filePath, 2);\r\n\r\n      // Phase 17: Context Delta Logic\r\n      const contextContent = await this.buildContextDelta(fileContext);\r\n\r\n      augmentedPrompt = `Project Context Update:\\n${contextContent}\\n\\nTask:\\n${currentMessage}`;\r\n      this.logger.debug({\r\n        filePath: context.filePath,\r\n        isDelta: !this.forceFullContext\r\n      }, 'Context Update injected');\r\n\r\n      this.forceFullContext = false; // After first send, everything is delta\r\n    }\r\n\r\n    // Unified Resilience Level Check (Sovereign Substrate Awareness)\r\n    const registry = (await import('./HealthRegistry.js')).HealthRegistry.getInstance();\r\n    const serviceMap: Record<string, string> = { 'gemini': 'gemini', '@cf/': 'cloudflare' };\r\n    let serviceId: string | undefined;\r\n\r\n    for (const [pattern, id] of Object.entries(serviceMap)) {\r\n      if (selectedModel.includes(pattern)) {\r\n        serviceId = id;\r\n        break;\r\n      }\r\n    }\r\n\r\n    if (serviceId) {\r\n      const health = registry.getHealth(serviceId);\r\n      if (health.state === 'RATE_LIMITED') {\r\n        this.logger.warn({ model: selectedModel, cooldown: health.cooldownSeconds, service: serviceId }, 'Router selected rate-limited model - forcing reroute via local priority');\r\n\r\n        // Re-route with explicit localized pressure\r\n        const reroute = await this.router.route(currentMessage + ' (FORCED_LOCAL: Cloud service is restricted)');\r\n        if (reroute.ok && reroute.value !== selectedModel) {\r\n          selectedModel = reroute.value;\r\n        }\r\n      }\r\n    }\r\n\r\n    this.emit('modelCalled', { model: selectedModel, prompt: augmentedPrompt });\r\n\r\n    // 2. Call Model (Standard or Adversarial)\r\n    let callResult: Result<ModelResponse>;\r\n\r\n    if (action === 'MODIFY' && this.geminiService) {\r\n      // High-stakes modification: Use Adversarial Loop\r\n      callResult = await this.adversarialOrchestrator.generateValidatedCode(\r\n        augmentedPrompt,\r\n        selectedModel,\r\n        { fileName: context.filePath }\r\n      );\r\n\r\n      // Phase 12: Quantum Escalation on failure (Maximal Complexity)\r\n      if (!callResult.ok) {\r\n        this.logger.warn('Adversarial Loop failed to reach consensus. Escalating to Quantum Superposition...');\r\n        const quantum = this.limbs.find(l => l.id === 'quantum_superposition');\r\n        if (quantum) {\r\n          const qResult = await quantum.execute({ prompt: augmentedPrompt });\r\n          if (qResult.ok) {\r\n            callResult = {\r\n              ok: true,\r\n              value: {\r\n                response: qResult.value.output,\r\n                model: 'quantum-superposition',\r\n                latency: Date.now() - context.startTime\r\n              }\r\n            };\r\n          }\r\n        }\r\n      }\r\n    } else {\r\n      // Standard Research/Verify: Direct Executor call\r\n      callResult = await this.modelExecutor.callModel(selectedModel, augmentedPrompt, tools);\r\n    }\r\n\r\n    if (!callResult.ok) {\r\n      this.logger.error({ error: callResult.error.message, model: selectedModel }, 'Primary model call failed - checking for Sovereign Shell fallback');\r\n\r\n      this.router.recordFailure(selectedModel);\r\n      const error = (callResult as { error: Error }).error;\r\n      this.recordFailureMetadata(selectedModel, augmentedPrompt, error.message, (context as { filePath: string }).filePath);\r\n\r\n      // Sovereign Shell Fallback Logic\r\n      if (selectedModel.includes('gemini')) {\r\n        this.logger.warn('Gemini API restricted - falling back to global gemini CLI');\r\n        const shellResult = await this.executeSovereignFallback('gemini_cli_exec', augmentedPrompt);\r\n        if (shellResult.ok) {\r\n          return {\r\n            status: 'stop', // CLI usually handles the full task or specific edit\r\n            terminateReason: AgentTerminateMode.GOAL,\r\n            finalResult: shellResult.value.output,\r\n            model: 'sovereign-shell-gemini'\r\n          };\r\n        }\r\n      }\r\n\r\n      // Cloudflare Fallback\r\n      if (selectedModel.includes('@cf/')) {\r\n        this.logger.warn('Cloudflare API restricted - falling back to global wrangler CLI');\r\n        const shellResult = await this.executeSovereignFallback('wrangler_global_exec', augmentedPrompt);\r\n        if (shellResult.ok) {\r\n          return {\r\n            status: 'stop',\r\n            terminateReason: AgentTerminateMode.GOAL,\r\n            finalResult: shellResult.value.output,\r\n            model: 'sovereign-shell-wrangler'\r\n          };\r\n        }\r\n      }\r\n\r\n      this.emit('executionError', { error: (callResult as { error: Error }).error, context });\r\n      return {\r\n        status: 'stop',\r\n        terminateReason: AgentTerminateMode.ERROR,\r\n        finalResult: null,\r\n        model: selectedModel\r\n      };\r\n    }\r\n\r\n    this.router.recordSuccess(selectedModel);\r\n\r\n    // 3. Process Logic (Handle Formal Function Calls and Sandbox Commands)\r\n    const processResult = await this.processFunctionCalls(callResult.value, context.plan);\r\n    return { ...processResult, model: selectedModel };\r\n  } catch(error: unknown) {\r\n    const message = error instanceof Error ? error.message : String(error);\r\n    this.logger.error({ error: message }, 'Turn execution failed');\r\n    return {\r\n      status: 'stop',\r\n      terminateReason: AgentTerminateMode.ERROR,\r\n      finalResult: message,\r\n      model: 'unknown'\r\n    };\r\n  }\r\n\r\n  /**\r\n   * Executes a terminal-based fallback using the SovereignShellLimb.\r\n   */\r\n  private async executeSovereignFallback(toolName: string, prompt: string): Promise<Result<Execution>> {\r\n    const res = await this.sovereignShellLimb.handleToolCall(toolName, { args: prompt });\r\n    return res as unknown as Result<Execution>;\r\n  }\r\n\r\n  /**\r\n   * Maps text-based command extraction to formal Function Calls\r\n   * Wraps Sandbox.execute logic\r\n   */\r\n  private async processFunctionCalls(modelResponse: ModelResponse, plan?: ExecutionPlan): Promise<AgentTurnResult> {\r\n    const { response, functionCalls } = modelResponse;\r\n    const commands = this.sandbox.extractCommands(response);\r\n\r\n    let executionResults = '';\r\n\r\n    // Handle Task Completion (Signal from model)\r\n    const safeResponse = response || '';\r\n    if (safeResponse.includes('TASK_COMPLETE')) {\r\n      return {\r\n        status: 'stop',\r\n        terminateReason: AgentTerminateMode.GOAL,\r\n        finalResult: response\r\n      };\r\n    }\r\n\r\n    // Priority 1: Handle Formal Function Calls (Limbs)\r\n    if (functionCalls && functionCalls.length > 0) {\r\n      this.logger.info({ count: functionCalls.length }, 'Formal Tool Calls Detected');\r\n      for (const call of functionCalls) {\r\n        // Interference Check (Phase 22: Proactive Health)\r\n        const interference = await this.checkMonitorInterference(plan);\r\n        if (interference) return interference;\r\n\r\n        let result: Result<Execution> = { ok: false, error: new Error(`No handler for tool: ${call.name}`) };\r\n\r\n        // Dynamic routing to limb that owns the tool\r\n        let handled = false;\r\n        for (const limb of this.limbs) {\r\n          if (limb.getTools && limb.handleToolCall) {\r\n            const tools = limb.getTools();\r\n            const hasTool = tools.some(group => group.functionDeclarations.some((f: { name: string }) => f.name === call.name));\r\n            if (hasTool) {\r\n              result = await limb.handleToolCall(call.name, call.args);\r\n              handled = true;\r\n              break;\r\n            }\r\n          }\r\n        }\r\n\r\n        // All tool calls (Limbs & Control Plane) are now handled via the ToolingSpine in handleToolCall\r\n        if (!handled) {\r\n          this.logger.warn({ tool: call.name }, 'Tool call not handled by any registered limb');\r\n        }\r\n\r\n        executionResults += `\\nTool: ${call.name}\\nResult: ${result.ok ? JSON.stringify(result.value) : result.error.message}\\n`;\r\n      }\r\n    }\r\n\r\n    // Priority 2: Handle Legacy Sandbox Commands (Extract from text)\r\n    if (commands.length > 0) {\r\n      this.logger.info({ count: commands.length }, 'Tool Calls (Sandbox) Detected');\r\n      for (const cmd of commands) {\r\n        // Interference Check (Phase 22: Proactive Health)\r\n        const interference = await this.checkMonitorInterference(plan);\r\n        if (interference) return interference;\r\n\r\n        const execResult = await this.sandbox.execute(cmd);\r\n\r\n        if (!execResult.ok) {\r\n          this.logger.error({ cmd, error: execResult.error }, 'Tool Execution Failed');\r\n          executionResults += `\\nCommand: ${cmd}\\nError: ${execResult.error.message}\\n`;\r\n          break; // Stop on first error\r\n        }\r\n\r\n        const resultValue = execResult.value;\r\n        const success = resultValue.exitCode === 0;\r\n        const output = success ? resultValue.stdout : resultValue.stderr;\r\n\r\n        executionResults += `\\nCommand: ${cmd}\\nExit Code: ${resultValue.exitCode}\\nOutput: ${output}\\n`;\r\n        this.emit('commandExecuted', { command: cmd, success: success ? SuccessRating.Success : SuccessRating.Failure, output });\r\n\r\n        if (!success) break; // Stop on first error\r\n      }\r\n    }\r\n\r\n    // CASE 3: No actionable items found\r\n    if (!executionResults) {\r\n      return {\r\n        status: 'stop',\r\n        terminateReason: AgentTerminateMode.GOAL,\r\n        finalResult: response\r\n      };\r\n    }\r\n\r\n    const nextMessage = `Tool Execution Results:\\n${executionResults}\\n\\nBased on these results, proceed with the next step or finalize with TASK_COMPLETE.`;\r\n\r\n    return {\r\n      status: 'continue',\r\n      nextMessage\r\n    };\r\n  }\r\n\r\n  /**\r\n   * Checks background health and interrupts if critical errors are found.\r\n   */\r\n  private async checkMonitorInterference(plan?: ExecutionPlan): Promise<AgentTurnResult | null> {\r\n    if (!this.monitorAgent) return null;\r\n\r\n    const result = await this.monitorAgent.diagnoseState(plan);\r\n    if (result.decision === 'Yang') return null; // Proceed (Healthy or Planned Drift)\r\n\r\n    if (result.decision === 'Yin') {\r\n      this.logger.warn({ reasoning: result.reasoning }, 'MONITOR INTERFERENCE: Critical failure detected');\r\n      return {\r\n        status: 'stop',\r\n        terminateReason: AgentTerminateMode.ERROR,\r\n        finalResult: `INTERRUPT: ${result.reasoning}`\r\n      };\r\n    }\r\n\r\n    if (result.decision === 'YinYang') {\r\n      this.logger.info({ reasoning: result.reasoning }, 'MONITOR INTERVENTION: Proactive Patch needed');\r\n      // Background handleAutoHeal will catch this via the event listener, \r\n      // but we return a 'continue' result that essentially \"waits\" or suggests a retry.\r\n      return {\r\n        status: 'continue',\r\n        nextMessage: `SYSTEM INTERVENTION: ${result.reasoning}\\nWaiting for auto-patch to complete...`\r\n      };\r\n    }\r\n\r\n    return null;\r\n  }\r\n\r\n  /**\r\n   * Pauses execution and waits for human feedback via WebSocket\r\n   */\r\n  public async pauseForUserFeedback(message: string): Promise<string> {\r\n    this.logger.info({ message }, 'Pausing for Human-in-the-Loop feedback...');\r\n    this.emit('awaitingFeedback', { message });\r\n\r\n    return new Promise((resolve) => {\r\n      this.once('userFeedback', (feedback: string) => {\r\n        this.logger.info('Feedback received, resuming execution');\r\n        resolve(feedback);\r\n      });\r\n    });\r\n  }\r\n\r\n  /**\r\n   * Final Chance Logic (Copied from Gemini CLI resilience pattern)\r\n   */\r\n\r\n\r\n\r\n  private recordSuccessMetadata(model: string, prompt: string, latency: number, filePath?: string): void {\r\n    const taskType = TaskClassifier.classify(prompt);\r\n    const performance: ModelPerformance = {\r\n      model,\r\n      taskType,\r\n      extension: filePath?.split('.').pop() ?? '',\r\n      latency,\r\n      success: SuccessRating.Success,\r\n      timestamp: Date.now(),\r\n      isFree: CostTier.Free\r\n    };\r\n    this.router.recordPerformance(performance);\r\n\r\n    // Learn from success (VectorDB)\r\n    void (async () => {\r\n      let embedding = new Float32Array(this.config.embeddingDimensions).fill(0.1); // Fallback\r\n\r\n      if (this.geminiService) {\r\n        const embedResult = await this.geminiService.embed(prompt);\r\n        if (embedResult.ok) {\r\n          embedding = new Float32Array(embedResult.value);\r\n        }\r\n      }\r\n\r\n      const lesson: Lesson & { projectId: string } = {\r\n        id: `lesson_${Date.now()}`,\r\n        text: prompt,\r\n        embedding: embedding,\r\n        sessionId: this.sessionId,\r\n        projectId: this.config.projectId,\r\n        errorType: 'none',\r\n        createdAt: Date.now(),\r\n        metadata: { model, taskType, path: filePath }\r\n      };\r\n      await this.vectorDB.addLesson(lesson);\r\n    })();\r\n  }\r\n\r\n  private recordFailureMetadata(model: string, prompt: string, errorMsg: string, filePath?: string): void {\r\n    const taskType = TaskClassifier.classify(prompt);\r\n\r\n    // Learn from failure (VectorDB)\r\n    void (async () => {\r\n      let embedding = new Float32Array(this.config.embeddingDimensions).fill(0.1);\r\n\r\n      if (this.geminiService) {\r\n        const embedResult = await this.geminiService.embed(prompt);\r\n        if (embedResult.ok) {\r\n          embedding = new Float32Array(embedResult.value);\r\n        }\r\n      }\r\n\r\n      const lesson: Lesson & { projectId: string } = {\r\n        id: `fail_${Date.now()}`,\r\n        text: prompt,\r\n        embedding: embedding,\r\n        sessionId: this.sessionId,\r\n        projectId: this.config.projectId,\r\n        errorType: errorMsg,\r\n        createdAt: Date.now(),\r\n        regretLikelihood: 1, // High regret for failures\r\n        metadata: { model, taskType, path: filePath, status: 'failed' }\r\n      };\r\n      await this.vectorDB.addLesson(lesson);\r\n    })();\r\n  }\r\n\r\n  private async callModel(model: string, prompt: string, tools?: Tool[]): Promise<Result<ModelResponse>> {\r\n    return this.modelExecutor.callModel(model, prompt, tools);\r\n  }\r\n\r\n  // Removed local classifyTaskType to use TaskClassifier\r\n\r\n  private recordIntent(context: ExecutionContext, model: string, success: SuccessRating, time: number, output?: string, data?: unknown): void {\r\n    this.intentHistory.push({\r\n      sessionId: context.sessionId || '',\r\n      query: context.prompt || '',\r\n      selectedModel: model || 'unknown',\r\n      success,\r\n      timestamp: context.startTime || Date.now(),\r\n      executionTime: time,\r\n      output: output || '',\r\n      data: data || null\r\n    });\r\n\r\n    // Update Neural Latency (Rolling average of last 5)\r\n    const recentExecs = this.intentHistory.slice(-5).map(i => i.executionTime);\r\n    if (recentExecs.length > 0) {\r\n      this.neuralLatency = recentExecs.reduce((a, b) => a + b, 0) / recentExecs.length;\r\n    }\r\n\r\n    this.emit('intentExecuted', this.intentHistory[this.intentHistory.length - 1] as any);\r\n\r\n    // Neural Heatmap: Track success patterns\r\n    if (success && output?.includes('Tool result:')) {\r\n      const toolMatch = output.match(/Tool result: (\\w+)/);\r\n      const tn = toolMatch ? toolMatch[1] : null;\r\n      if (tn) {\r\n        this.toolUsageHeatmap[tn] = (this.toolUsageHeatmap[tn] || 0) + 1;\r\n      }\r\n    }\r\n\r\n    if (this.intentHistory.length > 1000) this.intentHistory.shift();\r\n  }\r\n\r\n  getCurrentState(): Record<string, unknown> {\r\n    return {\r\n      sessionId: this.sessionId,\r\n      intentCount: this.intentHistory.length,\r\n      recentIntents: this.intentHistory.slice(-10),\r\n      neuralLatency: this.neuralLatency || 0,\r\n      enabledServices: this.config.enabledServices,\r\n      limbs: this.limbs.map(l => {\r\n        const status = typeof l.getStatus === 'function' ? l.getStatus() : { id: l.id, type: l.type, capabilities: l.capabilities };\r\n        return status;\r\n      }),\r\n      workspaces: this.config.workspaces || [],\r\n      activeWorkspace: this.config.projectRoot,\r\n      pinnedFiles: this.contextBuilder.getPinnedFiles(),\r\n      modelInventory: ModelInventory.getAvailableModels(),\r\n      terminalTelemetry: {\r\n        lastProcess: 'PowerShell Extension (14528)',\r\n        status: 'Active',\r\n        lastOutput: '... BAAI general embedding ... Aura-2 Text-to-Speech ...'\r\n      },\r\n      envStatus: this.envStatus,\r\n      systemHealth: this.getSystemHealth(),\r\n      activeHexagram: this.hexagramManager.getInterpretation(),\r\n      hexagramLines: (this.hexagramManager as any).lines || [],\r\n      activeMemories: this.activeMemories.map(m => ({ text: m['text'], projectId: m.projectId, type: m.metadata?.['type'] })),\r\n      sovereignVoice: this.currentNarrative,\r\n      neuralHeatmap: this.toolUsageHeatmap\r\n    };\r\n  }\r\n\r\n  private async broadcastPulse(): Promise<void> {\r\n    await this.refreshSystemHealth();\r\n    if (!this.wsServer) return;\r\n\r\n    const health = this.getSystemHealth();\r\n    const hex = this.hexagramManager.getInterpretation();\r\n    // Intensity weighted by hexagram strategy (MAINTAIN=0.3, EXPAND=0.9, etc.)\r\n    const strategyWeight = hex.strategy === 'EXPAND' ? 0.9 :\r\n      hex.strategy === 'MAINTAIN' ? 0.6 :\r\n        hex.strategy === 'ARBITRATE' ? 0.75 : 0.4;\r\n\r\n    // Metabolic spark probability weighted by CPU load and hexagram\r\n    const sparkProb = (this.cachedHealth.cpu / 100) * strategyWeight;\r\n\r\n    const pulse = {\r\n      timestamp: Date.now(),\r\n      intensity: 0.5 + (0.5 * strategyWeight),\r\n      spark: Math.random() < sparkProb,\r\n      health: health\r\n    };\r\n\r\n    const payload = JSON.stringify({ type: 'pulse', data: pulse });\r\n    this.wsServer.clients.forEach(client => {\r\n      if (client.readyState === 1) client.send(payload);\r\n    });\r\n  }\r\n\r\n  private async generateSovereignVoice(): Promise<void> {\r\n    const metrics = this.getSystemHealth();\r\n    const ghostStatus = this.ghostLimb.getStatus();\r\n    const isGhostActive = ghostStatus['engagementLevel'] === 1; // HealthStatus.Ready\r\n\r\n    // TERNARY FAILOVER: If Ghost is Master (+1), skip Cloud narrative\r\n    if (isGhostActive) {\r\n      this.currentNarrative = this.ghostLimb.generateLocalNarrative(metrics);\r\n      this.logger.info({ narrative: this.currentNarrative }, 'Sovereign Voice updated (Ghost Failover)');\r\n      this.broadcastState();\r\n      return;\r\n    }\r\n\r\n    if (!this.geminiService) return;\r\n  }\r\n\r\n  private async refreshSystemHealth(): Promise<void> {\r\n    try {\r\n      const totalMem = os.totalmem();\r\n      const freeMem = os.freemem();\r\n      const memUsage = ((totalMem - freeMem) / totalMem) * 100;\r\n\r\n      const cpus = os.cpus();\r\n      let totalIdle = 0;\r\n      let totalTick = 0;\r\n\r\n      cpus.forEach(core => {\r\n        for (const type in core.times) {\r\n          totalTick += (core.times as any)[type];\r\n        }\r\n        totalIdle += core.times.idle;\r\n      });\r\n\r\n      const cpuUsage = 100 - (100 * totalIdle / totalTick);\r\n\r\n      // Real Disk Usage (Windows specific as per OS metadata)\r\n      const diskUsage = await new Promise<number>((resolve) => {\r\n        const cmd = `powershell -Command \"Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DeviceID -eq 'C:' } | Select-Object @{Name='Pct';Expression={($_.FreeSpace / $_.Size) * 100}}\"`;\r\n        const { exec } = require('child_process');\r\n        exec(cmd, (error: any, stdout: string) => {\r\n          if (error) return resolve(0);\r\n          const dmatch = stdout.match(/(\\d+\\.?\\d*)/);\r\n          if (dmatch && dmatch[1]) {\r\n            // Percent free, so 100 - free = used\r\n            resolve(100 - parseFloat(dmatch[1]));\r\n          } else {\r\n            resolve(0);\r\n          }\r\n        });\r\n      });\r\n\r\n      this.cachedHealth = {\r\n        cpu: cpuUsage,\r\n        mem: memUsage,\r\n        disk: diskUsage\r\n      };\r\n    } catch (e) {\r\n      this.logger.error({ error: e }, 'Failed to refresh system health metrics');\r\n    }\r\n  }\r\n\r\n  private getSystemHealth(): { cpu: number; mem: number; disk: number } {\r\n    return this.cachedHealth;\r\n  }\r\n\r\n  public async switchWorkspace(newRoot: string): Promise<Result<void>> {\r\n    try {\r\n      this.logger.info({ newRoot }, 'Switching active workspace');\r\n\r\n      // 1. Update services\r\n      this.contextBuilder.setProjectRoot(newRoot);\r\n      this.indexer.setProjectRoot(newRoot);\r\n      this.watcher.setProjectRoot(newRoot);\r\n\r\n      // 2. Hack-update config (readonly bypass)\r\n      (this.config as any).projectRoot = newRoot;\r\n\r\n      // 3. Trigger re-indexing if needed\r\n      const lessonCount = await this.vectorDB.getLessonCount();\r\n      if (lessonCount === 0) {\r\n        void this.indexer.indexProject();\r\n      }\r\n\r\n      this.broadcastState();\r\n      return { ok: true, value: undefined };\r\n    } catch (error) {\r\n      return { ok: false, error: error as Error };\r\n    }\r\n  }\r\n\r\n  public pinFile(path: string): void {\r\n    this.contextBuilder.pinFile(path);\r\n    this.broadcastState();\r\n  }\r\n\r\n  public unpinFile(path: string): void {\r\n    this.contextBuilder.unpinFile(path);\r\n    this.broadcastState();\r\n  }\r\n\r\n  private broadcastState(): void {\r\n    this.broadcastToDashboard('state', this.getCurrentState());\r\n  }\r\n\r\n  // Consolidated into the previous broadcastPulse\r\n\r\n  private broadcastToDashboard(type: string, data: any): void {\r\n    if (!this.wsServer) return;\r\n    const msg = JSON.stringify({ type, data });\r\n    this.wsServer.clients.forEach(client => {\r\n      if (client.readyState === 1) client.send(msg);\r\n    });\r\n  }\r\n\r\n  private handleControlMessage(payload: { command: string; data: Record<string, any> }, ws: import('ws').WebSocket): void {\r\n    const { command, data } = payload;\r\n    this.logger.info({ command, data }, 'Dashboard control message dispatch initiating');\r\n\r\n    // MAPPING: Commands -> Logical Tools in limbs\r\n    // This adheres to the rule \"any tools must be added to spine\"\r\n    const commandMap: Record<string, { limbId: string; toolName: string }> = {\r\n      'requestState': { limbId: 'dashboard', toolName: 'show_dashboard' }, // Shows dashboard state too\r\n      'toggleService': { limbId: 'dashboard', toolName: 'toggle_service' },\r\n      'switchWorkspace': { limbId: 'dashboard', toolName: 'switch_workspace' },\r\n      'pinFile': { limbId: 'dashboard', toolName: 'pin_file' },\r\n      'unpinFile': { limbId: 'dashboard', toolName: 'unpin_file' },\r\n      'media_forge_request': { limbId: 'neural_forge', toolName: 'forge_media' },\r\n      'requestBooks': { limbId: 'gutenberg_knowledge', toolName: 'get_library' },\r\n      'readBook': { limbId: 'gutenberg_knowledge', toolName: 'read_book' },\r\n      'narrateBook': { limbId: 'gutenberg_knowledge', toolName: 'narrate_book' },\r\n      'transcribeAudiobook': { limbId: 'gutenberg_knowledge', toolName: 'audiobook_transcribe' },\r\n      'forge_storyboard': { limbId: 'gutenberg_knowledge', toolName: 'generate_storyboard' },\r\n      'invoke_limb_tool': {\r\n        limbId: (data)['limbId'] || 'unknown',\r\n        toolName: (data)['toolName'] || 'unknown'\r\n      }\r\n    };\r\n\r\n    const mapped = commandMap[command];\r\n\r\n    // SOVEREIGN VIGILANCE: Audit command against hexagram strategy\r\n    // This adds a deep intelligence layer to the control plane.\r\n    const vigilance = this.auditCommandVigilance(command, data);\r\n    if (vigilance.decision === -1) {\r\n      this.logger.warn({ command, reason: vigilance.reason }, 'Command blocked by Sovereign Vigilance Engine');\r\n      ws.send(JSON.stringify({\r\n        type: 'intentExecuted',\r\n        data: {\r\n          query: `Dashboard: ${command}`,\r\n          selectedModel: 'VigilanceEngine',\r\n          success: false,\r\n          output: `VIGILANCE BLOCK (Strategy: ${this.hexagramManager.getInterpretation().strategy}): ${vigilance.reason}`,\r\n          data: { blocked: true, strategy: this.hexagramManager.getInterpretation().strategy }\r\n        }\r\n      }));\r\n      return;\r\n    }\r\n\r\n    if (vigilance.decision === 0) {\r\n      this.logger.info({ command, reason: vigilance.reason }, 'Command cautionary via Sovereign Vigilance');\r\n      // We proceed but could inject a warning note in logs or separate events\r\n    }\r\n\r\n    // CASE: requestState is a special internal state request (Shortcut)\r\n    if (command === 'requestState') {\r\n      ws.send(JSON.stringify({ type: 'state', data: this.getCurrentState() }));\r\n      return;\r\n    }\r\n\r\n    if (mapped) {\r\n      const targetLimb = this.limbs.find(l => l.id === mapped.limbId);\r\n      if (targetLimb && targetLimb.handleToolCall) {\r\n        void targetLimb.handleToolCall(mapped.toolName, data || {}).then(res => {\r\n          // Secondary Side Effects based on tool result\r\n          if (res.ok && (res.value as any).action) {\r\n            const exec = res.value as any;\r\n            if (exec.action === 'switch_workspace') this.switchWorkspace(exec.data.path);\r\n            if (exec.action === 'pin_file') this.pinFile(exec.data.path);\r\n            if (exec.action === 'unpin_file') this.unpinFile(exec.data.path);\r\n          }\r\n\r\n          // Broadcast updates to all clients\r\n          this.broadcastState();\r\n\r\n          // If it was a forge or complex task, send back as intent execution\r\n          if (['media_forge_request', 'narrateBook', 'transcribeAudiobook', 'invoke_limb_tool'].includes(command)) {\r\n            const intentData = {\r\n              query: `Dashboard Command: ${command}`,\r\n              selectedModel: `Limb:${mapped.limbId}`,\r\n              success: res.ok,\r\n              output: res.ok ? (res.value.output || 'Action completed') : `Error: ${res.error.message}`,\r\n              data: res.ok ? res.value.data : null\r\n            };\r\n            ws.send(JSON.stringify({ type: 'intentExecuted', data: intentData }));\r\n          } else if (command === 'readBook' && res.ok) {\r\n            ws.send(JSON.stringify({ type: 'bookContent', data: res.value.data }));\r\n          } else if (command === 'requestBooks' && res.ok) {\r\n            ws.send(JSON.stringify({ type: 'books', data: (res.value.data as any).books }));\r\n          }\r\n        });\r\n      } else {\r\n        this.logger.warn({ command, mapped }, 'Target limb not found for mapped command');\r\n      }\r\n    } else {\r\n      this.logger.warn({ command }, 'Received unmapped control command');\r\n    }\r\n  }\r\n\r\n  /**\r\n   * VigilanceEngine: Audits control plane commands via Ternary logic and Hexagram Strategy.\r\n   * Ensures high-risk actions align with the system's current archetypal directive.\r\n   * Logic is expanded to avoid \"minimalism\" and maximize safety.\r\n   */\r\n  private auditCommandVigilance(command: string, data: any): { decision: number; reason: string } {\r\n    const hex = this.hexagramManager.getInterpretation();\r\n    const strategy = hex.strategy;\r\n\r\n    // Risk Categorization Matrix\r\n    const highRisk = ['switchWorkspace', 'toggleService', 'media_forge_request', 'invoke_limb_tool'];\r\n    const destructive = ['toggleService']; // Disabling services is destructive\r\n    const creative = ['media_forge_request', 'forge_storyboard'];\r\n\r\n    const isHighRisk = highRisk.includes(command);\r\n    const isDestructive = destructive.includes(command) && data?.enabled === false;\r\n    const isCreative = creative.includes(command);\r\n\r\n    // Policy 1: YIELD Strategy blocks all High-Risk mutations\r\n    if (strategy === 'YIELD' && isHighRisk) {\r\n      return {\r\n        decision: -1,\r\n        reason: `Substrate is in YIELD mode (Archetype: ${hex.name}). Critical mutations are frozen to prevent entropy.`\r\n      };\r\n    }\r\n\r\n    // Policy 2: ARBITRATE Strategy requires caution for Destructive actions\r\n    if (strategy === 'ARBITRATE' && isDestructive) {\r\n      return {\r\n        decision: 0,\r\n        reason: `System is ARBITRATING. Disabling services during conflict state is discouraged but allowed.`\r\n      };\r\n    }\r\n\r\n    // Policy 3: EXPAND Strategy boosts Creative actions and allows all mutations\r\n    if (strategy === 'EXPAND') {\r\n      return {\r\n        decision: 1,\r\n        reason: `Expansion directive active. ${isCreative ? 'Creative forging optimized for OMEGA state.' : 'Structural evolution permitted.'}`\r\n      };\r\n    }\r\n\r\n    // Policy 4: MAINTAIN Strategy allows non-destructive structural change\r\n    if (strategy === 'MAINTAIN') {\r\n      if (isDestructive) return { decision: 0, reason: `Maintaining equilibrium. Service disruption should be minimized.` };\r\n      return { decision: 1, reason: `System equilibrium nominal.` };\r\n    }\r\n\r\n    // Default: Nominal All Clear\r\n    return { decision: 1, reason: `Command ${command} assessed as low-risk for current archetype ${hex.name}.` };\r\n  }\r\n\r\n  public getIntentHistory(): IntentHistory[] { return [...this.intentHistory]; }\r\n\r\n  /**\r\n   * Phase 17: Build a delta-based context string\r\n   * Mirrors gemini-cli's logic for token efficiency\r\n   */\r\n  private async buildContextDelta(context: import('../context/ContextBuilder.js').FileContext): Promise<string> {\r\n    const parts: string[] = [];\r\n    const root = this.config.projectRoot;\r\n    const changedFiles: string[] = [];\r\n    const unchangedFiles: string[] = [];\r\n\r\n    const allFiles = [\r\n      resolve(root, context.primary),\r\n      ...(context.imports || []),\r\n      ...(context.sameDirectory?.map(f => resolve(root, f)) || []),\r\n      ...(context.related?.map(f => resolve(root, f)) || [])\r\n    ];\r\n\r\n    const uniqueFiles = Array.from(new Set(allFiles));\r\n\r\n    for (const absPath of uniqueFiles) {\r\n      try {\r\n        const content = fs.readFileSync(absPath, 'utf8');\r\n        const hash = createHash('md5').update(content).digest('hex');\r\n        const relPath = relative(root, absPath);\r\n\r\n        if (this.forceFullContext || this.lastSentFileHashes.get(absPath) !== hash) {\r\n          parts.push(`--- FILE UPDATE: ${relPath} ---`);\r\n          parts.push('```typescript');\r\n          parts.push(content);\r\n          parts.push('```\\n');\r\n          this.lastSentFileHashes.set(absPath, hash);\r\n          changedFiles.push(relPath);\r\n        } else {\r\n          unchangedFiles.push(relPath);\r\n        }\r\n      } catch {\r\n        // Skip inaccessible files\r\n      }\r\n    }\r\n\r\n    if (unchangedFiles.length > 0) {\r\n      parts.push(`\\nNote: The following files are unchanged and still in your context: ${unchangedFiles.join(', ')}`);\r\n    }\r\n\r\n    this.logger.debug({ changed: changedFiles.length, unchanged: unchangedFiles.length }, 'Context Delta calculated');\r\n    return parts.join('\\n');\r\n  }\r\n\r\n  private getAllAvailableTools(): Tool[] {\r\n    const allTools: Tool[] = [];\r\n    for (const limb of this.limbs) {\r\n      if (limb.getTools) {\r\n        allTools.push(...limb.getTools());\r\n      }\r\n    }\r\n    return allTools;\r\n  }\r\n\r\n  private getControlPlaneTools(): Tool[] {\r\n    return this.getAllAvailableTools();\r\n  }\r\n\r\n\r\n  private async handleAudioInput(base64Data: string, ws: import('ws').WebSocket): Promise<void> {\r\n    try {\r\n      this.logger.info('Received audio input from dashboard - transcribing...');\r\n      const buffer = Buffer.from(base64Data, 'base64');\r\n\r\n      const result = await this.modelExecutor.transcribeAudio(buffer);\r\n      if (result.ok) {\r\n        const text = result.value;\r\n        this.logger.info({ transcription: text }, 'Audio transcription successful');\r\n\r\n        // Send transcription back for UI feedback\r\n        if (ws.readyState === 1) {\r\n          ws.send(JSON.stringify({ type: 'transcription', data: { text } }));\r\n        }\r\n\r\n        // Execute the transcribed text as a prompt\r\n        if (text.trim().length > 3) {\r\n          void this.executeIntent(text);\r\n        }\r\n      } else {\r\n        this.logger.error({ error: result.error }, 'Audio transcription failed');\r\n      }\r\n    } catch (e) {\r\n      this.logger.error({ error: e }, 'Critical error in audio processing');\r\n    }\r\n  }\r\n\r\n  async cleanup(reason = 'unknown'): Promise<void> {\r\n    this.logger.info({ reason }, 'Cleaning up orchestrator');\r\n    await this.previewServer.stopAll();\r\n    if (this.wsServer) {\r\n      this.wsServer.close();\r\n      this.wsServer = undefined;\r\n    }\r\n    if (this.monitorAgent) {\r\n      this.monitorAgent.removeAllListeners();\r\n    }\r\n    this.removeAllListeners();\r\n  }\r\n}",
+        "usedDeprecatedRules": [
+            {
+                "ruleId": "no-extra-semi",
+                "replacedBy": []
+            },
+            {
+                "ruleId": "no-mixed-spaces-and-tabs",
+                "replacedBy": []
+            }
+        ]
+    }
+]

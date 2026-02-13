@@ -28,7 +28,7 @@ export interface LogEntry {
 }
 
 export class PreviewServer extends EventEmitter {
-    private activePreviews: Map<string, {
+    private readonly activePreviews: Map<string, {
         process: ChildProcess;
         metadata: PreviewMetadata;
         logs: LogEntry[]

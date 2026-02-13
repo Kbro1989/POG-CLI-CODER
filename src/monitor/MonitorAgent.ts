@@ -16,7 +16,7 @@ import { ModelExecutor } from '../core/ModelExecutor.js';
 import { HealthRegistry } from '../core/HealthRegistry.js';
 import { SystemEnvChecker } from '../utils/SystemEnvChecker.js';
 import { SelfHealingEngine, ExecutionPlan } from './SelfHealingEngine.js';
-import type { VibeConfig, Ternary } from '../core/models.js';
+import type { VibeConfig, CognitiveChoice } from '../core/models.js';
 import { BuildStatus, HealthStatus } from '../core/models.js';
 
 const logger = pino({
@@ -28,6 +28,7 @@ export interface MonitorAgentEvents {
     issueDetected: (report: MonitorReport) => void;
     healthCheckPassed: () => void;
     provenanceCandidate: (filePath: string) => void;
+    node_discovered: (data: unknown) => void;
 }
 
 export interface MonitorReport {
@@ -41,12 +42,12 @@ export interface MonitorReport {
 }
 
 export class MonitorAgent extends EventEmitter {
-    private tscMonitor: TSCMonitor;
-    private astWatcher: ASTWatcher;
-    private selfHealingEngine: SelfHealingEngine;
+    private readonly tscMonitor: TSCMonitor;
+    private readonly astWatcher: ASTWatcher;
+    private readonly selfHealingEngine: SelfHealingEngine;
     private isRunning: boolean = false;
     private healthCheckInterval?: NodeJS.Timeout;
-    private recentChanges: Set<string> = new Set();
+    private readonly recentChanges: Set<string> = new Set();
 
     private readonly MONITOR_MODEL: string;
     private readonly SNAPSHOT_MODEL: string;
@@ -61,6 +62,13 @@ export class MonitorAgent extends EventEmitter {
         this.tscMonitor = new TSCMonitor(config.projectRoot);
         this.astWatcher = new ASTWatcher(config);
         this.selfHealingEngine = new SelfHealingEngine(config.projectRoot, executor, this.SNAPSHOT_MODEL);
+    }
+
+    /**
+     * Get the current set of TSC errors for health monitoring.
+     */
+    public getCurrentErrors(): readonly TSCError[] {
+        return this.tscMonitor.getCurrentErrors();
     }
 
     override on<K extends keyof MonitorAgentEvents>(
@@ -249,9 +257,9 @@ Respond with ONLY: tsc, build, or ignore`;
 
     /**
      * Proactively diagnose the current substrate state.
-     * Returns a ternary decision: -1 (Critical), 0 (Patch), 1 (Continue)
+     * Returns a semantic decision: 'Yin' (Critical), 'YinYang' (Patch), 'Yang' (Continue)
      */
-    async diagnoseState(plan?: ExecutionPlan): Promise<{ decision: Ternary; reasoning: string }> {
+    async diagnoseState(plan?: ExecutionPlan): Promise<{ decision: CognitiveChoice; reasoning: string }> {
         const errors = this.tscMonitor.getCurrentErrors();
         if (errors.length === 0) {
             return { decision: BuildStatus.Passed, reasoning: 'Substrate healthy. Zero TSC errors detected.' };
@@ -264,7 +272,7 @@ Respond with ONLY: tsc, build, or ignore`;
     /**
      * Internal interference check for the Orchestrator loop.
      */
-    async checkInterference(plan?: ExecutionPlan): Promise<{ decision: Ternary; reasoning: string } | null> {
+    async checkInterference(plan?: ExecutionPlan): Promise<{ decision: CognitiveChoice; reasoning: string } | null> {
         const result = await this.diagnoseState(plan);
         if (result.decision === BuildStatus.Passed) return null; // No interference
         return result;

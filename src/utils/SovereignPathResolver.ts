@@ -22,12 +22,12 @@ export const enum PathTier {
 }
 
 // Core Sovereign Locations
-const SOVEREIGN_D_ROOT = 'D:\\pog-coder-vibe';
+const SOVEREIGN_D_ROOT = 'D:\\sovereign\\pog-coder-vibe';
 const SOVEREIGN_HOME_ROOT = join(homedir(), '.pog-coder-vibe');
 
 // Model Storage (separate from config for size reasons)
-const OLLAMA_D_PATH = 'D:\\ollama-models';
-const GUTENBERG_D_PATH = 'D:\\pog-gutenberg';
+const OLLAMA_D_PATH = 'D:\\sovereign\\ollama-models';
+const GUTENBERG_D_PATH = 'D:\\sovereign\\pog-gutenberg';
 
 // Cached project root for tier -1 resolution
 let _projectRoot: string | null = null;
@@ -142,7 +142,12 @@ export function getOllamaModelsPath(): string {
     const envPath = process.env['OLLAMA_MODELS_PATH'] || process.env['POG_ERROR_TRACKER_PATH'];
     if (envPath && existsSync(envPath)) return envPath;
 
-    if (hasSovereignDrive() && existsSync(OLLAMA_D_PATH)) {
+    if (hasSovereignDrive()) {
+        if (!existsSync(OLLAMA_D_PATH)) {
+            try {
+                mkdirSync(OLLAMA_D_PATH, { recursive: true });
+            } catch { /* Fallback */ }
+        }
         return OLLAMA_D_PATH;
     }
 
@@ -157,7 +162,16 @@ export function getGutenbergPath(): string {
     const envPath = process.env['POG_GUTENBERG_PATH'];
     if (envPath && existsSync(envPath)) return envPath;
 
-    if (hasSovereignDrive() && existsSync(GUTENBERG_D_PATH)) {
+    // Priority: Project-local library if it exists (e.g. for Gutenberg domains)
+    if (_projectRoot) {
+        const projectLocalGutenberg = join(_projectRoot, 'sovereign', 'pog-gutenberg');
+        if (existsSync(projectLocalGutenberg)) return projectLocalGutenberg;
+    }
+
+    if (hasSovereignDrive()) {
+        if (!existsSync(GUTENBERG_D_PATH)) {
+            mkdirSync(GUTENBERG_D_PATH, { recursive: true });
+        }
         return GUTENBERG_D_PATH;
     }
 
@@ -176,6 +190,13 @@ export function getCircuitStatePath(): string {
  * Gets path for learning database
  */
 export function getLearningDbPath(): string {
+    return resolveSovereignPath('vibe-learning.db');
+}
+
+/**
+ * Gets path for learning database
+ */
+export function getVectorDbPath(): string {
     return resolveSovereignPath('vibe-learning.db');
 }
 

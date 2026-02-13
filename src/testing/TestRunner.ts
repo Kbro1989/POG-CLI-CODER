@@ -21,7 +21,7 @@ export interface TestResult {
 }
 
 export class TestRunner {
-    private projectRoot: string;
+    private readonly projectRoot: string;
 
     constructor(projectRoot: string) {
         this.projectRoot = projectRoot;

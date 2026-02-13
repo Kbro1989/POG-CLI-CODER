@@ -11,14 +11,14 @@ export class CloudflarePipeline {
     /**
      * Execute a creative pipeline: Interpret -> Generate -> Persist
      */
-    async execute(task: string, type: 'image_gen' | 'code_forge' | 'assets_bake' = 'image_gen'): Promise<Result<any>> {
+    async execute(task: string, type: 'image_gen' | 'code_forge' | 'assets_bake' = 'image_gen'): Promise<Result<Record<string, unknown>>> {
         // Phase 1: Interpretation
         const interpretation = await this.interpretTask(task, type);
         if (!interpretation.ok) return interpretation;
         const prompt = interpretation.value;
 
         // Phase 2: Generation
-        let generation: Result<any>;
+        let generation: Result<Uint8Array>;
         if (type === 'image_gen') {
             generation = await this.generateImage(prompt);
         } else {
@@ -32,7 +32,7 @@ export class CloudflarePipeline {
         const persistence = await this.services.putObject(
             'workspace-bucketsespreview',
             assetName,
-            generation.value,
+            Buffer.from(generation.value),
             'image/png'
         );
 
@@ -73,7 +73,12 @@ Output ONLY the final prompt for the image generator.`;
         });
 
         if (!result.ok) return result;
-        return { ok: true, value: (result.value as any).response.trim() };
+
+        // Robust result extraction
+        const data = result.value as Record<string, any>;
+        const responseText = (data && typeof data === 'object' && 'response' in data) ? (data['response'] as string) : String(data);
+
+        return { ok: true, value: responseText.trim() };
     }
 
     private async generateImage(prompt: string): Promise<Result<Uint8Array>> {

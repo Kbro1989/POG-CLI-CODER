@@ -35,28 +35,27 @@ export class QuantumLimb extends BaseLimb {
                 schema: z.object({
                     prompt: z.string().describe('The prompt to analyze in superposition')
                 }),
-                handler: (args) => this.executeSuperposition(args['prompt'])
+                handler: (args) => this.executeSuperposition(args['prompt'] as string) as Promise<Result<unknown>>
             }
         ]);
     }
 
-    private async executeSuperposition(prompt: string): Promise<any> {
-        const res = await this.execute({ prompt });
-        return res.ok ? res.value : { output: `Superposition failed: ${res.error.message}`, data: { error: true } };
+    private async executeSuperposition(prompt: string): Promise<Result<import('../core/NeuralLimb.js').Execution>> {
+        return await this.execute({ prompt });
     }
 
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const userIntent = this.getUserIntent(intent).toLowerCase();
 
-        // +1: Explicit quantum keywords = optimal
-        if (userIntent.includes('quantum') || userIntent.includes('superposition')) return 1;
+        // 'Yang': Explicit quantum keywords = optimal
+        if (userIntent.includes('quantum') || userIntent.includes('superposition')) return 'Yang';
 
         // Ternary complexity thresholds
-        const context = intent.context as Record<string, any>;
-        const complexity = context?.['complexity'] ?? 0.5;
-        if (complexity > 0.9) return 1;   // Very high complexity = escalate
-        if (complexity > 0.7) return 0;   // High complexity = maybe
-        return -1;                         // Normal complexity = skip
+        const context = intent.context as Record<string, unknown>;
+        const complexity = (context?.['complexity'] as number) ?? 0.5;
+        if (complexity > 0.9) return 'Yang';   // Very high complexity = escalate
+        if (complexity > 0.7) return 'YinYang';   // High complexity = maybe
+        return 'Yin';                         // Normal complexity = skip
     }
 
 

@@ -16,8 +16,8 @@ import pino from 'pino';
  */
 export class CompositeStrategy implements TerminalStrategy {
     readonly name: string;
-    private strategies: [...RoutingStrategy[], TerminalStrategy];
-    private logger: Logger;
+    private readonly strategies: [...RoutingStrategy[], TerminalStrategy];
+    private readonly logger: Logger;
 
     /**
      * Initializes the CompositeStrategy.

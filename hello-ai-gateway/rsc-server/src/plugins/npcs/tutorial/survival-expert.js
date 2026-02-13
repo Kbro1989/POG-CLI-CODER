@@ -1,0 +1,44 @@
+const { Items, Npcs } = require('../../../constants/ids');
+
+const SURVIVAL_EXPERT = Npcs.SURVIVAL_EXPERT || 797; // Next available ID (add to config/npcs.json)
+
+async function onTalkToNPC(player, npc) {
+    if (npc.id !== SURVIVAL_EXPERT) {
+        return false;
+    }
+
+    player.engage(npc);
+
+    await npc.say(
+        "Hello there, newcomer",
+        "My job is to teach you the basics of survival",
+        "You're going to need a few tools to survive out here"
+    );
+
+    if (!player.inventory.has(Items.IRON_AXE)) { // Bronze Axe is 87, Iron Axe is 12
+        await npc.say("Here, take this axe");
+        player.inventory.add(Items.IRON_AXE, 1);
+        player.message("The survival expert gives you a bronze axe");
+    }
+
+    if (!player.inventory.has(Items.TINDERBOX)) {
+        await npc.say("And you'll need this tinderbox to make a fire");
+        player.inventory.add(Items.TINDERBOX, 1);
+        player.message("The survival expert gives you a tinderbox");
+    }
+
+    await npc.say(
+        "Now, go cut down a tree and light a fire",
+        "You'll need to click on the tree to chop it",
+        "Then use the tinderbox on the logs to light them"
+    );
+
+    if (player.cache.tutorial && player.cache.tutorial < 15) {
+        player.cache.tutorial = 15;
+    }
+
+    player.disengage();
+    return true;
+}
+
+module.exports = { onTalkToNPC };

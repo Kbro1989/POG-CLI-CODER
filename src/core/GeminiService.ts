@@ -1,4 +1,4 @@
-import { GoogleGenAI, Tool } from '@google/genai';
+import { GoogleGenAI, Tool, HarmCategory, HarmBlockThreshold } from '@google/genai';
 import pino from 'pino';
 import { Result, ModelResponse, FunctionCall } from './models.js';
 import { KeyVault } from '../utils/KeyVault.js';
@@ -27,27 +27,66 @@ export type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE';
  */
 export class GeminiService extends GoogleServices {
     private genAI: GoogleGenAI;
-    private keyVault: KeyVault | undefined;
+    private readonly keyVault: KeyVault | undefined;
     private healthState: ServiceHealthState = 'READY';
     private lastBackoffUntil: number = 0;
-    private currentModel: string;
+    private readonly currentModel: string;
 
     constructor(config: GeminiConfig | string, keyVault?: KeyVault) {
+        let apiKey: string;
+        let finalConfig: GeminiConfig;
+        let selectedModel: string;
+
         if (typeof config === 'string') {
-            super({ apiKey: config });
-            this.currentModel = 'gemini-2.0-flash';
+            apiKey = config;
+            finalConfig = { apiKey };
+            selectedModel = 'gemini-2.0-flash';
         } else {
-            super({ apiKey: config.apiKey });
-            this.currentModel = config.modelName || 'gemini-2.0-flash';
+            apiKey = config.apiKey;
+            finalConfig = config;
+            selectedModel = config.modelName || 'gemini-2.0-flash';
         }
 
+        // ------------------------------------------------------------------
+        // Gemini CLI Auth Integration (Env Var Fallback)
+        // ------------------------------------------------------------------
+        if (!apiKey) {
+            const envGemini = process.env['GEMINI_API_KEY'];
+            const envGoogle = process.env['GOOGLE_API_KEY'];
+
+            if (envGemini) {
+                apiKey = envGemini;
+                logger.info('Using GEMINI_API_KEY from environment');
+            } else if (envGoogle) {
+                apiKey = envGoogle;
+                logger.info('Using GOOGLE_API_KEY from environment');
+            } else if (keyVault) {
+                const vaultKey = keyVault.getCurrentKey();
+                if (vaultKey) {
+                    apiKey = vaultKey;
+                    logger.info('Using API key from KeyVault');
+                }
+            } else {
+                // If we still don't have a key, existing behavior might fail later, or we warn here.
+                // GoogleServices base class might accept empty key if it relies on ADC, 
+                // but Gemini usually requires an API key. 
+                logger.warn('No API key provided or found in environment/vault. Gemini calls may fail.');
+            }
+        }
+
+        // Ensure the config object has the resolved key
+        finalConfig.apiKey = apiKey;
+
+        super(finalConfig);
+
+        this.currentModel = selectedModel;
         this.keyVault = keyVault;
 
         this.genAI = new GoogleGenAI({
             apiKey: this.config.apiKey,
             ...(typeof config !== 'string' && config.customHeaders ? { customHeaders: config.customHeaders } : {}),
             ...(typeof config !== 'string' && config.apiEndpoint ? { apiEndpoint: config.apiEndpoint } : {})
-        } as any);
+        } as { apiKey: string; customHeaders?: Record<string, string>; apiEndpoint?: string });
 
         // Register health provider
         HealthRegistry.getInstance().registerProvider('gemini', () => this.getHealth());
@@ -86,54 +125,58 @@ export class GeminiService extends GoogleServices {
             // 2. Prepare tools
             const genTools = (tools && tools.length > 0) ? tools : undefined;
 
-            const model = (this.genAI as any).getGenerativeModel({
+            const response = await this.genAI.models.generateContent({
                 model: targetModel,
-                safetySettings: [
-                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-                ]
+                contents,
+                config: {
+                    ...(genTools ? { tools: genTools } : {}),
+                    safetySettings: [
+                        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+                        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE }
+                    ]
+                }
             });
 
-            const result = await model.generateContent({
-                contents,
-                tools: genTools
-            } as any);
-
-            const response = result.response as any;
-
             // 3. Robust candidate validation
-            const candidates = response['candidates'] || [];
+            const candidates = response.candidates || [];
             if (candidates.length === 0) {
-                // If it's a 200 OK but no candidates, it might be a block or transient
                 throw new Error('EMPTY_RESPONSE: Gemini returned no candidates');
             }
 
             const candidate = candidates[0];
-            const finishReason = candidate['finishReason'];
+            if (!candidate) {
+                throw new Error('MALFORMED_RESPONSE: Candidate is undefined');
+            }
+            const finishReason = candidate.finishReason;
 
             if (finishReason === 'SAFETY' || finishReason === 'RECITATION' || finishReason === 'OTHER') {
                 throw new Error(`BLOCKED_RESPONSE: ${finishReason}`);
             }
 
-            const content = candidate['content'];
-            if (!content || !content['parts'] || content['parts'].length === 0) {
+            const content = candidate.content;
+            if (!content || !content.parts || content.parts.length === 0) {
                 throw new Error('MALFORMED_RESPONSE: No content parts');
             }
 
-            const text = (response as any)['text']?.() || content['parts']?.[0]?.['text'] || '';
+            const text = response.text || content.parts?.[0]?.text || '';
 
-            const rawParts = content['parts'] || [];
+            const rawParts = content.parts || [];
             const functionCalls: FunctionCall[] = rawParts
-                .filter((p: any) => p['functionCall'])
-                .map((p: any) => ({
-                    name: p['functionCall']!.name,
-                    args: p['functionCall']!.args
-                }));
+                .map((p: any) => {
+                    if (p.functionCall) {
+                        return {
+                            name: p.functionCall.name as string,
+                            args: p.functionCall.args as Record<string, unknown>
+                        };
+                    }
+                    return null;
+                })
+                .filter((p: FunctionCall | null): p is FunctionCall => p !== null);
 
             if (this.keyVault) {
-                (this.keyVault as any).resetFailCount();
+                this.keyVault.resetFailCount();
             }
             this.healthState = 'READY';
 
@@ -156,7 +199,7 @@ export class GeminiService extends GoogleServices {
         maxAttempts = 3,
         initialDelay = 1000
     ): Promise<Result<T>> {
-        let lastError: any;
+        let lastError: Error | unknown;
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 const result = await fn();
@@ -165,13 +208,13 @@ export class GeminiService extends GoogleServices {
                 // If the error is quota/auth, we might still want to handle it via rotateKey
                 // but let's see if we should retry first
                 lastError = result.error;
-            } catch (error: any) {
+            } catch (error: unknown) {
                 lastError = error;
                 const { isQuota, isAuth, message } = this.classifyError(error);
 
                 if (isQuota && model !== 'gemini-2.0-flash-lite') {
                     logger.warn({ model }, 'Quota hit, falling back to Flash Lite for retry attempt');
-                    return this.generateContent(prompt, 'gemini-2.0-flash-lite', tools) as any;
+                    return (this.generateContent(prompt, 'gemini-2.0-flash-lite', tools) as Promise<Result<T>>);
                 }
 
                 if ((isQuota || isAuth) && this.keyVault) {
@@ -180,9 +223,9 @@ export class GeminiService extends GoogleServices {
                         const newKey = this.keyVault.getCurrentKey();
                         if (newKey) {
                             logger.info('Retrying with rotated key');
-                            this.genAI = new GoogleGenAI({ apiKey: newKey } as any);
+                            this.genAI = new GoogleGenAI({ apiKey: newKey });
                             // Reset model connection
-                            return this.generateContent(prompt, model, tools) as any;
+                            return (this.generateContent(prompt, model, tools) as Promise<Result<T>>);
                         }
                     }
                 }
@@ -204,17 +247,17 @@ export class GeminiService extends GoogleServices {
             }
         }
 
-        const message = lastError?.message || 'Unknown Gemini error';
+        const message = lastError instanceof Error ? lastError.message : 'Unknown Gemini error';
         logger.error({
             error: message,
             model,
-            stack: lastError?.stack
+            stack: lastError instanceof Error ? lastError.stack : undefined
         }, 'Gemini generation failed after retries');
         return { ok: false, error: (lastError instanceof Error ? lastError : new Error(message)) };
     }
 
-    private isRetryable(error: any): boolean {
-        const message = error.message?.toLowerCase() || '';
+    private isRetryable(error: unknown): boolean {
+        const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
         return message.includes('empty_response') ||
             message.includes('malformed_response') ||
             message.includes('500') ||
@@ -229,14 +272,14 @@ export class GeminiService extends GoogleServices {
 
         const targetModel = modelOverride || this.currentModel;
         try {
-            const model = (this.genAI as any).getGenerativeModel({ model: targetModel });
-            const result = await model.generateContentStream({
+            const responseStream = await this.genAI.models.generateContentStream({
+                model: targetModel,
                 contents: [{ role: 'user', parts: [{ text: prompt }] }]
             });
 
             async function* streamGenerator() {
-                for await (const chunk of result.stream) {
-                    const text = chunk.text();
+                for await (const chunk of responseStream) {
+                    const text = chunk.text || '';
                     if (text) yield text;
                 }
             }
@@ -246,26 +289,30 @@ export class GeminiService extends GoogleServices {
             }
 
             return { ok: true, value: streamGenerator() };
-        } catch (error) {
-            logger.error({ error, model: targetModel }, 'Gemini stream failed');
-            return { ok: false, error: error as Error };
+        } catch (error: unknown) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            logger.error({ error: err.message, model: targetModel }, 'Gemini stream failed');
+            return { ok: false, error: err };
         }
     }
 
     async embed(text: string): Promise<Result<Float32Array>> {
         try {
-            const model = (this.genAI as any).getGenerativeModel({ model: 'text-embedding-004' });
-            const result = await model.embedContent(text);
-            const embedding = result.embedding;
+            const result = await this.genAI.models.embedContent({
+                model: 'text-embedding-004',
+                contents: [{ role: 'user', parts: [{ text }] }]
+            });
+            const embedding = result.embeddings?.[0];
 
             if (!embedding || !embedding.values) {
                 throw new Error('No embedding returned');
             }
 
             return { ok: true, value: new Float32Array(embedding.values) };
-        } catch (error) {
-            logger.error({ error }, 'Embedding generation failed');
-            return { ok: false, error: error as Error };
+        } catch (error: unknown) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            logger.error({ error: err.message }, 'Embedding generation failed');
+            return { ok: false, error: err };
         }
     }
 }

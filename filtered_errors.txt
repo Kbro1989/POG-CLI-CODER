@@ -1,0 +1,418 @@
+﻿
+src/apps/cloudflare/GlobeForge.t
+s(3,36): error TS2307: Cannot 
+find module 
+'./CloudflareServices.js' or 
+its corresponding type 
+declarations.
+src/apps/cloudflare/GlobeForge.t
+s(39,19): error TS6133: 
+'accountId' is declared but its 
+value is never read.
+src/core/Orchestrator.ts(791,37)
+: error TS6133: 'prompt' is 
+declared but its value is never 
+read.
+src/core/Orchestrator.ts(1285,47
+): error TS2304: Cannot find 
+name 'turnCounter'.
+src/core/Orchestrator.ts(1298,5)
+: error TS2322: Type 
+'Result<Execution>' is not 
+assignable to type 
+'Result<string>'.
+src/core/Orchestrator.ts(1336,49
+): error TS18046: 'group' is of 
+type 'unknown'.
+src/core/Orchestrator.ts(1586,17
+): error TS2393: Duplicate 
+function implementation.
+src/core/Orchestrator.ts(1715,17
+): error TS2393: Duplicate 
+function implementation.
+src/core/Orchestrator.ts(1718,26
+): error TS2339: Property 'cpu' 
+does not exist on type 'void'.
+src/core/Orchestrator.ts(1718,39
+): error TS2339: Property 'mem' 
+does not exist on type 'void'.
+src/core/Orchestrator.ts(1792,35
+): error TS2339: Property 
+'action' does not exist on type 
+'Execution'.
+src/core/Orchestrator.ts(1793,27
+): error TS2339: Property 
+'action' does not exist on type 
+'Execution'.
+src/core/Orchestrator.ts(1793,79
+): error TS18046: 
+'res.value.data' is of type 
+'unknown'.
+src/core/Orchestrator.ts(1794,27
+): error TS2339: Property 
+'action' does not exist on type 
+'Execution'.
+src/core/Orchestrator.ts(1794,63
+): error TS18046: 
+'res.value.data' is of type 
+'unknown'.
+src/core/Orchestrator.ts(1795,27
+): error TS2339: Property 
+'action' does not exist on type 
+'Execution'.
+src/core/Orchestrator.ts(1795,67
+): error TS18046: 
+'res.value.data' is of type 
+'unknown'.
+src/core/Orchestrator.ts(1814,59
+): error TS18046: 
+'res.value.data' is of type 
+'unknown'.
+src/core/Orchestrator.ts(1931,23
+): error TS2345: Argument of 
+type 'unknown' is not 
+assignable to parameter of type 
+'Tool'.
+src/limbs/cloud/CloudflareLimb.t
+s(380,34): error TS2339: 
+Property 'IMAGE' does not exist 
+on type '{ readonly ULTRA: 
+"@cf/openai/gpt-oss-120b"; 
+readonly HEAVY: "@cf/meta/llama-
+3.3-70b-instruct-fp8-fast"; 
+readonly CHAT: "@cf/meta/llama-3
+.1-8b-instruct-fp8"; readonly 
+EMBEDDING: 
+"@cf/baai/bge-large-en-v1.5"; 
+readonly WHISPER: "@cf/openai/wh
+isper-large-v3-turbo"; readonly 
+CODER: "@cf/qwen/qwen2.5-coder-3
+2b-instruct";...'.
+src/limbs/core/ControlPlaneLimb.
+ts(60,71): error TS2571: Object 
+is of type 'unknown'.
+src/limbs/core/ControlPlaneLimb.
+ts(86,65): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string | RoutingContext'.
+src/limbs/core/ControlPlaneLimb.
+ts(91,29): error TS2322: Type 
+'unknown' is not assignable to 
+type 'string'.
+src/limbs/core/ControlPlaneLimb.
+ts(159,77): error TS2322: Type 
+'unknown' is not assignable to 
+type 'string'.
+src/limbs/core/ControlPlaneLimb.
+ts(258,79): error TS2322: Type 
+'unknown' is not assignable to 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(43,67): error TS2345: Argument 
+of type 'unknown' is not 
+assignable to parameter of type 
+'string'.
+src/limbs/core/FileSystemLimb.ts
+(62,38): error TS2571: Object 
+is of type 'unknown'.
+src/limbs/core/FileSystemLimb.ts
+(82,67): error TS2345: Argument 
+of type 'unknown' is not 
+assignable to parameter of type 
+'string'.
+src/limbs/core/FileSystemLimb.ts
+(84,47): error TS2345: Argument 
+of type 'unknown' is not 
+assignable to parameter of type 
+'string | ArrayBufferView<ArrayB
+ufferLike>'.
+src/limbs/core/FileSystemLimb.ts
+(106,67): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(112,25): error TS2322: Type 
+'unknown' is not assignable to 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(113,25): error TS2322: Type 
+'unknown' is not assignable to 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(147,67): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(153,25): error TS2322: Type 
+'unknown' is not assignable to 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(154,25): error TS2322: Type 
+'unknown' is not assignable to 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(181,63): error TS2345: 
+Argument of type '{}' is not 
+assignable to parameter of type 
+'string'.
+src/limbs/core/FileSystemLimb.ts
+(220,67): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(242,66): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(243,66): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(263,66): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/core/FileSystemLimb.ts
+(282,67): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/core/MemoryLimb.ts(127
+,52): error TS2345: Argument of 
+type '{ id: string; text: 
+string; embedding: 
+Float32Array<ArrayBufferLike>; 
+createdAt: number; errorType: 
+string | undefined; 
+regretLikelihood: number; 
+projectId: string; sessionId: 
+string; }' is not assignable to 
+parameter of type 'Lesson & { 
+projectId: string; }'.
+  Type '{ id: string; text: 
+string; embedding: 
+Float32Array<ArrayBufferLike>; 
+createdAt: number; errorType: 
+string | undefined; 
+regretLikelihood: number; 
+projectId: string; sessionId: 
+string; }' is not assignable to 
+type 'Lesson'.
+    Types of property 
+'errorType' are incompatible.
+src/limbs/core/NeuralForgeLimb.t
+s(85,28): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'PathLike'.
+src/limbs/core/NeuralForgeLimb.t
+s(89,45): error TS2769: No 
+overload matches this call.
+  Overload 1 of 3, '(path: 
+PathOrFileDescriptor, options?: 
+{ encoding?: null | undefined; 
+flag?: string | undefined; } | 
+null | undefined): 
+NonSharedBuffer', gave the 
+following error.
+  Overload 2 of 3, '(path: 
+PathOrFileDescriptor, options: 
+BufferEncoding | { encoding: 
+BufferEncoding; flag?: string | 
+undefined; }): string', gave 
+the following error.
+  Overload 3 of 3, '(path: 
+PathOrFileDescriptor, options?: 
+BufferEncoding | 
+(ObjectEncodingOptions & { 
+flag?: string | undefined; }) | 
+null | undefined): string | 
+NonSharedBuffer', gave the 
+following error.
+src/limbs/core/NeuralLimb.ts(47,
+28): error TS2304: Cannot find 
+name 'ModelExecutor'.
+src/limbs/experimental/OmegaLimb
+.ts(38,58): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/experimental/QuantumLi
+mb.ts(38,62): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/experimental/RelicLimb
+.ts(142,54): error TS2339: 
+Property 'message' does not 
+exist on type 'Execution'.
+src/limbs/experimental/RelicLimb
+.ts(142,87): error TS2339: 
+Property 'message' does not 
+exist on type 'Execution'.
+src/limbs/gutenberg/GutenbergLim
+b.ts(413,76): error TS2345: 
+Argument of type 
+'GutenbergSearchRequest' is not 
+assignable to parameter of type 
+'Record<string, unknown>'.
+src/limbs/gutenberg/GutenbergLim
+b.ts(418,76): error TS2345: 
+Argument of type 
+'GutenbergSearchRequest' is not 
+assignable to parameter of type 
+'Record<string, unknown>'.
+src/limbs/media/MediaForgeLimb.t
+s(45,36): error TS2571: Object 
+is of type 'unknown'.
+src/limbs/media/MediaForgeLimb.t
+s(52,57): error TS2571: Object 
+is of type 'unknown'.
+src/limbs/system/MCPLimb.ts(100,
+25): error TS2353: Object 
+literal may only specify known 
+properties, and 'resources' 
+does not exist in type '{ 
+experimental?: { [x: string]: 
+object; } | undefined; 
+sampling?: { context?: object | 
+undefined; tools?: object | 
+undefined; } | undefined; 
+elicitation?: { [x: string]: 
+unknown; form?: { [x: string]: 
+unknown; applyDefaults?: 
+boolean | undefined; } | 
+undefined; url?: object | 
+undefined; } | undefined; 
+roots?: { ...;...'.
+src/limbs/system/SubstrateLimb.t
+s(106,70): error TS18046: 
+'result.value' is of type 
+'unknown'.
+src/limbs/webapp/tools/definitio
+ns.ts(18,58): error TS4111: 
+Property 'stack' comes from an 
+index signature, so it must be 
+accessed with ['stack'].
+src/limbs/webapp/tools/definitio
+ns.ts(18,81): error TS4111: 
+Property 'name' comes from an 
+index signature, so it must be 
+accessed with ['name'].
+src/limbs/webapp/tools/definitio
+ns.ts(35,67): error TS4111: 
+Property 'componentName' comes 
+from an index signature, so it 
+must be accessed with 
+['componentName'].
+src/limbs/webapp/tools/definitio
+ns.ts(53,34): error TS4111: 
+Property 'packages' comes from 
+an index signature, so it must 
+be accessed with ['packages'].
+src/limbs/webapp/tools/definitio
+ns.ts(53,44): error TS2339: 
+Property 'length' does not 
+exist on type '{}'.
+src/limbs/webapp/tools/definitio
+ns.ts(54,43): error TS4111: 
+Property 'dev' comes from an 
+index signature, so it must be 
+accessed with ['dev'].
+src/limbs/webapp/tools/definitio
+ns.ts(54,75): error TS4111: 
+Property 'packages' comes from 
+an index signature, so it must 
+be accessed with ['packages'].
+src/limbs/webapp/tools/definitio
+ns.ts(54,84): error TS2339: 
+Property 'join' does not exist 
+on type '{}'.
+src/limbs/webapp/tools/definitio
+ns.ts(56,33): error TS2769: No 
+overload matches this call.
+  Overload 1 of 4, '(command: 
+string, options: ExecSyncOptions
+WithStringEncoding): string', 
+gave the following error.
+  Overload 2 of 4, '(command: 
+string, options: ExecSyncOptions
+WithBufferEncoding): 
+NonSharedBuffer', gave the 
+following error.
+  Overload 3 of 4, '(command: 
+string, options?: 
+ExecSyncOptions | undefined): 
+string | NonSharedBuffer', gave 
+the following error.
+src/limbs/webapp/tools/definitio
+ns.ts(56,43): error TS4111: 
+Property 'projectDir' comes 
+from an index signature, so it 
+must be accessed with 
+['projectDir'].
+src/limbs/webapp/WebAppForgeLimb
+.ts(136,36): error TS2345: 
+Argument of type 'unknown' is 
+not assignable to parameter of 
+type 'string'.
+src/limbs/webapp/WebAppForgeLimb
+.ts(146,28): error TS18046: 
+'componentName' is of type 
+'unknown'.
+src/services/GoogleServices.ts(9
+9,62): error TS2339: Property 
+'translate' does not exist on 
+type '{}'.
+tests/verify_emergent_sovereignt
+y.ts(3,26): error TS2307: 
+Cannot find module 
+'../src/database/VectorDB.js' 
+or its corresponding type 
+declarations.
+tests/verify_emergent_sovereignt
+y.ts(14,11): error TS2740: Type 
+'{ projectId: string; 
+projectRoot: string; 
+workspaces: string[]; 
+enabledServices: string[]; 
+embeddingDimensions: number; 
+sovereignBoundaries: { 
+maxLatencyMs: number; 
+dailyBudgetUsd: number; 
+forceOffline: false; 
+allowCloud: true; }; }' is 
+missing the following 
+properties from type 
+'VibeConfig': pogDir, 
+agentName, wsPort, 
+maxSnapshotAge, and 3 more.
+tests/verify_emergent_sovereignt
+y.ts(28,36): error TS2345: 
+Argument of type 'string' is 
+not assignable to parameter of 
+type 'VibeConfig'.
+tests/verify_emergent_sovereignt
+y.ts(39,9): error TS6133: 
+'eventReceived' is declared but 
+its value is never read.
+tests/verify_globe_forge.ts(7,7)
+: error TS6133: 'logger' is 
+declared but its value is never 
+read.
+tests/verify_globe_forge.ts(29,5
+7): error TS2339: Property 
+'value' does not exist on type 
+'Result<Execution>'.
+  Property 'value' does not 
+exist on type '{ readonly ok: 
+false; readonly error: Error; 
+}'.
+
+

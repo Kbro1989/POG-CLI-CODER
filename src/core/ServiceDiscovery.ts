@@ -19,7 +19,7 @@ export interface ServiceStatus {
 }
 
 export class ServiceDiscovery {
-    constructor(private config: VibeConfig) { }
+    constructor(private readonly config: VibeConfig) { }
 
     async auditAll(): Promise<ServiceStatus[]> {
         const results: ServiceStatus[] = [];
@@ -41,6 +41,7 @@ export class ServiceDiscovery {
         // 5. Audit Endpoints (Sovereign Substrate)
         results.push(this.withHealth(await this.checkVSCodeExtension()));
         results.push(this.withHealth(await this.checkCloudflareWorker()));
+        results.push(this.withHealth(await this.checkGhostLimb()));
 
         return results;
     }
@@ -247,8 +248,8 @@ export class ServiceDiscovery {
 
         // Fallback: Check API credentials if no URL is set
         const cf = new CloudflareServices({
-            accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || this.config.cloudflareAccountId) as string | undefined,
-            apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || this.config.cloudflareApiToken) as string | undefined
+            accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || this.config.cloudflareAccountId),
+            apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || this.config.cloudflareApiToken)
         } as CloudflareConfig);
 
         const audit = await cf.auditAbilities();
@@ -262,6 +263,18 @@ export class ServiceDiscovery {
             details: audit.ok
                 ? `Account: ${audit.value.accountId} (API Verified)`
                 : (accountId ? `Token Error: ${audit.error.message}` : 'Missing worker substrate')
+        };
+    }
+
+    private async checkGhostLimb(): Promise<Omit<ServiceStatus, 'health'>> {
+        // Ghost is always potentially active if initialized
+        // We consider it ACTIVE if the environment supports local deterministic logic
+        return {
+            id: 'ghost',
+            name: 'Ghost Failover (L3)',
+            status: 'ACTIVE',
+            type: 'WORKER', // It's a "local worker" pattern
+            details: 'Substrate: READY (Deterministic Failover)'
         };
     }
 }

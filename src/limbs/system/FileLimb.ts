@@ -15,7 +15,7 @@ import { z } from 'zod';
 export class FileLimb extends BaseLimb {
     readonly id = 'file_limb';
     readonly type = 'maintenance';
-    private state = StateManager.getInstance();
+    private readonly state = StateManager.getInstance();
 
     constructor(config: VibeConfig) {
         super(config);
@@ -37,7 +37,7 @@ export class FileLimb extends BaseLimb {
                     required: ['message']
                 },
                 schema: z.object({ message: z.string() }),
-                handler: async (args: any) => this.gitCommit(args['message'])
+                handler: async (args: Record<string, unknown>) => this.gitCommit(args['message'] as string)
             },
             {
                 name: 'npm_install',
@@ -50,7 +50,7 @@ export class FileLimb extends BaseLimb {
                     }
                 },
                 schema: z.object({ packages: z.array(z.string()).optional(), saveDev: z.boolean().optional() }),
-                handler: async (args: any) => this.npmInstall(args['packages'], args['saveDev'])
+                handler: async (args: Record<string, unknown>) => this.npmInstall(args['packages'] as string[], args['saveDev'] as boolean)
             },
             {
                 name: 'git_push',
@@ -76,7 +76,7 @@ export class FileLimb extends BaseLimb {
                     required: ['name', 'type']
                 },
                 schema: z.object({ name: z.string(), type: z.enum(['worker', 'component', 'minimal']) }),
-                handler: async (args: any) => this.scaffold(args['name'], args['type'])
+                handler: async (args: Record<string, unknown>) => this.scaffold(args['name'] as string, args['type'] as 'worker' | 'component' | 'minimal')
             }
         ]);
     }
@@ -159,7 +159,7 @@ export class FileLimb extends BaseLimb {
         if (p.includes('status') || p.includes('git')) {
             const matchedCap = this.spine.getCapabilities().find(cap => p.includes(cap));
             if (matchedCap) {
-                return this.spine.handleCall(matchedCap, {}) as any;
+                return (this.spine as unknown as { handleCall: (name: string, args: Record<string, unknown>) => Promise<Result<Execution>> }).handleCall(matchedCap, {});
             }
         }
 

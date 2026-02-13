@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import type { NeuralLimb, Intent, Execution, TernaryDecision } from './NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { ToolingSpine, type LimbTool } from '../../core/ToolingSpine.js';
@@ -9,21 +10,22 @@ import pino from 'pino';
  * 
  * Provides automated tool registration, routing, and high-fidelity logging.
  */
-export abstract class BaseLimb implements NeuralLimb {
+export abstract class BaseLimb extends EventEmitter implements NeuralLimb {
     abstract id: string;
-    abstract type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud' | 'action' | 'experimental' | 'sensory' | 'metabolic' | 'psychic' | 'metaphysical';
+    abstract type: 'creative' | 'analytical' | 'maintenance' | 'memory' | 'cloud' | 'action' | 'experimental' | 'sensory' | 'metabolic' | 'psychic' | 'metaphysical' | 'system';
 
     // Strategic Affinity
     public preferredHexagrams: string[] = []; // e.g., '111111' (Creative)
     public avoidHexagrams: string[] = [];     // e.g., '010111' (Conflict)
 
-    protected readonly spine: ToolingSpine = new ToolingSpine();
+    public readonly spine: ToolingSpine = new ToolingSpine();
     protected readonly logger: pino.Logger;
 
     constructor(
         protected readonly config: VibeConfig,
         protected readonly executor?: ModelExecutor
     ) {
+        super();
         this.logger = pino({
             name: this.constructor.name,
             base: { hostname: 'POG-VIBE' }
@@ -56,22 +58,22 @@ export abstract class BaseLimb implements NeuralLimb {
     }
 
     /**
-     * Default canHandle implementation using Ternary Decision logic.
-     * Returns: -1 (skip), 0 (maybe), +1 (optimal match)
+     * Default canHandle implementation using Semantic Sovereignty logic.
+     * Returns: 'Yin' (skip), 'YinYang' (maybe), 'Yang' (optimal match)
      */
     async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = this.getUserIntent(intent).toLowerCase();
 
-        // +1: Direct limb ID match = optimal
-        if (p.includes(this.id.toLowerCase())) return 1;
+        // 'Yang': Direct limb ID match = optimal
+        if (p.includes(this.id.toLowerCase())) return 'Yang';
 
         // Count capability matches
         const matches = this.spine.getCapabilities()
             .filter(cap => p.includes(cap.toLowerCase())).length;
 
-        if (matches >= 2) return 1;   // Strong match = escalate
-        if (matches === 1) return 0;  // Partial match = balanced
-        return -1;                     // No match = de-escalate
+        if (matches >= 2) return 'Yang';   // Strong match = escalate
+        if (matches === 1) return 'YinYang'; // Partial match = balanced
+        return 'Yin';                     // No match = de-escalate
     }
 
 
@@ -113,31 +115,49 @@ User Intent: ${this.getUserIntent(intent)}`;
     /**
      * Exposes formal tool declarations to the Supervisor.
      */
-    getTools(): any[] {
-        return this.spine.getGeminiDeclarations();
+    getTools(): import('./NeuralLimb.js').ToolDeclaration[] {
+        return this.spine.getGeminiDeclarations() as import('./NeuralLimb.js').ToolDeclaration[];
     }
 
     /**
      * Standardized tool call handling via the Spine.
      */
-    async handleToolCall(name: string, args: any): Promise<Result<any>> {
+    async handleToolCall(name: string, args: Record<string, unknown>): Promise<Result<Execution>> {
         this.logger.debug({ tool: name, args }, 'Routing tool call through Spine');
-        return this.spine.handleCall(name, args);
+        const res = await this.spine.handleCall(name, args);
+        if (!res.ok) return res;
+
+        const val = res.value;
+        // High-fidelity mapping of spine results to Execution substrate
+        if (val && typeof val === 'object' && 'output' in val) {
+            return { ok: true, value: val as Execution };
+        }
+        return {
+            ok: true,
+            value: {
+                output: typeof val === 'string' ? val : JSON.stringify(val, null, 2),
+                data: val
+            }
+        };
     }
 
     /**
      * Get detailed diagnostic/contextual status of the limb.
      */
-    public getStatus(): Record<string, any> {
+    public getStatus(): Record<string, unknown> {
         const tools = this.getTools();
+        const flatTools = tools.flatMap(t => t.functionDeclarations);
+
         return {
             id: this.id,
             type: this.type,
             capabilities: this.capabilities,
-            toolCount: tools.length,
-            tools: tools.map((t: any) => ({
-                name: t.function?.name || t.name,
-                description: t.function?.description || t.description
+            preferredHexagrams: this.preferredHexagrams,
+            avoidHexagrams: this.avoidHexagrams,
+            toolCount: flatTools.length,
+            tools: flatTools.map(t => ({
+                name: t.name,
+                description: t.description
             }))
         };
     }
@@ -146,7 +166,7 @@ User Intent: ${this.getUserIntent(intent)}`;
      * Assigns a ModelExecutor for cognitive fallbacks.
      */
     public setExecutor(executor: ModelExecutor): void {
-        (this as any).executor = executor;
+        (this as unknown as { executor?: ModelExecutor }).executor = executor;
     }
 
     /**
@@ -163,5 +183,13 @@ User Intent: ${this.getUserIntent(intent)}`;
     protected async pinPulse(state: import('../../core/HexagramManager.js').YaoState, detail: string): Promise<void> {
         this.spine.emitPulse(state, detail, this.id);
         this.logger.info({ state, detail }, 'Limb Pulse Emitted');
+    }
+
+
+    /**
+     * Optional: Perform resource cleanup (close DBs, kill processes, etc.)
+     */
+    public async close(): Promise<void> {
+        // Default implementation does nothing
     }
 }

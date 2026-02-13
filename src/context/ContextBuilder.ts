@@ -23,13 +23,13 @@ export interface FileContext {
 import { GeminiService } from '../core/GeminiService.js';
 
 export class ContextBuilder {
-    private pinnedFiles: Set<string> = new Set();
+    private readonly pinnedFiles: Set<string> = new Set();
 
     constructor(
-        private vectorDB: VectorDB,
+        private readonly vectorDB: VectorDB,
         private projectRoot: string,
-        private projectId: string,
-        private gemini?: GeminiService
+        private readonly projectId: string,
+        private readonly gemini?: GeminiService
     ) {
         logger.debug({ vectorDB: !!this.vectorDB, gemini: !!this.gemini }, 'ContextBuilder initialized');
     }
@@ -288,7 +288,7 @@ export class ContextBuilder {
     private resolveImportPath(importPath: string, fromFile: string): string | null {
         try {
             const dir = dirname(fromFile);
-            let fullPath = resolve(dir, importPath);
+            const fullPath = resolve(dir, importPath);
 
             // Try common extensions
             const extensions = ['.ts', '.tsx', '.js', '.jsx'];

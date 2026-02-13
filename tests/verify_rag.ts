@@ -19,8 +19,24 @@ async function main() {
     }
 
     // Initialize Services
+    const config: VibeConfig = {
+        projectId: 'rag-verify',
+        projectRoot: process.cwd(),
+        pogDir: './.pog',
+        agentName: 'RAG-VERIFIER',
+        wsPort: 9002,
+        maxSnapshotAge: 3600,
+        circuitBreakerThreshold: 5,
+        circuitBreakerCooldown: 60000,
+        logLevel: 'info',
+        enabledServices: ['gemini'],
+        embeddingDimensions: 768,
+        gutenbergPath: undefined,
+        workspaces: [process.cwd()]
+    };
+
     const gemini = new GeminiService(apiKey);
-    const vectorDB = new VectorDB({} as VibeConfig); // Config not needed for DB init
+    const vectorDB = new VectorDB(config);
     await vectorDB.initialize();
 
     // Fix: Correct constructor argument order

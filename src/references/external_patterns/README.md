@@ -5,7 +5,7 @@ This directory contains architectural patterns and source code ingested from the
 ## 📂 Source Mapping
 
 ### 1. MMORPG / Complex Systems
-- **Original Source**: `C:\Users\Destiny\Desktop\ai-architect-mmorpg\copy-of-rsc-evolution-ai\rsc-cloudflare`
+- **Original Source**: `<DESKTOP>/ai-architect-mmorpg/copy-of-rsc-evolution-ai/rsc-cloudflare`
 - **Local Reference**: `./mmorpg/rsc-cloudflare`
 - **Key Patterns**: 
     - Durable Objects
@@ -14,7 +14,7 @@ This directory contains architectural patterns and source code ingested from the
     - Game server architecture
 
 ### 2. AI & Agents
-- **Original Source**: `C:\Users\Destiny\Desktop\Cloudflare-Code-Agent\cloudflare-ai-worker`
+- **Original Source**: `<DESKTOP>/Cloudflare-Code-Agent/cloudflare-ai-worker`
 - **Local Reference**: `./code-agent/ai-worker`
 - **Key Patterns**:
     - Cloudflare Workers AI integration

@@ -10,7 +10,7 @@ export type HealthProvider = () => HealthReport;
  */
 export class HealthRegistry {
     private static instance: HealthRegistry;
-    private providers: Map<string, HealthProvider> = new Map();
+    private readonly providers: Map<string, HealthProvider> = new Map();
 
     private constructor() { }
 

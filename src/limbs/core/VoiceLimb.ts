@@ -3,10 +3,11 @@ import { z } from 'zod';
 import { Result, VibeConfig } from '../../core/models.js';
 import { ModelExecutor } from '../../core/ModelExecutor.js';
 import { YaoState } from '../../core/HexagramManager.js';
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
 import { join } from 'path';
+import type { Intent, TernaryDecision } from './NeuralLimb.js';
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -18,6 +19,7 @@ const unlinkAsync = promisify(fs.unlink);
 export class VoiceLimb extends BaseLimb {
     readonly id = 'voice_limb';
     readonly type = 'creative' as const;
+    private readonly activeProcesses: Set<ChildProcess> = new Set();
 
     constructor(
         config: VibeConfig,
@@ -41,8 +43,10 @@ export class VoiceLimb extends BaseLimb {
                 schema: z.object({
                     duration: z.number().optional().default(5)
                 }),
-                handler: async (args: any) => {
-                    const res = await this.recordAndTranscribe(args['duration'] || 5);
+                handler: async (args: Record<string, unknown>) => {
+                    const duration = (args['duration'] as number) || 5;
+                    this.logger.info({ duration }, 'Manual mic transcription request');
+                    const res = await this.recordAndTranscribe(duration);
                     if (res.ok) {
                         await this.pinPulse(YaoState.YoungYang, 'Speech Captured');
                         return { ok: true, value: { transcription: res.value } };
@@ -64,11 +68,12 @@ export class VoiceLimb extends BaseLimb {
                 schema: z.object({
                     text: z.string()
                 }),
-                handler: async (args: any) => {
-                    const res = await this.speakText(args['text'] || '');
+                handler: async (args: Record<string, unknown>) => {
+                    const text = args['text'] as string;
+                    const res = await this.speakText(text || '');
                     if (res.ok) {
                         await this.pinPulse(YaoState.OldYang, 'Speech Emitted');
-                        return { ok: true, value: { spoken: args['text'] } };
+                        return { ok: true, value: { spoken: text } };
                     }
                     await this.pinPulse(YaoState.OldYin, 'Speech Emission Failed');
                     return res;
@@ -84,12 +89,15 @@ export class VoiceLimb extends BaseLimb {
                         audioPath: { type: 'string', description: 'Path to local audio file (alternative to base64)' }
                     }
                 },
-                handler: async (args: any) => {
+                handler: async (args: Record<string, unknown>) => {
+                    const audioBase64 = args['audioBase64'] as string | undefined;
+                    const audioPath = args['audioPath'] as string | undefined;
+
                     let audioBuffer: Buffer;
-                    if (args['audioBase64']) {
-                        audioBuffer = Buffer.from(args['audioBase64'], 'base64');
-                    } else if (args['audioPath'] && fs.existsSync(args['audioPath'])) {
-                        audioBuffer = fs.readFileSync(args['audioPath']);
+                    if (audioBase64) {
+                        audioBuffer = Buffer.from(audioBase64, 'base64');
+                    } else if (audioPath && fs.existsSync(audioPath)) {
+                        audioBuffer = fs.readFileSync(audioPath);
                     } else {
                         return { ok: false, error: new Error('No audio data provided') };
                     }
@@ -108,8 +116,10 @@ export class VoiceLimb extends BaseLimb {
                         timeoutSeconds: { type: 'number', description: 'How long to listen before giving up (default: 30)' }
                     }
                 },
-                handler: async (args: any) => {
-                    const res = await this.listenForWakeWord(args['wakeWord'] || 'hey vibe', args['timeoutSeconds'] || 30);
+                handler: async (args: Record<string, unknown>) => {
+                    const wakeWord = (args['wakeWord'] as string) || 'hey vibe';
+                    const timeoutSeconds = (args['timeoutSeconds'] as number) || 30;
+                    const res = await this.listenForWakeWord(wakeWord, timeoutSeconds);
                     if (res.ok) return { ok: true, value: res.value };
                     return res;
                 }
@@ -117,8 +127,26 @@ export class VoiceLimb extends BaseLimb {
         ]);
     }
 
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
+        const p = this.getUserIntent(intent).toLowerCase();
+
+        // 'Yang' (Escalate / Optimal): Explicit voice or speech triggers
+        if (p.includes('voice') || p.includes('speak') || p.includes('transcribe') || p.includes('record')) {
+            return 'Yang';
+        }
+
+        // 'YinYang' (Balanced / Neutral): Match capability keywords but not as direct as 'Yang'
+        if (this.spine.getCapabilities().some(cap => p.includes(cap.toLowerCase()))) {
+            return 'YinYang';
+        }
+
+        // 'Yin' (De-escalate / Skip): No match
+        return 'Yin';
+    }
+
     private async recordAndTranscribe(seconds: number): Promise<Result<string>> {
         const tmpFile = join(this.config.projectRoot, `tmp_rec_${Date.now()}.wav`);
+        let child: ChildProcess | undefined;
         try {
             this.logger.info({ tmpFile, seconds }, 'Starting audio recording via PowerShell');
             const psScript = `
@@ -140,44 +168,72 @@ Start-Sleep -Seconds ${seconds}
 [Win32.AudioRecorder]::mciSendString("save recsound " + $path, $null, 0, [IntPtr]::Zero)
 [Win32.AudioRecorder]::mciSendString("close recsound", $null, 0, [IntPtr]::Zero)
 `;
-            await new Promise((resolve, reject) => {
-                const child = spawn('powershell', ['-Command', psScript]);
-                child.on('close', (code) => {
-                    if (code === 0) resolve(true);
-                    else reject(new Error(`PowerShell exited with code ${code}`));
+            return await new Promise<Result<string>>((resolve) => {
+                child = spawn('powershell', ['-Command', psScript]);
+                this.activeProcesses.add(child);
+
+                child.on('close', async (code) => {
+                    if (child) this.activeProcesses.delete(child);
+                    if (code === 0) {
+                        if (!fs.existsSync(tmpFile)) {
+                            resolve({ ok: false, error: new Error('Failed to create audio file') });
+                            return;
+                        }
+                        const audioBuffer = fs.readFileSync(tmpFile);
+                        const transcriptionResult = await this.modelExecutor.transcribeAudio(audioBuffer);
+                        await unlinkAsync(tmpFile).catch(() => { });
+                        resolve(transcriptionResult);
+                    } else {
+                        resolve({ ok: false, error: new Error(`PowerShell exited with code ${code}`) });
+                    }
+                });
+
+                child.on('error', (err) => {
+                    if (child) this.activeProcesses.delete(child);
+                    resolve({ ok: false, error: err });
                 });
             });
-
-            if (!fs.existsSync(tmpFile)) return { ok: false, error: new Error('Failed to create audio file') };
-            const audioBuffer = fs.readFileSync(tmpFile);
-            const transcriptionResult = await this.modelExecutor.transcribeAudio(audioBuffer);
-            await unlinkAsync(tmpFile).catch(() => { });
-            return transcriptionResult;
-        } catch (error: any) {
+        } catch (error: unknown) {
             this.logger.error({ error }, 'Audio capture fail');
             if (fs.existsSync(tmpFile)) await unlinkAsync(tmpFile).catch(() => { });
-            return { ok: false, error };
+            return { ok: false, error: error as Error };
+        } finally {
+            if (child && child.exitCode === null) {
+                child.kill();
+            }
         }
     }
 
     private async speakText(text: string): Promise<Result<void>> {
         if (!text || text.trim().length === 0) return { ok: false, error: new Error('No text provided to speak') };
+        let child: ChildProcess | undefined;
         try {
             this.logger.info({ text: text.substring(0, 50) }, 'Speaking text via SAPI');
             const sanitizedText = text.replace(/"/g, '`"').replace(/'/g, "''");
             const psScript = `Add-Type -AssemblyName System.speech; $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer; $speak.Rate = 1; $speak.Speak("${sanitizedText}")`;
-            await new Promise<void>((resolve, reject) => {
-                const child = spawn('powershell', ['-Command', psScript]);
+
+            return await new Promise<Result<void>>((resolve) => {
+                child = spawn('powershell', ['-Command', psScript]);
+                this.activeProcesses.add(child);
+
                 child.on('close', (code) => {
-                    if (code === 0) resolve();
-                    else reject(new Error(`PowerShell TTS exited with code ${code}`));
+                    if (child) this.activeProcesses.delete(child);
+                    if (code === 0) resolve({ ok: true, value: undefined });
+                    else resolve({ ok: false, error: new Error(`PowerShell TTS exited with code ${code}`) });
                 });
-                child.on('error', reject);
+
+                child.on('error', (err) => {
+                    if (child) this.activeProcesses.delete(child);
+                    resolve({ ok: false, error: err });
+                });
             });
-            return { ok: true, value: undefined };
-        } catch (error: any) {
+        } catch (error: unknown) {
             this.logger.error({ error }, 'TTS failed');
-            return { ok: false, error };
+            return { ok: false, error: error as Error };
+        } finally {
+            if (child && child.exitCode === null) {
+                child.kill();
+            }
         }
     }
 
@@ -195,9 +251,9 @@ Start-Sleep -Seconds ${seconds}
             if (!response.ok) return { ok: false, error: new Error(`Whisper API error: ${response.status}`) };
             const result = await response.json() as { result?: { text?: string } };
             return { ok: true, value: result.result?.text || '' };
-        } catch (error: any) {
+        } catch (error: unknown) {
             this.logger.error({ error }, 'Whisper transcription failed');
-            return { ok: false, error };
+            return { ok: false, error: error as Error };
         }
     }
 
@@ -221,4 +277,16 @@ Start-Sleep -Seconds ${seconds}
         return { ok: true, value: { detected: false } };
     }
 
+    /**
+     * Proper Close: Ensures all active PowerShell processes are terminated.
+     */
+    public override async close(): Promise<void> {
+        this.logger.info({ activeProcesses: this.activeProcesses.size }, 'Cleaning up VoiceLimb resources...');
+        for (const child of this.activeProcesses) {
+            if (child.exitCode === null) {
+                child.kill();
+            }
+        }
+        this.activeProcesses.clear();
+    }
 }

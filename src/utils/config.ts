@@ -32,7 +32,8 @@ const ConfigSchema = z.object({
   codingModel: z.string().optional(),
   healThreshold: z.enum(['low', 'medium', 'high', 'critical']).optional(),
   sovereignRoot: z.string().optional(),
-  pogApiUrl: z.string().url().optional()
+  pogApiUrl: z.string().url().optional(),
+  aiContextPath: z.string().optional()
 });
 
 type ConfigInput = z.input<typeof ConfigSchema>;
@@ -117,7 +118,8 @@ export class ConfigManager {
       codingModel: process.env['VIBE_CODING_MODEL'] || overrides?.codingModel || fileConfig.codingModel,
       healThreshold: (process.env['VIBE_HEAL_THRESHOLD'] as VibeConfig['healThreshold']) || overrides?.healThreshold || fileConfig.healThreshold,
       sovereignRoot: overrides?.sovereignRoot || fileConfig.sovereignRoot,
-      pogApiUrl: process.env['POG_API_URL'] || overrides?.pogApiUrl || fileConfig.pogApiUrl
+      pogApiUrl: process.env['POG_API_URL'] || overrides?.pogApiUrl || fileConfig.pogApiUrl,
+      aiContextPath: process.env['POG_AI_CONTEXT_PATH'] || overrides?.aiContextPath || fileConfig.aiContextPath || join(projectRoot, 'docs', 'ai-context')
     } as any; // Cast for now to satisfy strict Zod vs Interface drift
 
     // Validate
@@ -128,7 +130,7 @@ export class ConfigManager {
     }
 
     // Save validated config back to file
-    this.saveConfig(result.data);
+    this.saveConfig(result.data as VibeConfig);
 
     return result.data;
   }
@@ -154,7 +156,7 @@ export class ConfigManager {
       throw new Error(`Invalid config update: ${result.error.message}`);
     }
 
-    this.config = result.data;
+    this.config = result.data as VibeConfig;
     this.saveConfig(this.config);
   }
 }

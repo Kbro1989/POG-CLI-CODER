@@ -40,7 +40,7 @@ export class SovereignShellLimb extends BaseLimb {
         }
 
         return {
-            state: availableCount > 0 ? 'READY' : 'CRITICAL_FAILURE' as any,
+            state: (availableCount > 0 ? 'READY' : 'CRITICAL_FAILURE') as 'READY' | 'CRITICAL_FAILURE',
             cooldownSeconds: 0,
             metadata
         };
@@ -59,7 +59,7 @@ export class SovereignShellLimb extends BaseLimb {
                     required: ['args']
                 },
                 schema: z.object({ args: z.string() }),
-                handler: async (args: any) => this.runCommand(`gemini ${args['args']}`)
+                handler: async (args: Record<string, unknown>) => this.runCommand(`gemini ${args['args'] as string}`)
             },
             {
                 name: 'gcloud_global_exec',
@@ -72,7 +72,7 @@ export class SovereignShellLimb extends BaseLimb {
                     required: ['args']
                 },
                 schema: z.object({ args: z.string() }),
-                handler: async (args: any) => this.runCommand(`gcloud -g ${args['args']}`)
+                handler: async (args: Record<string, unknown>) => this.runCommand(`gcloud -g ${args['args'] as string}`)
             },
             {
                 name: 'wrangler_global_exec',
@@ -85,7 +85,7 @@ export class SovereignShellLimb extends BaseLimb {
                     required: ['args']
                 },
                 schema: z.object({ args: z.string() }),
-                handler: async (args: any) => this.runCommand(`wrangler -g ${args['args']}`)
+                handler: async (args: Record<string, unknown>) => this.runCommand(`wrangler -g ${args['args'] as string}`)
             },
             {
                 name: 'github_ssh_exec',
@@ -98,7 +98,7 @@ export class SovereignShellLimb extends BaseLimb {
                     required: ['args']
                 },
                 schema: z.object({ args: z.string() }),
-                handler: async (args: any) => this.runCommand(`ssh github -g ${args['args']}`)
+                handler: async (args: Record<string, unknown>) => this.runCommand(`ssh github -g ${args['args'] as string}`)
             }
         ]);
     }
@@ -110,9 +110,10 @@ export class SovereignShellLimb extends BaseLimb {
             // but wrapped in an async handler for Spine compatibility.
             const output = execSync(command, { encoding: 'utf8' });
             return { ok: true, value: output };
-        } catch (error: any) {
-            this.logger.error({ command, error: error.message }, 'Sovereign Shell Execution Failed');
-            return { ok: false, error: new Error(error.stdout || error.stderr || error.message) };
+        } catch (error: unknown) {
+            const err = error as { message: string; stdout?: string; stderr?: string };
+            this.logger.error({ command, error: err.message }, 'Sovereign Shell Execution Failed');
+            return { ok: false, error: new Error(err.stdout || err.stderr || err.message) };
         }
     }
 }

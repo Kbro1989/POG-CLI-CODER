@@ -30,7 +30,9 @@ const config: VibeConfig = {
     embeddingDimensions: 384,
     logLevel: 'info',
     pogApiUrl: process.env['POG_API_URL'],
-    cloudflareGatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'] || process.env['CLOUDFLARE_BINDING_URL']
+    cloudflareGatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'] || process.env['CLOUDFLARE_BINDING_URL'],
+    gutenbergPath: undefined,
+    workspaces: [process.cwd()]
 };
 
 async function verifyCrossLimb() {

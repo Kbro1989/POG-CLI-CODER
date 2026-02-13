@@ -14,7 +14,7 @@ export class DashboardLimb extends BaseLimb {
     readonly id = 'dashboard';
     readonly type = 'maintenance' as const;
 
-    private dashboardDir: string;
+    private readonly dashboardDir: string;
 
     constructor(
         config: VibeConfig,
@@ -49,13 +49,13 @@ export class DashboardLimb extends BaseLimb {
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
         const p = intent.prompt.toLowerCase();
 
-        // +1: Explicit dashboard keywords = optimal
-        if (p.includes('dashboard') || p.includes('show interface')) return 1;
+        // 'Yang': Explicit dashboard keywords = optimal
+        if (p.includes('dashboard') || p.includes('show interface')) return 'Yang';
 
-        // 0: General UI keywords = maybe
-        if (p.includes('ui') || p.includes('interface')) return 0;
+        // 'YinYang': General UI keywords = maybe
+        if (p.includes('ui') || p.includes('interface')) return 'YinYang';
 
-        return -1;
+        return 'Yin';
     }
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
@@ -86,9 +86,14 @@ export class DashboardLimb extends BaseLimb {
             if (isActive) {
                 const isPog = await this.previewServer.isPogService(basePort);
                 if (isPog) {
-                    this.logger.info({ port: basePort }, 'POG Dashboard detected on port, reclaiming for fresh start');
-                    await this.previewServer.killProcessByPort(basePort);
-                    targetPort = basePort;
+                    this.logger.info({ port: basePort }, 'POG Dashboard already active on port, syncing to existing instance');
+                    return {
+                        ok: true,
+                        value: {
+                            output: `Dashboard synced: http://localhost:${basePort}`,
+                            data: { url: `http://localhost:${basePort}`, port: basePort }
+                        }
+                    };
                 } else {
                     this.logger.warn({ port: basePort }, 'Non-POG service detected on default dashboard port, finding fallback');
                     targetPort = await this.previewServer.findAvailablePort(basePort + 1);
@@ -155,11 +160,18 @@ export class DashboardLimb extends BaseLimb {
                 <button class="tab-btn" data-tab="health">Health</button>
                 <button class="tab-btn" data-tab="books" id="tab-books">Books</button>
                 <button class="tab-btn" data-tab="storyboard" id="tab-storyboard">Storyboard</button>
-                <button class="tab-btn" data-tab="media">Forge</button>
+                <button class="tab-btn" data-tab="media">Cloudflare</button>
+                <button class="tab-btn" data-tab="sovereign">Sovereign</button>
                 <button class="tab-btn" data-tab="settings">Config</button>
             </nav>
             <div class="status-indicator">
                 <div id="sovereign-narrative" class="sovereign-narrative">The substrate is quiet...</div>
+                <div id="gps-telemetry" class="gps-telemetry" title="GPS Context">
+                    <span class="icon">📍</span> <span id="gps-coords">Searching...</span>
+                </div>
+                <div id="sovereign-link" class="sovereign-link" title="Sovereign Boundary Status">
+                    <span class="status-dot"></span> Sovereign Link: <span id="link-status">INIT</span>
+                </div>
                 <button id="mic-btn" class="mic-btn" title="Speak">🎙️</button>
                 <span id="ws-status" class="status-dot"></span>
                 <span id="ws-text">Neural Link</span>
@@ -379,6 +391,36 @@ export class DashboardLimb extends BaseLimb {
                             </div>
                         </div>
                         <div id="media-library" class="scroll-box gallery-view mt-10"></div>
+                        
+                        <div class="forge-divider"></div>
+                        
+                        <h3><span class="icon">🌏</span> GLOBE FORGE (MULTIPLATER SUBSTRATE)</h3>
+                        <div class="forge-controls horizontal">
+                            <input type="text" id="globe-name" placeholder="Enter globe project name...">
+                            <button onclick="forgeGlobe()" class="action-btn purple">Forge Globe</button>
+                        </div>
+                        <div id="globe-preview-container" class="globe-preview mt-10">
+                            <canvas id="globe-canvas" style="width: 300px; height: 300px; margin: 0 auto; display: none;"></canvas>
+                            <div id="globe-meta" class="muted">No active globe forged.</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- SOVEREIGN TAB -->
+            <div id="sovereign" class="tab-content">
+                <div class="grid-layout">
+                    <section class="panel main-panel">
+                        <h3><span class="icon">🌌</span> GLOBAL CONSTELLATION</h3>
+                        <div id="sovereign-globe-container" class="canvas-box premium-loader" style="height:450px !important;">
+                            <canvas id="globe-canvas-sov" style="width:100%;height:100%;"></canvas>
+                        </div>
+                    </section>
+                    <section class="panel side-panel">
+                        <h3><span class="icon">⚖️</span> CONSTITUTIONAL LOG</h3>
+                        <div id="constitutional-log" class="scroll-box token-stream" style="height:450px;">
+                            <p class="muted">Awaiting boundary negotiation...</p>
+                        </div>
                     </section>
                 </div>
             </div>
@@ -476,7 +518,17 @@ h3 { margin: 0 0 12px 0; font-size: 0.75rem; color: var(--accent-primary); lette
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; display: inline-block; margin-right: 5px; }
 .status-dot.online { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
 .status-dot.offline { background: #ff4444; box-shadow: 0 0 10px #ff4444; }
-.muted { color: var(--text-muted); text-align: center; margin-top: 20px; font-style: italic; }
+.muted { color: var(--text-muted); text-align: center; margin-top: 20px; font-size: 0.7rem; font-style: italic; }
+.forge-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0; }
+.action-btn.purple { border-color: var(--accent-secondary); color: var(--accent-secondary); background: rgba(255, 0, 234, 0.05); }
+.action-btn.purple:hover { background: var(--accent-secondary); color: #000; }
+.globe-preview { background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); padding: 20px; text-align: center; min-height: 100px; }
+.gps-telemetry { display: flex; align-items: center; gap: 5px; font-size: 0.65rem; color: var(--accent-primary); border: 1px solid rgba(0,242,255,0.2); padding: 4px 10px; border-radius: 12px; margin-right: 15px; background: rgba(0,242,255,0.05); }
+#gps-coords { font-family: 'JetBrains Mono', monospace; font-weight: 800; }
+.sovereign-link { display: flex; align-items: center; gap: 5px; font-size: 0.65rem; color: var(--accent-secondary); border: 1px solid rgba(255,0,234,0.2); padding: 4px 10px; border-radius: 12px; margin-right: 15px; background: rgba(255,0,234,0.05); text-transform: uppercase; font-weight: 800; }
+.sovereign-link .status-dot { background: var(--accent-secondary); box-shadow: 0 0 8px var(--accent-secondary); }
+.sovereign-link.active { color: var(--accent-primary); border-color: var(--accent-primary); background: rgba(0,242,255,0.05); }
+.sovereign-link.active .status-dot { background: var(--accent-primary); box-shadow: 0 0 8px var(--accent-primary); }
 
 /* HEALTH GAUGES */
 .health-grid { display: flex; justify-content: space-around; align-items: center; padding: 20px 0; gap: 20px; }
@@ -683,6 +735,23 @@ function connect() {
         else if (msg.type === 'pulse') {
             triggerPulseUI(msg.data);
         }
+        else if (msg.type === 'globe_forge_completed') {
+            renderForgedGlobe(msg.data);
+        }
+        else if (msg.type === 'spatial_health_update') {
+            if (window.constellation) window.constellation.updateNode(msg.data);
+        }
+        else if (msg.type === 'failover_tracer') {
+            if (window.constellation) window.constellation.addTracer(msg.data);
+        }
+        else if (msg.type === 'node_discovered') {
+            if (window.constellation) window.constellation.updateNode(msg.data);
+        }
+        else if (msg.type === 'boundary_negotiation') {
+            addConstitutionalLog(msg.data);
+            if (window.constellation) window.constellation.triggerPressure(msg.data);
+            if (window.constellationSov) window.constellationSov.triggerPressure(msg.data);
+        }
     };
     ws.onclose = () => {
         const dot = document.getElementById('ws-status');
@@ -707,9 +776,24 @@ function updateStateUI(state) {
     if (state.activeMemories) updateMemoryPulse(state.activeMemories);
     if (state.neuralHeatmap) renderNeuralHeatmap(state.neuralHeatmap);
     
+    if (state.gps) {
+        const gpsEl = document.getElementById('gps-coords');
+        if (gpsEl) gpsEl.innerText = \`\${state.gps.lat.toFixed(4)}, \${state.gps.lng.toFixed(4)}\`;
+    }
+    
     if (state.sovereignVoice) {
         const narr = document.getElementById('sovereign-narrative');
         if (narr) narr.innerText = state.sovereignVoice;
+    }
+
+    if (state.boundaries) {
+        const link = document.getElementById('sovereign-link');
+        const status = document.getElementById('link-status');
+        if (link && status) {
+            const isActive = !state.boundaries.forceOffline;
+            link.classList.toggle('active', isActive);
+            status.innerText = isActive ? 'ACTIVE' : 'OFFLINE';
+        }
     }
 
     // Update footer statuses
@@ -837,7 +921,7 @@ function renderLimbHealth(limbs) {
         return \`
             <div class="model-card">
                 <div style="display:flex;justify-content:space-between">
-                    <strong>\${id.toUpperCase()}</strong>
+                    <strong>\${(id || 'unknown').toUpperCase()}</strong>
                     <span style="color:\${status === 'OK' || status === 'READY' ? '#00ff00' : '#ff4444'}">\${status}</span>
                 </div>
             </div>
@@ -851,7 +935,7 @@ function renderModelGallery(models) {
     container.innerHTML = models.map(m => \`
         <div class="model-card \${m.type}">
             <strong>\${m.name}</strong><br>
-            <small style="color:var(--accent-primary)">\${m.type.toUpperCase()}</small>
+            <small style="color:var(--accent-primary)">\${(m.type || 'unknown').toUpperCase()}</small>
             <div style="font-size:0.6rem;color:#888;margin-top:5px">\${m.capabilities.join(', ')}</div>
         </div>
     \`).join('');
@@ -1050,18 +1134,147 @@ function switchWorkspace(p) {
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'control', command: 'switchWorkspace', data: { path: p } })); 
 }
 
-function closeReader() { 
-    const el = document.getElementById('reader-content');
-    if (el) el.innerHTML = '<div class="reader-placeholder">Select a book.</div>'; 
-    currentBook = null; 
+function addConstitutionalLog(data) {
+    const log = document.getElementById('constitutional-log');
+    if (!log) return;
+    const placeholder = log.querySelector('.muted');
+    if (placeholder) placeholder.remove();
+
+    const item = document.createElement('div');
+    item.className = 'log-entry';
+    item.style.borderLeft = '2px solid var(--accent-secondary)';
+    item.style.paddingLeft = '10px';
+    item.style.marginBottom = '10px';
+    item.innerHTML = \`<div style="font-size:0.6rem; color:var(--text-muted)">\${new Date().toLocaleTimeString()}</div>
+        <div style="font-weight:800; color:var(--accent-secondary)">\${data.type}</div>
+            <div style="font-size:0.75rem">\${data.reason}</div>\`;
+log.prepend(item);
 }
 
-function forgeMedia() { 
-    const promptEl = document.getElementById('media-prompt');
+function closeReader() {
+    const el = document.getElementById('reader-content');
+    if (el) el.innerHTML = '<div class="reader-placeholder">Select a book.</div>';
+    currentBook = null;
+}
+
+function forgeMedia() {
+    const p = document.getElementById('media-prompt').value;
     const targetEl = document.getElementById('media-target');
-    const p = promptEl ? promptEl.value : ''; 
-    const t = targetEl ? targetEl.value : 'image'; 
+    const t = targetEl ? targetEl.value : 'image';
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'control', command: 'media_forge_request', data: { prompt: p, targetType: t } })); 
+}
+
+function forgeGlobe() {
+    const name = document.getElementById('globe-name').value || 'multiplayer-globe-' + Date.now();
+    addLog(\`Forging Multiplayer Globe: \${name}...\`, "stdout");
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'control', command: 'invoke_limb_tool', data: { limbId: 'cloudflare_ai', toolName: 'cf_forge_multiplayer_globe', args: { targetDir: './projects/' + name } } }));
+    }
+}
+
+function renderForgedGlobe(data) {
+    const canvas = document.getElementById('globe-canvas');
+    const meta = document.getElementById('globe-meta');
+    if (!canvas || !meta) return;
+
+    canvas.style.display = 'block';
+    meta.innerHTML = \`<strong style="color:var(--accent-primary)">Globe Forged Successfully!</strong><br>Location: \${data.path}<br>Durable Object: Globe Registered\`;
+
+    // Initialize Cobe Lite for the dashboard
+    // We dynamically load it to avoid heavy bundle if not needed
+    if (!window.createGlobe) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/cobe';
+        script.onload = () => initCobe(canvas);
+        document.head.appendChild(script);
+    } else {
+        initCobe(canvas);
+    }
+}
+
+function initCobe(canvas) {
+    if (window.constellation) return;
+    window.constellation = new ConstellationManager(canvas);
+}
+
+class ConstellationManager {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.phi = 0;
+        this.nodes = new Map();
+        this.tracers = [];
+        this.origin = [34.0522, -118.2437]; // Default
+        this.init();
+    }
+
+    init() {
+        this.globe = window.createGlobe(this.canvas, {
+            devicePixelRatio: 2,
+            width: 300 * 2,
+            height: 300 * 2,
+            phi: 0,
+            theta: 0.4,
+            dark: 1,
+            diffuse: 1.2,
+            mapSamples: 16000,
+            mapBrightness: 6,
+            baseColor: [0.1, 0.1, 0.1],
+            markerColor: [0.1, 0.8, 1],
+            glowColor: [0, 0.1, 0.2],
+            markers: this.getMarkers(),
+            onRender: (state) => {
+                state.phi = this.phi;
+                this.phi += 0.005;
+                state.markers = this.getMarkers();
+            },
+        });
+    }
+
+    getMarkers() {
+        const markers = [
+            { location: this.origin, size: 0.08 } // Origin node
+        ];
+        
+        this.nodes.forEach(node => {
+            const size = node.health === 'READY' ? 0.05 : 0.03;
+            markers.push({ location: [node.lat, node.lng], size });
+        });
+
+        // Add fading tracers as temporary markers for effect
+        this.tracers.forEach((t, i) => {
+            t.life -= 0.01;
+            if (t.life <= 0) {
+                this.tracers.splice(i, 1);
+            } else {
+                markers.push({ location: [t.lat, t.lng], size: t.life * 0.04 });
+            }
+        });
+
+        return markers;
+    }
+
+    updateNode(data) {
+        this.nodes.set(data.region, data);
+        if (data.region === 'local') this.origin = [data.lat, data.lng];
+    }
+
+    addTracer(data) {
+        // Find approximate location of the failover target
+        // For now, if cloud, we spark a tracer
+        this.tracers.push({
+            lat: 34.0522 + (Math.random() - 0.5) * 10,
+            lng: -118.2437 + (Math.random() - 0.5) * 10,
+            life: 1.0,
+            color: data.reason === 'RATE_LIMITED' ? [1, 0, 0.9] : [0, 0.9, 1]
+        });
+    }
+
+    triggerPressure(data) {
+        this.pressureLevel = 1.0;
+        this.pressureColor = data.strategy === 'YIELD' ? [1, 0, 0] : [1, 0.5, 0];
+        // Shift base color temporarily
+        setTimeout(() => this.pressureLevel = 0, 5000);
+    }
 }
 
 function updateMemoryPulse(memories) {
@@ -1144,5 +1357,13 @@ connect();
         } catch (err) {
             this.logger.error({ err }, 'Failed to write dashboard assets to disk substrate');
         }
+    }
+
+    /**
+     * Proper Close: Ensures the dashboard preview server is terminated.
+     */
+    public override async close(): Promise<void> {
+        this.logger.info('Closing DashboardLimb resources...');
+        await this.previewServer.stopPreview('POG-DASHBOARD');
     }
 }
