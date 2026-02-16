@@ -3,7 +3,7 @@
  */
 
 import { homedir } from 'os';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { z } from 'zod';
 import type { VibeConfig } from '../core/models.js';
@@ -18,6 +18,7 @@ const ConfigSchema = z.object({
   circuitBreakerCooldown: z.number().int().positive().default(30000), // 30 seconds
   embeddingDimensions: z.number().int().positive().default(768),
   logLevel: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
+  environment: z.enum(['offline', 'online', 'local', 'unknown']).default('local'),
   projectId: z.string().default('pog-vibe-session'),
   workspaces: z.array(z.string()).default([]),
   errorTrackerModelPath: z.string().optional(),
@@ -30,10 +31,28 @@ const ConfigSchema = z.object({
   criticModel: z.string().optional(),
   planningModel: z.string().optional(),
   codingModel: z.string().optional(),
+  proCoderModel: z.string().optional(),
+  thinkingAdminModel: z.string().optional(),
+  allowExplorableCloud: z.boolean().default(true),
+  cloudHealingEnabled: z.boolean().default(true),
   healThreshold: z.enum(['low', 'medium', 'high', 'critical']).optional(),
   sovereignRoot: z.string().optional(),
   pogApiUrl: z.string().url().optional(),
-  aiContextPath: z.string().optional()
+  aiContextPath: z.string().optional(),
+  rootStack: z.array(z.string()).default([]),
+  identity: z.object({
+    email: z.string(),
+    name: z.string(),
+    source: z.enum(['env', 'gcloud', 'discovery'])
+  }).optional(),
+  activeStyle: z.object({
+    readabilityScore: z.number(),
+    avgSentenceLength: z.number(),
+    uniqueWordRatio: z.number(),
+    tone: z.enum(['simple', 'complex', 'academic', 'unknown']),
+    author: z.string().optional(),
+    title: z.string().optional()
+  }).optional()
 });
 
 type ConfigInput = z.input<typeof ConfigSchema>;
@@ -46,97 +65,93 @@ export class ConfigManager {
   private readonly configPath: string;
 
   constructor(projectRoot: string, overrides?: Partial<ConfigInput>) {
+    // 0. Initialize Config Paths & Load File Config
+    const pogDir = process.env['POG_DIR'] || overrides?.pogDir || DEFAULT_POG_DIR;
+    this.configPath = join(pogDir, CONFIG_FILE_NAME);  // Moved assignment up
+    const configPath = this.configPath;
+    let fileConfig: Partial<VibeConfig> = {};
+    try {
+      if (existsSync(configPath)) {
+        fileConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
+      }
+    } catch (e) { /* ignore */ }
+
     // 1. Detect Sovereign Root (High Priority D: Drive)
     const SOVEREIGN_CANDIDATE = 'D:\\pog-coder-vibe';
     const hasSovereign = existsSync(SOVEREIGN_CANDIDATE);
 
-    // 2. Check for local .pog directory preference
-    const localPogDir = join(projectRoot, '.pog');
-    const useLocal = process.env['POG_USE_LOCAL'] === 'true' || existsSync(localPogDir);
+    // 3. Identity Resolution (God State)
+    const identityEmail = process.env['CLOUDFLARE_AUTH_EMAIL'] || process.env['VIBE_USER_EMAIL'];
+    const identitySource = identityEmail ? 'env' : 'discovery';
 
-    const resolvedDefault = hasSovereign ? SOVEREIGN_CANDIDATE : (useLocal ? localPogDir : DEFAULT_POG_DIR);
-    const pogDir = process.env['POG_DIR'] ?? overrides?.pogDir ?? resolvedDefault;
+    // 4. Resolve rootStack (Federated Context)
+    const sovereignRoot = hasSovereign ? (process.env['POG_SOVEREIGN_ROOT'] || SOVEREIGN_CANDIDATE) : undefined;
 
-    this.configPath = join(pogDir, CONFIG_FILE_NAME);
-    const sovereignRoot = hasSovereign ? SOVEREIGN_CANDIDATE : undefined;
+    const rootStack = [
+      projectRoot, // God State / Core Identity
+    ];
 
-    // Ensure POG directory exists (if not sovereign, we might need to create it)
-    if (!existsSync(pogDir)) {
-      mkdirSync(pogDir, { recursive: true });
-    }
+    if (sovereignRoot) rootStack.push(sovereignRoot);
+    if (process.cwd() !== projectRoot) rootStack.push(process.cwd());
+
+    // 5. Establish aiContextPath (Shell Context)
+    const aiContextPath = process.env['POG_AI_CONTEXT_PATH'] || overrides?.aiContextPath || join(projectRoot, 'docs', 'ai-context');
 
     // Load or create config
-    this.config = this.loadConfig(projectRoot, pogDir, { ...overrides, sovereignRoot });
-  }
-
-  private loadConfig(
-    projectRoot: string,
-    pogDir: string,
-    overrides?: Partial<ConfigInput>
-  ): VibeConfig {
-    let fileConfig: Partial<ConfigInput> = {};
-
-    // Try to load existing config
-    if (existsSync(this.configPath)) {
-      try {
-        const raw = readFileSync(this.configPath, 'utf-8');
-        fileConfig = JSON.parse(raw) as Partial<ConfigInput>;
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to parse config file, using defaults:', error);
-      }
-    }
-
-    // Merge: defaults < file < env vars < overrides
     const merged: ConfigInput = {
       pogDir,
       projectRoot,
+      rootStack,
+      aiContextPath,
       agentName: process.env['VIBE_AGENT_NAME'] || overrides?.agentName || fileConfig.agentName || 'POG-VIBE-AGENT',
       wsPort: Number(process.env['VIBE_WS_PORT']) || overrides?.wsPort || fileConfig.wsPort || 8765,
       maxSnapshotAge: Number(process.env['VIBE_MAX_SNAPSHOT_AGE']) || overrides?.maxSnapshotAge || fileConfig.maxSnapshotAge || 86400000,
       circuitBreakerThreshold: Number(process.env['VIBE_CB_THRESHOLD']) || overrides?.circuitBreakerThreshold || fileConfig.circuitBreakerThreshold || 3,
       circuitBreakerCooldown: Number(process.env['VIBE_CB_COOLDOWN']) || overrides?.circuitBreakerCooldown || fileConfig.circuitBreakerCooldown || 30000,
       embeddingDimensions: Number(process.env['VIBE_EMBEDDING_DIM']) || overrides?.embeddingDimensions || fileConfig.embeddingDimensions || 768,
+      environment: (process.env['VIBE_ENVIRONMENT'] as VibeConfig['environment']) || overrides?.environment || fileConfig.environment || (hasSovereign ? 'offline' : 'local'),
       logLevel: (process.env['VIBE_LOG_LEVEL'] as VibeConfig['logLevel']) || overrides?.logLevel || fileConfig.logLevel || 'info',
       projectId: process.env['POG_PROJECT_ID'] || overrides?.projectId || fileConfig.projectId || projectRoot.split(/[\\/]/).pop() || 'default-project',
-      ollamaModelsPath: process.env['OLLAMA_MODELS_PATH'] || overrides?.ollamaModelsPath || fileConfig.ollamaModelsPath || fileConfig.errorTrackerModelPath || '',
+      ollamaModelsPath: process.env['OLLAMA_MODELS_PATH'] || overrides?.ollamaModelsPath || fileConfig.ollamaModelsPath || '',
       gutenbergPath: (() => {
         const raw = process.env['POG_GUTENBERG_PATH'] || overrides?.gutenbergPath || fileConfig.gutenbergPath || '';
-        // Resolve relative paths against pogDir
         if (raw && !/^[a-zA-Z]:/.test(raw) && !raw.startsWith('/') && !raw.startsWith('\\')) {
           return join(pogDir, raw);
         }
         return raw;
       })(),
-      errorTrackerModelPath: process.env['POG_ERROR_TRACKER_PATH'] || overrides?.errorTrackerModelPath || fileConfig.errorTrackerModelPath || '',
-      enabledServices: overrides?.enabledServices || fileConfig.enabledServices || ['gemini', 'ollama', 'cloudflare', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge', 'gutenberg', 'dashboard'],
-      cloudflareGatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'] || overrides?.cloudflareGatewayUrl || fileConfig.cloudflareGatewayUrl,
-      monitorModel: process.env['VIBE_MONITOR_MODEL'] || overrides?.monitorModel || fileConfig.monitorModel,
-      snapshotModel: process.env['VIBE_SNAPSHOT_MODEL'] || overrides?.snapshotModel || fileConfig.snapshotModel,
-      criticModel: process.env['VIBE_CRITIC_MODEL'] || overrides?.criticModel || fileConfig.criticModel,
-      planningModel: process.env['VIBE_PLANNING_MODEL'] || overrides?.planningModel || fileConfig.planningModel,
-      codingModel: process.env['VIBE_CODING_MODEL'] || overrides?.codingModel || fileConfig.codingModel,
-      healThreshold: (process.env['VIBE_HEAL_THRESHOLD'] as VibeConfig['healThreshold']) || overrides?.healThreshold || fileConfig.healThreshold,
-      sovereignRoot: overrides?.sovereignRoot || fileConfig.sovereignRoot,
+      enabledServices: overrides?.enabledServices || ['gemini', 'ollama', 'cloudflare', 'mcp_gitkraken', 'healthcare', 'documentai', 'vision', 'mediaforge', 'gutenberg', 'dashboard'],
+      cloudflareGatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'] || overrides?.cloudflareGatewayUrl,
+      proCoderModel: process.env['VIBE_PRO_CODER_MODEL'] || overrides?.proCoderModel || fileConfig.proCoderModel,
+      thinkingAdminModel: process.env['VIBE_THINKING_ADMIN_MODEL'] || overrides?.thinkingAdminModel || fileConfig.thinkingAdminModel,
+      allowExplorableCloud: process.env['VIBE_ALLOW_EXPLORABLE_CLOUD'] !== 'false',
+      cloudHealingEnabled: process.env['VIBE_CLOUD_HEALING_ENABLED'] !== 'false',
+      sovereignRoot,
       pogApiUrl: process.env['POG_API_URL'] || overrides?.pogApiUrl || fileConfig.pogApiUrl,
-      aiContextPath: process.env['POG_AI_CONTEXT_PATH'] || overrides?.aiContextPath || fileConfig.aiContextPath || join(projectRoot, 'docs', 'ai-context')
-    } as any; // Cast for now to satisfy strict Zod vs Interface drift
+      identity: identityEmail ? {
+        email: identityEmail,
+        name: identityEmail.split('@')[0],
+        source: identitySource
+      } as any : undefined
+    };
 
-    // Validate
+    // Validate and save
     const result = ConfigSchema.safeParse(merged);
-
     if (!result.success) {
-      throw new Error(`Invalid configuration: ${result.error.message}`);
+      // Fallback or detailed error
+      this.config = merged as any;
+      return;
     }
 
-    // Save validated config back to file
-    this.saveConfig(result.data as VibeConfig);
-
-    return result.data;
+    this.config = result.data as VibeConfig;
+    this.saveConfig(this.config);
   }
 
   private saveConfig(config: VibeConfig): void {
     try {
+      if (!existsSync(dirname(this.configPath))) {
+        mkdirSync(dirname(this.configPath), { recursive: true });
+      }
       writeFileSync(this.configPath, JSON.stringify(config, null, 2));
     } catch (error) {
       // eslint-disable-next-line no-console

@@ -44,7 +44,7 @@ export class FallbackStrategy implements RoutingStrategy {
     const startTime = performance.now();
 
     // No fallback needed if no models have failed or no context provided
-    if (this.failedModels.size === 0 || !context.availableModels) {
+    if (this.failedModels.size === 0 || !context.availableModels || context.availableModels.length === 0) {
       return null;
     }
 
@@ -65,6 +65,10 @@ export class FallbackStrategy implements RoutingStrategy {
     const sorted = [...healthyAvailable].sort((a, b) => b.priority - a.priority);
     const fallback = sorted[0];
 
+    if (!fallback) {
+      return null;
+    }
+
     const latency = Math.round(performance.now() - startTime);
     this.logger.info({
       failedModels: Array.from(this.failedModels),
@@ -78,6 +82,7 @@ export class FallbackStrategy implements RoutingStrategy {
         source: 'fallback',
         latencyMs: latency,
         reasoning: `Falling back to ${fallback.name} (priority: ${fallback.priority}) because [${Array.from(this.failedModels).join(', ')}] are currently offline or failed.`,
+        path: [] // Fallback path is flat
       },
     };
   }

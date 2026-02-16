@@ -56,14 +56,26 @@ export class AnalyticalStrategy implements RoutingStrategy {
 
         return biases.map(bias => {
             // Simulation is a weighted blend: if bias is Yang and complexity is Yin, return YinYang
-            let blended: Ternary = complexity;
-            if (bias === 'Yang' && complexity === 'Yin') blended = 'YinYang';
-            if (bias === 'Yin' && complexity === 'Yang') blended = 'YinYang';
-            if (bias === 'Yang' && complexity === 'Yang') blended = 'Yang';
-            if (bias === 'Yin' && complexity === 'Yin') blended = 'Yin';
+            const resolvedComplexity = this.resolveComplexity(complexity);
+            let blended: Ternary = resolvedComplexity;
+
+            if (bias === 'Yang' && resolvedComplexity === 'Yin') blended = 'YinYang';
+            if (bias === 'Yin' && resolvedComplexity === 'Yang') blended = 'YinYang';
+            if (bias === 'Yang' && resolvedComplexity === 'Yang') blended = 'Yang';
+            if (bias === 'Yin' && resolvedComplexity === 'Yin') blended = 'Yin';
 
             return this.traverseTree(this.decisionTree, blended, weightedTasks);
         });
+    }
+
+    private resolveComplexity(complexity: import('../../core/models.js').CognitiveChoice): Ternary {
+        if (typeof complexity === 'string') return complexity as Ternary;
+        // Map Yao/Binary states to Ternary strings
+        // 0 (OldYang/Yin), 1 (YoungYin/Yang), 2 (YoungYang), 3 (OldYin)
+        // This is a simplification; ideally use a central translator
+        if (complexity === 1 || complexity === 3) return 'Yin'; // YoungYin, OldYin
+        if (complexity === 2 || complexity === 0) return 'Yang'; // YoungYang, OldYang
+        return 'YinYang'; // Transition/Unknown
     }
 
     private synthesizeDecision(simulations: string[], context: RoutingContext): string {

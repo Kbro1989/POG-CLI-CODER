@@ -24,7 +24,7 @@ describe('FreeModelRouter (Real Integration)', () => {
   beforeEach((): void => {
     const configManager = new ConfigManager(process.cwd(), {
       pogDir: testPogDir,
-      projectRoot: process.cwd(),
+      rootStack: [], projectRoot: process.cwd(),
       circuitBreakerThreshold: 3,
       circuitBreakerCooldown: 1000
     });
@@ -127,3 +127,4 @@ describe('FreeModelRouter (Real Integration)', () => {
     });
   });
 });
+

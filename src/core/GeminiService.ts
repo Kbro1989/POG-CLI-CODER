@@ -1,6 +1,6 @@
 import { GoogleGenAI, Tool, HarmCategory, HarmBlockThreshold } from '@google/genai';
 import pino from 'pino';
-import { Result, ModelResponse, FunctionCall } from './models.js';
+import { Result, ModelResponse, FunctionCall, YaoState, type ServiceHealthState } from './models.js';
 import { KeyVault } from '../utils/KeyVault.js';
 import { HealthRegistry } from './HealthRegistry.js';
 import { GoogleServices } from '../services/GoogleServices.js';
@@ -18,7 +18,7 @@ export interface GeminiConfig {
     modelName?: string;
 }
 
-export type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE';
+// Local ServiceHealthState definition removed in favor of models.js
 
 /**
  * GeminiService - Unified Intelligence Layer (Sovereign Substrate)
@@ -50,6 +50,8 @@ export class GeminiService extends GoogleServices {
         // ------------------------------------------------------------------
         // Gemini CLI Auth Integration (Env Var Fallback)
         // ------------------------------------------------------------------
+        super(finalConfig);
+
         if (!apiKey) {
             const envGemini = process.env['GEMINI_API_KEY'];
             const envGoogle = process.env['GOOGLE_API_KEY'];
@@ -67,17 +69,10 @@ export class GeminiService extends GoogleServices {
                     logger.info('Using API key from KeyVault');
                 }
             } else {
-                // If we still don't have a key, existing behavior might fail later, or we warn here.
-                // GoogleServices base class might accept empty key if it relies on ADC, 
-                // but Gemini usually requires an API key. 
-                logger.warn('No API key provided or found in environment/vault. Gemini calls may fail.');
+                logger.warn('No API key provided or found in environment/vault. Entering SOVEREIGN_SILENCE.');
+                this.healthState = 'SOVEREIGN_SILENCE';
             }
         }
-
-        // Ensure the config object has the resolved key
-        finalConfig.apiKey = apiKey;
-
-        super(finalConfig);
 
         this.currentModel = selectedModel;
         this.keyVault = keyVault;
@@ -164,11 +159,12 @@ export class GeminiService extends GoogleServices {
 
             const rawParts = content.parts || [];
             const functionCalls: FunctionCall[] = rawParts
-                .map((p: any) => {
-                    if (p.functionCall) {
+                .map((p) => {
+                    const part = p as { functionCall?: { name: string; args: unknown } };
+                    if (part.functionCall) {
                         return {
-                            name: p.functionCall.name as string,
-                            args: p.functionCall.args as Record<string, unknown>
+                            name: part.functionCall.name,
+                            args: part.functionCall.args as Record<string, unknown>
                         };
                     }
                     return null;
@@ -184,6 +180,7 @@ export class GeminiService extends GoogleServices {
                 model: targetModel,
                 response: text,
                 latency: Date.now() - startTime,
+                cognitivePulse: YaoState.OldYin,
                 ...(functionCalls.length > 0 ? { functionCalls } : {})
             };
 
@@ -207,7 +204,8 @@ export class GeminiService extends GoogleServices {
 
                 // If the error is quota/auth, we might still want to handle it via rotateKey
                 // but let's see if we should retry first
-                lastError = result.error;
+                const error = (result as { ok: false; error: Error }).error;
+                lastError = error;
             } catch (error: unknown) {
                 lastError = error;
                 const { isQuota, isAuth, message } = this.classifyError(error);
@@ -298,10 +296,25 @@ export class GeminiService extends GoogleServices {
 
     async embed(text: string): Promise<Result<Float32Array>> {
         try {
-            const result = await this.genAI.models.embedContent({
-                model: 'text-embedding-004',
-                contents: [{ role: 'user', parts: [{ text }] }]
-            });
+            // Try newest model first
+            let result;
+            try {
+                result = await this.genAI.models.embedContent({
+                    model: 'text-embedding-004',
+                    contents: [{ role: 'user', parts: [{ text }] }]
+                });
+            } catch (e: any) {
+                if (e.message?.includes('404') || e.message?.includes('not found')) {
+                    logger.warn('text-embedding-004 not found, falling back to gemini-embedding-001');
+                    result = await this.genAI.models.embedContent({
+                        model: 'gemini-embedding-001',
+                        contents: [{ role: 'user', parts: [{ text }] }]
+                    });
+                } else {
+                    throw e;
+                }
+            }
+
             const embedding = result.embeddings?.[0];
 
             if (!embedding || !embedding.values) {

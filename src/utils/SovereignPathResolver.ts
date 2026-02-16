@@ -22,12 +22,17 @@ export const enum PathTier {
 }
 
 // Core Sovereign Locations
-const SOVEREIGN_D_ROOT = 'D:\\sovereign\\pog-coder-vibe';
+// Core Sovereign Locations (ROOT ANCHORED per user setup)
+const SOVEREIGN_D_LAIR = 'D:\\sovereign';
+const SOVEREIGN_D_ROOT = join(SOVEREIGN_D_LAIR, 'pog-coder-vibe');
 const SOVEREIGN_HOME_ROOT = join(homedir(), '.pog-coder-vibe');
 
 // Model Storage (separate from config for size reasons)
-const OLLAMA_D_PATH = 'D:\\sovereign\\ollama-models';
-const GUTENBERG_D_PATH = 'D:\\sovereign\\pog-gutenberg';
+const OLLAMA_D_PATH = 'D:\\ollama-models';
+const GUTENBERG_D_PATH = join(SOVEREIGN_D_LAIR, 'pog-gutenberg');
+const OLLAMA_LAIR_PATH = join(SOVEREIGN_D_LAIR, 'ollama-models');
+const GENERATIONS_D_PATH = join(SOVEREIGN_D_LAIR, 'generations');
+const MEMORY_D_PATH = join(SOVEREIGN_D_LAIR, 'memory');
 
 // Cached project root for tier -1 resolution
 let _projectRoot: string | null = null;
@@ -70,7 +75,7 @@ export function detectPathTier(): PathTier {
     const useLocal = process.env['POG_USE_LOCAL'] === 'true';
     if (useLocal && _projectRoot) return PathTier.ProjectLocal;
 
-    // Default to Home tier (balanced)
+    // Default to Home tier (balanced) if D:\ is missing
     return PathTier.Home;
 }
 
@@ -92,7 +97,12 @@ export function getSovereignRoot(tier?: PathTier): string {
     const resolvedTier = tier ?? detectPathTier();
 
     // Tier +1: Sovereign D:\ Drive
-    if (resolvedTier === PathTier.Sovereign) {
+    if (resolvedTier === PathTier.Sovereign && existsSync('D:\\')) {
+        // Create Lair folder if missing
+        if (!existsSync(SOVEREIGN_D_LAIR)) {
+            mkdirSync(SOVEREIGN_D_LAIR, { recursive: true });
+        }
+
         if (!existsSync(SOVEREIGN_D_ROOT)) {
             mkdirSync(SOVEREIGN_D_ROOT, { recursive: true });
         }
@@ -136,6 +146,14 @@ export function resolveSovereignPath(subpath: string, tier?: PathTier): string {
 }
 
 /**
+ * Returns the "God Head" root - the current active workspace.
+ * This is the source of truth for pog.md context.
+ */
+export function getGodHeadRoot(): string | null {
+    return _projectRoot;
+}
+
+/**
  * Gets the Ollama models path (D:\ollama-models or environment override)
  */
 export function getOllamaModelsPath(): string {
@@ -143,12 +161,19 @@ export function getOllamaModelsPath(): string {
     if (envPath && existsSync(envPath)) return envPath;
 
     if (hasSovereignDrive()) {
-        if (!existsSync(OLLAMA_D_PATH)) {
+        // Check for models in D:\ollama-models OR D:\sovereign\ollama-models
+        const pathsToTry = [OLLAMA_D_PATH, OLLAMA_LAIR_PATH];
+        for (const p of pathsToTry) {
+            if (existsSync(p)) return p;
+        }
+
+        // Default creation point: nested in LAIR for better hygiene
+        if (!existsSync(OLLAMA_LAIR_PATH)) {
             try {
-                mkdirSync(OLLAMA_D_PATH, { recursive: true });
+                mkdirSync(OLLAMA_LAIR_PATH, { recursive: true });
             } catch { /* Fallback */ }
         }
-        return OLLAMA_D_PATH;
+        return OLLAMA_LAIR_PATH;
     }
 
     // Default to whatever Ollama uses internally
@@ -180,6 +205,33 @@ export function getGutenbergPath(): string {
 }
 
 /**
+ * Gets the RSC data path for archaeology (D:\sovereign\rsc-data)
+ */
+export function getRscDataPath(): string {
+    if (hasSovereignDrive()) {
+        const rscPath = join(SOVEREIGN_D_LAIR, 'rsc-data');
+        if (!existsSync(rscPath)) {
+            mkdirSync(rscPath, { recursive: true });
+        }
+        return rscPath;
+    }
+    return resolveSovereignPath('rsc-data');
+}
+
+/**
+ * Gets the generations path for forged media (D:\sovereign\generations)
+ */
+export function getGenerationsPath(): string {
+    if (hasSovereignDrive()) {
+        if (!existsSync(GENERATIONS_D_PATH)) {
+            mkdirSync(GENERATIONS_D_PATH, { recursive: true });
+        }
+        return GENERATIONS_D_PATH;
+    }
+    return resolveSovereignPath('generations');
+}
+
+/**
  * Gets path for circuit breaker state persistence
  */
 export function getCircuitStatePath(): string {
@@ -190,13 +242,19 @@ export function getCircuitStatePath(): string {
  * Gets path for learning database
  */
 export function getLearningDbPath(): string {
-    return resolveSovereignPath('vibe-learning.db');
+    return getVectorDbPath();
 }
 
 /**
- * Gets path for learning database
+ * Gets path for learning database (Anchor: Memory)
  */
 export function getVectorDbPath(): string {
+    if (hasSovereignDrive()) {
+        if (!existsSync(MEMORY_D_PATH)) {
+            mkdirSync(MEMORY_D_PATH, { recursive: true });
+        }
+        return join(MEMORY_D_PATH, 'vibe-learning.db');
+    }
     return resolveSovereignPath('vibe-learning.db');
 }
 
@@ -204,6 +262,12 @@ export function getVectorDbPath(): string {
  * Gets path for performance history
  */
 export function getPerformanceDbPath(): string {
+    if (hasSovereignDrive()) {
+        if (!existsSync(MEMORY_D_PATH)) {
+            mkdirSync(MEMORY_D_PATH, { recursive: true });
+        }
+        return join(MEMORY_D_PATH, 'free-model-performance.json');
+    }
     return resolveSovereignPath('free-model-performance.json');
 }
 
@@ -229,5 +293,8 @@ export const SovereignPaths = {
     D_ROOT: SOVEREIGN_D_ROOT,
     HOME_ROOT: SOVEREIGN_HOME_ROOT,
     OLLAMA: OLLAMA_D_PATH,
-    GUTENBERG: GUTENBERG_D_PATH
+    GUTENBERG: GUTENBERG_D_PATH,
+    RSC_DATA: join(SOVEREIGN_D_LAIR, 'rsc-data'),
+    GENERATIONS: GENERATIONS_D_PATH,
+    MEMORY: MEMORY_D_PATH
 } as const;

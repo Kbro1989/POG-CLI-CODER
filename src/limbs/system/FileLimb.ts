@@ -2,10 +2,10 @@ import { BaseLimb } from '../core/BaseLimb.js';
 import type { Intent, Execution } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { StateManager } from '../../core/StateManager.js';
-import { execSync } from 'child_process';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { z } from 'zod';
+import { FileSystemSpine, ShellSpine } from '../../spines/index.js';
+import { Sandbox } from '../../sandbox/Sandbox.js';
 
 /**
  * FileLimb - Advanced File System Substrate
@@ -16,9 +16,14 @@ export class FileLimb extends BaseLimb {
     readonly id = 'file_limb';
     readonly type = 'maintenance';
     private readonly state = StateManager.getInstance();
+    private readonly fsSpine: FileSystemSpine;
+    private readonly shellSpine: ShellSpine;
 
     constructor(config: VibeConfig) {
         super(config);
+        const sandbox = new Sandbox(config);
+        this.fsSpine = new FileSystemSpine(config, sandbox);
+        this.shellSpine = new ShellSpine(config);
         this.registerTools([
             {
                 name: 'git_status',
@@ -83,8 +88,12 @@ export class FileLimb extends BaseLimb {
 
     private async gitStatus(): Promise<Result<string>> {
         try {
-            const output = execSync('git status --short', { cwd: this.config.projectRoot, encoding: 'utf-8' });
-            return { ok: true, value: output || 'Clean' };
+            const result = await this.shellSpine.getTools().find(t => t.name === 'sh_exec')!.handler({ command: 'git status --short' });
+            if (result.ok) {
+                const val = result.value as { stdout: string; stderr: string; exitCode: number };
+                return { ok: true, value: val.stdout || 'Clean' };
+            }
+            return result as Result<string>;
         } catch (error) {
             return { ok: false, error: error as Error };
         }
@@ -92,12 +101,15 @@ export class FileLimb extends BaseLimb {
 
     private async gitCommit(message: string): Promise<Result<string>> {
         try {
-            execSync('git add .', {
-                cwd: this.config.projectRoot
-            });
-            const output = execSync(`git commit -m "[Sovereign] ${message}"`, { cwd: this.config.projectRoot, encoding: 'utf-8' });
-            this.state.updateMetrics({ turnCount: 1 });
-            return { ok: true, value: output };
+            await this.shellSpine.getTools().find(t => t.name === 'sh_exec')!.handler({ command: 'git add .' });
+            const result = await this.shellSpine.getTools().find(t => t.name === 'sh_exec')!.handler({ command: `git commit -m "[Sovereign] ${message}"` });
+
+            if (result.ok) {
+                this.state.updateMetrics({ turnCount: 1 });
+                const val = result.value as { stdout: string; stderr: string; exitCode: number };
+                return { ok: true, value: val.stdout };
+            }
+            return result as Result<string>;
         } catch (error) {
             return { ok: false, error: error as Error };
         }
@@ -106,27 +118,42 @@ export class FileLimb extends BaseLimb {
     private async npmInstall(packages?: string[], saveDev?: boolean): Promise<Result<string>> {
         try {
             const cmd = `npm install ${packages?.join(' ') || ''} ${saveDev ? '--save-dev' : ''}`;
-            const output = execSync(cmd, { cwd: this.config.projectRoot, encoding: 'utf-8' });
-            return { ok: true, value: output };
+            const result = await this.shellSpine.getTools().find(t => t.name === 'sh_exec')!.handler({ command: cmd });
+            if (result.ok) {
+                const val = result.value as { stdout: string; stderr: string; exitCode: number };
+                return { ok: true, value: val.stdout };
+            }
+            return result as Result<string>;
         } catch (error) {
             return { ok: false, error: error as Error };
         }
     }
 
     private async scaffold(name: string, type: 'worker' | 'component' | 'minimal'): Promise<Result<string>> {
-        const targetDir = join(this.config.projectRoot, name);
-        if (existsSync(targetDir)) return { ok: false, error: new Error(`Directory ${name} already exists`) };
+        const targetDir = name; // Relative path handled by Spine
 
         try {
-            mkdirSync(targetDir, { recursive: true });
+            await this.fsSpine.getTools().find(t => t.name === 'fs_mkdir')!.handler({ path: targetDir });
 
             if (type === 'worker') {
-                writeFileSync(join(targetDir, 'package.json'), JSON.stringify({ name, version: '1.0.0', type: 'module' }, null, 2));
-                writeFileSync(join(targetDir, 'wrangler.toml'), `name = "${name}"\nmain = "src/index.ts"\ncompatibility_date = "2025-10-11"`);
-                mkdirSync(join(targetDir, 'src'));
-                writeFileSync(join(targetDir, 'src/index.ts'), `export default { async fetch() { return new Response("Hello from ${name}"); } };`);
+                await this.fsSpine.getTools().find(t => t.name === 'fs_write')!.handler({
+                    path: join(targetDir, 'package.json'),
+                    content: JSON.stringify({ name, version: '1.0.0', type: 'module' }, null, 2)
+                });
+                await this.fsSpine.getTools().find(t => t.name === 'fs_write')!.handler({
+                    path: join(targetDir, 'wrangler.toml'),
+                    content: `name = "${name}"\nmain = "src/index.ts"\ncompatibility_date = "2025-10-11"`
+                });
+                await this.fsSpine.getTools().find(t => t.name === 'fs_mkdir')!.handler({ path: join(targetDir, 'src') });
+                await this.fsSpine.getTools().find(t => t.name === 'fs_write')!.handler({
+                    path: join(targetDir, 'src/index.ts'),
+                    content: `export default { async fetch() { return new Response("Hello from ${name}"); } };`
+                });
             } else if (type === 'minimal') {
-                writeFileSync(join(targetDir, 'index.js'), `console.log("Sovereign Minimal [${name}] Active");`);
+                await this.fsSpine.getTools().find(t => t.name === 'fs_write')!.handler({
+                    path: join(targetDir, 'index.js'),
+                    content: `console.log("Sovereign Minimal [${name}] Active");`
+                });
             }
 
             return { ok: true, value: `Scaffolded ${type} project in ${name}` };
@@ -137,8 +164,12 @@ export class FileLimb extends BaseLimb {
 
     private async gitPush(): Promise<Result<string>> {
         try {
-            const output = execSync('git push', { cwd: this.config.projectRoot, encoding: 'utf-8' });
-            return { ok: true, value: output || 'Pushed successfully' };
+            const result = await this.shellSpine.getTools().find(t => t.name === 'sh_exec')!.handler({ command: 'git push' });
+            if (result.ok) {
+                const val = result.value as { stdout: string; stderr: string; exitCode: number };
+                return { ok: true, value: val.stdout || 'Pushed successfully' };
+            }
+            return result as Result<string>;
         } catch (error) {
             return { ok: false, error: error as Error };
         }
@@ -146,8 +177,12 @@ export class FileLimb extends BaseLimb {
 
     private async gitPull(): Promise<Result<string>> {
         try {
-            const output = execSync('git pull', { cwd: this.config.projectRoot, encoding: 'utf-8' });
-            return { ok: true, value: output || 'Pulled successfully' };
+            const result = await this.shellSpine.getTools().find(t => t.name === 'sh_exec')!.handler({ command: 'git pull' });
+            if (result.ok) {
+                const val = result.value as { stdout: string; stderr: string; exitCode: number };
+                return { ok: true, value: val.stdout || 'Pulled successfully' };
+            }
+            return result as Result<string>;
         } catch (error) {
             return { ok: false, error: error as Error };
         }

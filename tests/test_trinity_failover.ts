@@ -6,7 +6,7 @@ dotenv.config();
 
 const config: VibeConfig = {
     projectId: 'trinity-test',
-    projectRoot: process.cwd(),
+    rootStack: [], projectRoot: process.cwd(),
     pogDir: './.pog',
     agentName: 'TrinityTester',
     wsPort: 9003,
@@ -14,10 +14,11 @@ const config: VibeConfig = {
     circuitBreakerThreshold: 5,
     circuitBreakerCooldown: 60000,
     logLevel: 'info',
-    enabledServices: ['gemini', 'cloudflare', 'ollama', 'mediaforge'],
+    enabledServices: [],
     embeddingDimensions: 768,
     gutenbergPath: undefined,
-    workspaces: [process.cwd()]
+    workspaces: [process.cwd()],
+    environment: 'local'
 };
 
 async function testFailover() {
@@ -52,3 +53,4 @@ async function testFailover() {
 }
 
 testFailover();
+

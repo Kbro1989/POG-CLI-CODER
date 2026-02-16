@@ -411,12 +411,52 @@ export class VectorDB {
     });
   }
 
-  async searchSimilar(queryEmbedding: Float32Array, limit = 5, currentProjectId?: string): Promise<Result<Lesson[]>> {
+  async searchLessons(type: string, limit = 5): Promise<Result<Lesson[]>> {
     return new Promise((resolve) => {
       if (!this.db) {
         resolve({ ok: false, error: new Error('Database not initialized') });
         return;
       }
+
+      // We filter by type in the metadata JSON for maximum flexibility
+      this.db.all('SELECT * FROM lessons ORDER BY createdAt DESC', [], (err, rows: Array<Record<string, unknown>>) => {
+        if (err) {
+          resolve({ ok: false, error: err });
+          return;
+        }
+
+        const lessons = rows.map(row => {
+          const metadata = JSON.parse(row['metadata'] as string) as Record<string, unknown>;
+          if (metadata['type'] !== type) return null;
+
+          const embeddingBuffer = row['embedding'] as Buffer;
+          const embedding = embeddingBuffer ? new Float32Array(
+            embeddingBuffer.buffer,
+            embeddingBuffer.byteOffset,
+            embeddingBuffer.byteLength / 4
+          ) : undefined;
+
+          return {
+            ...row,
+            embedding,
+            projectId: row['projectId'] as string,
+            metadata
+          } as Lesson;
+        }).filter(l => l !== null);
+
+        resolve({ ok: true, value: (lessons as Lesson[]).slice(0, limit) });
+      });
+    });
+  }
+
+  async searchSimilar(queryEmbedding: Float32Array, limit = 5, projectIds?: string | string[]): Promise<Result<Lesson[]>> {
+    return new Promise((resolve) => {
+      if (!this.db) {
+        resolve({ ok: false, error: new Error('Database not initialized') });
+        return;
+      }
+
+      const pids = Array.isArray(projectIds) ? projectIds : (projectIds ? [projectIds] : []);
 
       // Fetch last 1000 lessons to compare
       this.db.all('SELECT * FROM lessons ORDER BY createdAt DESC LIMIT 1000', [], (err, rows: Array<Record<string, unknown>>) => {
@@ -427,6 +467,8 @@ export class VectorDB {
 
         const lessons = rows.map(row => {
           const embeddingBuffer = row['embedding'] as Buffer;
+          if (!embeddingBuffer) return null;
+
           const embedding = new Float32Array(
             embeddingBuffer.buffer,
             embeddingBuffer.byteOffset,
@@ -435,9 +477,13 @@ export class VectorDB {
 
           let similarity = this.cosineSimilarity(queryEmbedding, embedding);
 
-          // Apply boost if it's the current project
-          if (currentProjectId && row['projectId'] === currentProjectId) {
+          // Apply boost if it's in the project stack (Federated Awareness)
+          if (pids.length > 0 && pids.includes(row['projectId'] as string)) {
             similarity += 0.1;
+            // Higher boost if it's the first one in the stack (The "Here" context)
+            if (row['projectId'] === pids[pids.length - 1]) {
+              similarity += 0.05;
+            }
           }
 
           return {
@@ -447,10 +493,10 @@ export class VectorDB {
             similarity,
             metadata: JSON.parse(row['metadata'] as string) as Record<string, unknown>
           } as Lesson & { similarity: number };
-        });
+        }).filter(l => l !== null);
 
         // Sort by similarity and return top K
-        const sorted = lessons
+        const sorted = (lessons as any[])
           .sort((a, b) => b.similarity - a.similarity)
           .slice(0, limit)
           .map(({ similarity: _, ...lesson }) => lesson as Lesson);

@@ -84,7 +84,8 @@ OUTPUT FORMAT (JSON):
         const result = await this.executor.callModel('gemini:gemini-3-flash-preview', auditPrompt);
 
         if (!result.ok) {
-            this.logger.warn({ error: result.error }, 'Verification failed, assuming alignment');
+            const error = (result as { ok: false; error: Error }).error;
+            this.logger.warn({ error }, 'Verification failed, assuming alignment');
             return { score: 100, isAligned: true, reasoning: 'Verifier offline' };
         }
 

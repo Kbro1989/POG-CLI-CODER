@@ -113,3 +113,4 @@ ${models.map(m => `    '${m.id}': {
 
 writeFileSync(outputPath, tsContent);
 console.log(`Successfully generated ${models.length} static model definitions and metadata in ${outputPath}`);
+

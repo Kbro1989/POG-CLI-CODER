@@ -39,3 +39,4 @@ async function verifyHealthRouting() {
 }
 
 verifyHealthRouting().catch(console.error);
+

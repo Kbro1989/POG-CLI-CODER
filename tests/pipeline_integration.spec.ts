@@ -10,7 +10,7 @@ describe('Standardized Pipeline Integration', () => {
     let orchestrator: FreeOrchestrator;
     const config: VibeConfig = {
         projectId: 'test-project',
-        projectRoot: process.cwd(),
+        rootStack: [], projectRoot: process.cwd(),
         agentName: 'POG-Test',
         pogDir: join(homedir(), '.pog_test'),
         wsPort: 8766,
@@ -18,10 +18,11 @@ describe('Standardized Pipeline Integration', () => {
         circuitBreakerThreshold: 3,
         circuitBreakerCooldown: 30000,
         embeddingDimensions: 768,
-        enabledServices: ['GEMINI', 'WEBAPP_FORGE', 'MEDIA_FORGE', 'BIO_INTELLIGENCE', 'GUTENBERG'],
+        enabledServices: ['gemini', 'ollama'],
         logLevel: 'info',
         gutenbergPath: undefined,
-        workspaces: [],
+        workspaces: [process.cwd()],
+        environment: 'local',
         pogApiUrl: undefined,
         aiContextPath: undefined
     };
@@ -134,4 +135,11 @@ describe('Standardized Pipeline Integration', () => {
 
         expect(result.status).toBe('continue');
     });
+
+    afterAll(async () => {
+        if (orchestrator) {
+            await orchestrator.cleanup();
+        }
+    });
 });
+

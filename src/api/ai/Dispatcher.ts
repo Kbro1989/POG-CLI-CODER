@@ -2,7 +2,7 @@ import { GoogleGenAI } from '@google/genai';
 import { CapabilityRegistry, AICapability, AIServiceType } from './CapabilityRegistry.js';
 import { VibeConfig } from '../../core/models.js';
 import { execSync, spawn } from 'child_process';
-import pino from 'pino';
+import { pino } from 'pino';
 
 const logger = pino({
     name: 'AIDispatcher',

@@ -13,7 +13,7 @@ async function testDrift() {
 
     const config: VibeConfig = {
         projectId: 'test-pog',
-        projectRoot: process.cwd(),
+        rootStack: [], projectRoot: process.cwd(),
         pogDir: '.pog',
         agentName: 'VerifierTest',
         wsPort: 9999,
@@ -24,15 +24,16 @@ async function testDrift() {
         enabledServices: ['gemini'],
         embeddingDimensions: 768,
         gutenbergPath: undefined,
-        workspaces: [process.cwd()]
+        workspaces: [process.cwd()],
+        environment: 'local'
     };
 
     const vectorDB = new VectorDB(config);
     const keyVault = new KeyVault();
     const geminiService = new GeminiService({ apiKey: process.env['GOOGLE_API_KEY'] || '' }, keyVault);
     const router = new FreeModelRouter(config, geminiService);
-    const executor = new ModelExecutor(config, geminiService, router);
     const hexagram = new HexagramManager(vectorDB, 'test-pog');
+    const executor = new ModelExecutor(config, geminiService, hexagram, router);
 
     const verifier = new IntentVerifier(executor, hexagram);
 
@@ -69,3 +70,4 @@ async function testDrift() {
 }
 
 testDrift().catch(console.error);
+

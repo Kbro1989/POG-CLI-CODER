@@ -12,6 +12,7 @@ import { GeminiService } from '../src/core/GeminiService.js';
 import { ValidationSystem } from '../src/core/validation/ValidationSystem.js';
 import { ArchitectureDigest } from '../src/core/ArchitectureDigest.js';
 import { VectorDB } from '../src/learning/VectorDB.js';
+import { HexagramManager } from '../src/core/HexagramManager.js';
 
 // Load Environment Variables
 dotenv.config();
@@ -19,16 +20,17 @@ dotenv.config();
 // Real Config
 const config: VibeConfig = {
     projectId: 'cross-limb-verify',
-    projectRoot: process.cwd(),
+    rootStack: [], projectRoot: process.cwd(),
     pogDir: path.join(process.cwd(), '.pog_coder_vibe'),
-    enabledServices: ['webapp', 'gutenberg', 'media'],
-    agentName: 'POG-VIBE-VERIFY',
+    enabledServices: ['Gutenberg', 'Relic', 'MediaForge'],
+    agentName: 'OVAL-OFFICE',
     wsPort: 3000,
-    maxSnapshotAge: 86400000,
+    maxSnapshotAge: 3600,
     circuitBreakerThreshold: 3,
-    circuitBreakerCooldown: 10000,
+    circuitBreakerCooldown: 60000,
     embeddingDimensions: 384,
     logLevel: 'info',
+    environment: 'local',
     pogApiUrl: process.env['POG_API_URL'],
     cloudflareGatewayUrl: process.env['CLOUDFLARE_GATEWAY_URL'] || process.env['CLOUDFLARE_BINDING_URL'],
     gutenbergPath: undefined,
@@ -40,17 +42,17 @@ async function verifyCrossLimb() {
 
     try {
         // 1. Initialize Core Dependencies
-        const apiKey = process.env['GOOGLE_API_KEY'] || '';
-        if (!apiKey) console.warn('⚠️ GOOGLE_API_KEY missing. Some limbs may fail.');
-
-        const geminiService = new GeminiService(apiKey);
+        const apiKey = process.env['GOOGLE_API_KEY'] || 'mock-key';
+        const geminiService = new GeminiService({ apiKey });
         const vectorDB = new VectorDB(config);
+        const hexagramMgr = new HexagramManager(vectorDB, config.projectId);
+        await hexagramMgr.initialize();
 
         // Initialize Router
         const router = new FreeModelRouter(config, geminiService);
 
         // Initialize Executor
-        const executor = new ModelExecutor(config, geminiService, router);
+        const executor = new ModelExecutor(config, geminiService, hexagramMgr, router);
 
         // Initialize Adversarial Components
         const validationSystem = new ValidationSystem(); // Add validators if needed
@@ -109,3 +111,4 @@ async function verifyCrossLimb() {
 }
 
 verifyCrossLimb().catch(console.error);
+

@@ -20,7 +20,7 @@ export interface FileContext {
     sameDirectory: string[];
 }
 
-import { GeminiService } from '../core/GeminiService.js';
+import { ModelExecutor } from '../core/ModelExecutor.js';
 
 export class ContextBuilder {
     private readonly pinnedFiles: Set<string> = new Set();
@@ -29,9 +29,11 @@ export class ContextBuilder {
         private readonly vectorDB: VectorDB,
         private projectRoot: string,
         private readonly projectId: string,
-        private readonly gemini?: GeminiService
+        private readonly modelExecutor: ModelExecutor,
+        private readonly rootStack: string[] = [],
+        private readonly aiContextPath?: string
     ) {
-        logger.debug({ vectorDB: !!this.vectorDB, gemini: !!this.gemini }, 'ContextBuilder initialized');
+        logger.debug({ vectorDB: !!this.vectorDB, executor: !!this.modelExecutor, roots: this.rootStack.length }, 'ContextBuilder initialized');
     }
 
     /**
@@ -69,10 +71,10 @@ export class ContextBuilder {
     }
 
     async queryLessons(prompt: string): Promise<any[]> {
-        if (!this.gemini) return [];
+        if (!this.modelExecutor) return [];
 
         try {
-            const embeddingResult = await this.gemini.embed(prompt);
+            const embeddingResult = await this.modelExecutor.embed(prompt);
             if (embeddingResult.ok) {
                 const similar = await this.vectorDB.searchSimilar(embeddingResult.value, 15, 'lessons');
                 if (similar.ok) {
@@ -103,17 +105,18 @@ export class ContextBuilder {
         // 3. Find semantically related files via VectorDB
         const related: string[] = [];
 
-        // 4. Proactive GEMINI.md Discovery (Sovereign Law)
-        const geminiMd = this.findDominantMetadata(filePath);
-        if (geminiMd) {
-            logger.info({ geminiMd }, 'Sovereign Law (GEMINI.md) detected and injected into context');
-            related.push(geminiMd);
-        }
+        // 4. Proactive Federated Metadata Discovery (God State Awareness)
+        const manifests = this.findDominantMetadata(filePath);
+        manifests.forEach(m => {
+            logger.info({ manifest: m }, 'Sovereign Law detected and injected into federated context');
+            related.push(m);
+        });
 
-        if (this.gemini) {
+        const geminiMd = join(this.projectRoot, '.gemini.md');
+        if (this.modelExecutor) {
             try {
                 const query = content.substring(0, 1000);
-                const embeddingResult = await this.gemini.embed(query);
+                const embeddingResult = await this.modelExecutor.embed(query);
                 if (embeddingResult.ok) {
                     const similar = await this.vectorDB.searchSimilar(embeddingResult.value, 10, this.projectId);
                     if (similar.ok) {
@@ -137,21 +140,45 @@ export class ContextBuilder {
     }
 
     /**
-     * Find GEMINI.md or similar dominant metadata up the directory tree
+     * Find GEMINI.md or similar dominant metadata across the federated rootStack
      */
-    private findDominantMetadata(startPath: string): string | null {
-        let currentDir = statSync(startPath).isDirectory() ? startPath : dirname(startPath);
+    private findDominantMetadata(startPath: string): string[] {
+        const manifests: string[] = [];
+        const seen = new Set<string>();
 
+        // 1. Check upward from the startPath to the projectRoot
+        let currentDir = statSync(startPath).isDirectory() ? startPath : dirname(startPath);
         while (currentDir.length >= this.projectRoot.length) {
             const target = join(currentDir, 'GEMINI.md');
-            if (existsSync(target)) return target;
-
+            if (existsSync(target) && !seen.has(target)) {
+                manifests.push(target);
+                seen.add(target);
+            }
             const parent = dirname(currentDir);
             if (parent === currentDir) break;
             currentDir = parent;
         }
 
-        return null;
+        // 2. Check each root in the stack for their respective GEMINI.md
+        for (const root of this.rootStack) {
+            const target = join(root, 'GEMINI.md');
+            if (existsSync(target) && !seen.has(target)) {
+                manifests.push(target);
+                seen.add(target);
+            }
+        }
+
+        // 3. Inject AI context if it exists and hasn't been added
+        if (this.aiContextPath && existsSync(this.aiContextPath)) {
+            // Check for a manifest inside ai-context
+            const target = join(this.aiContextPath, 'SOVEREIGN_CONTEXT.md');
+            if (existsSync(target) && !seen.has(target)) {
+                manifests.push(target);
+                seen.add(target);
+            }
+        }
+
+        return manifests;
     }
 
     /**
@@ -177,10 +204,10 @@ export class ContextBuilder {
      * Queries VectorDB for "Golden Templates" representing Peak Implementation.
      */
     async getGoldenTemplates(prompt: string): Promise<string[]> {
-        if (!this.gemini) return [];
+        if (!this.modelExecutor) return [];
 
         try {
-            const embeddingResult = await this.gemini.embed(`BEST PRACTICE IMPLEMENTATION FOR: ${prompt}`);
+            const embeddingResult = await this.modelExecutor.embed(`BEST PRACTICE IMPLEMENTATION FOR: ${prompt}`);
             if (embeddingResult.ok) {
                 const similar = await this.vectorDB.searchSimilar(embeddingResult.value, 3, this.projectId);
                 if (similar.ok) {
@@ -193,6 +220,31 @@ export class ContextBuilder {
             }
         } catch (err) {
             logger.warn({ err }, 'Golden Template search failed');
+        }
+        return [];
+    }
+
+    /**
+     * Retrieve global context from docs/ai-context based on relevance
+     */
+    async getGlobalContext(query: string): Promise<string[]> {
+        if (!this.modelExecutor) return [];
+
+        try {
+            const embeddingResult = await this.modelExecutor.embed(query);
+            if (embeddingResult.ok) {
+                const similar = await this.vectorDB.searchSimilar(embeddingResult.value, 5, 'global');
+                if (similar.ok) {
+                    return similar.value
+                        .filter(l => {
+                            const p = (l.metadata as any)?.path || '';
+                            return p.includes('docs/ai-context') || p.includes('docs\\ai-context');
+                        })
+                        .map(l => (l.metadata as any).path);
+                }
+            }
+        } catch (err) {
+            logger.warn({ err }, 'Global context retrieval failed');
         }
         return [];
     }

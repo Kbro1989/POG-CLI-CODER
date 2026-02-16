@@ -33,7 +33,7 @@ export class MCPLimb extends BaseLimb {
     constructor(config: VibeConfig) {
         super(config);
         this.registerMcpTools();
-        this.initializeServers();
+        // initializeServers moved to lazy or explicit call to avoid EPIPE in restricted environments
     }
 
     private registerMcpTools(): void {
@@ -66,7 +66,7 @@ export class MCPLimb extends BaseLimb {
         ]);
     }
 
-    private initializeServers(): void {
+    public initializeServers(): void {
         const configPath = join(this.config.projectRoot, 'pog-mcp.json');
         if (!existsSync(configPath)) {
             this.logger.info('No pog-mcp.json found. Substrate limited to native organs.');

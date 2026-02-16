@@ -40,3 +40,4 @@ console.log('   • Tier 0: Gemini 3/2.5 Preview models (Priority 100-97)');
 console.log('   • Tier 1: Legacy Gemini 2.0/1.5 models (Priority 95-45)');
 console.log('   • Tier 2: Local Ollama models (Priority 80-75)');
 console.log('\n🎯 Preview models will be selected first for cloud-based tasks!');
+

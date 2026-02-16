@@ -17,7 +17,7 @@ const logger = pino({
 async function main() {
     const config: any = {
         pogDir: join(process.cwd(), '.pog-coder-vibe'),
-        projectRoot: process.cwd(),
+        rootStack: [], projectRoot: process.cwd(),
         projectId: 'global',
         googleApiKey: process.env['GOOGLE_API_KEY']!
     };
@@ -62,3 +62,4 @@ main().catch(err => {
     logger.error({ err }, 'Fatal error');
     process.exit(1);
 });
+

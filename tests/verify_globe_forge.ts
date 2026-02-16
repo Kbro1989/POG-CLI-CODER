@@ -12,15 +12,16 @@ async function verify() {
     const config: VibeConfig = {
         projectId: 'test-forge',
         pogDir: './.pog_test',
-        projectRoot: process.cwd(),
+        rootStack: [], projectRoot: process.cwd(),
         agentName: 'ForgeVerifier',
         wsPort: 9999,
         maxSnapshotAge: 3600,
         circuitBreakerThreshold: 5,
         circuitBreakerCooldown: 60000,
         logLevel: 'info',
-        enabledServices: ['cloudflare'],
+        enabledServices: [],
         embeddingDimensions: 768,
+        environment: 'local',
         gutenbergPath: 'D:\\sovereign\\pog-gutenberg',
         cloudflareAccountId: process.env['CLOUDFLARE_ACCOUNT_ID'] || '',
         cloudflareApiToken: process.env['CLOUDFLARE_API_TOKEN'] || '',
@@ -92,3 +93,4 @@ verify().catch(err => {
     console.error('Verification FAILED:', err);
     process.exit(1);
 });
+

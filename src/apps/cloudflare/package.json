@@ -1,0 +1,12 @@
+{
+    "name": "apps-cloudflare",
+    "private": true,
+    "scripts": {
+        "build": "wrangler build",
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy"
+    },
+    "devDependencies": {
+        "wrangler": "^4.65.0"
+    }
+}

@@ -1,6 +1,8 @@
 import { ModelExecutor } from '../src/core/ModelExecutor.js';
 import { ConfigManager } from '../src/utils/config.js';
 import { GeminiService } from '../src/core/GeminiService.js';
+import { HexagramManager } from '../src/core/HexagramManager.js';
+import { VectorDB } from '../src/learning/VectorDB.js';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -14,8 +16,10 @@ async function testCloudflareFallback() {
     // Initialize with a fake API key for Gemini to force it to fail, 
     // or just let it fail if the key is invalid. 
     // To TRULY test CF, we should ensure Ollama AND Gemini fail.
-    const geminiService = new GeminiService('INVALID_KEY');
-    const executor = new ModelExecutor(config, geminiService);
+    const geminiService = new GeminiService({ apiKey: 'INVALID_KEY' });
+    const vectorDB = new VectorDB(config);
+    const hexagramManager = new HexagramManager(vectorDB, config.projectId);
+    const executor = new ModelExecutor(config, geminiService, hexagramManager);
 
     console.log('📡 Sending request to non-existent local model to trigger fallbacks...');
 
@@ -39,3 +43,4 @@ async function testCloudflareFallback() {
 }
 
 testCloudflareFallback();
+

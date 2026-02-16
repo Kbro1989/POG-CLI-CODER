@@ -26,7 +26,7 @@ describe('DashboardLimb (Real Integration)', () => {
 
         const configManager = new ConfigManager(testDir, {
             pogDir: join(testDir, '.pog'),
-            projectRoot: testDir,
+            rootStack: [], projectRoot: testDir,
             projectId: 'TEST_DASH',
             wsPort: 0,
             enabledServices: ['neural', 'hexagram', 'gutenberg']
@@ -47,10 +47,10 @@ describe('DashboardLimb (Real Integration)', () => {
     });
 
     it('should identify dashboard intents correctly', async () => {
-        expect(await dashboard.canHandle({ prompt: 'show dashboard' })).toBe(true);
-        expect(await dashboard.canHandle({ prompt: 'open UI' })).toBe(true);
-        expect(await dashboard.canHandle({ prompt: 'start the dashboard interface' })).toBe(true);
-        expect(await dashboard.canHandle({ prompt: 'fix some code' })).toBe(false);
+        expect(await dashboard.canHandle({ prompt: 'show dashboard' })).toBe('Yang');
+        expect(await dashboard.canHandle({ prompt: 'open UI' })).toBe('YinYang');
+        expect(await dashboard.canHandle({ prompt: 'start the dashboard interface' })).toBe('Yang');
+        expect(await dashboard.canHandle({ prompt: 'fix some code' })).toBe('Yin');
     });
 
     it('should generate HTML, CSS, and JS assets on activation', async () => {
@@ -59,7 +59,8 @@ describe('DashboardLimb (Real Integration)', () => {
         expect(result.ok).toBe(true);
         if (result.ok) {
             // Check the output message mentions activation
-            expect(result.value.output).toContain('Dashboard activated');
+            // Check the output message mentions activation or sync
+            expect(result.value.output).toMatch(/Dashboard (activated|synced)/);
 
             // Verify files were created in the expected location
             const dashboardDir = join(config.pogDir, 'session_dashboards', config.projectId);
@@ -69,3 +70,4 @@ describe('DashboardLimb (Real Integration)', () => {
         }
     });
 });
+

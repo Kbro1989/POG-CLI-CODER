@@ -1,4 +1,5 @@
-import { HexagramManager, YaoState } from '../src/core/HexagramManager.js';
+import { HexagramManager } from '../src/core/HexagramManager.js';
+import { YaoState } from '../src/core/models.js';
 import { VectorDB } from '../src/learning/VectorDB.js';
 import { VibeConfig } from '../src/core/models.js';
 import * as dotenv from 'dotenv';
@@ -10,10 +11,11 @@ dotenv.config();
 const config: VibeConfig = {
     gutenbergPath: undefined,
     workspaces: [process.cwd()],
+    environment: 'local',
     pogApiUrl: undefined,
     aiContextPath: undefined,
     agentName: 'HEX-CHECK',
-    projectRoot: process.cwd(),
+    rootStack: [], projectRoot: process.cwd(),
     pogDir: join(homedir(), '.pog-coder-vibe'),
     wsPort: 9999,
     maxSnapshotAge: 3600,
@@ -71,3 +73,4 @@ async function verify() {
 }
 
 verify().catch(console.error);
+

@@ -16,6 +16,8 @@ import { ModelExecutor } from '../core/ModelExecutor.js';
 import { HealthRegistry } from '../core/HealthRegistry.js';
 import { SystemEnvChecker } from '../utils/SystemEnvChecker.js';
 import { SelfHealingEngine, ExecutionPlan } from './SelfHealingEngine.js';
+import { PulseMonitor } from './PulseMonitor.js';
+import { HexagramManager } from '../core/HexagramManager.js';
 import type { VibeConfig, CognitiveChoice } from '../core/models.js';
 import { BuildStatus, HealthStatus } from '../core/models.js';
 
@@ -45,6 +47,7 @@ export class MonitorAgent extends EventEmitter {
     private readonly tscMonitor: TSCMonitor;
     private readonly astWatcher: ASTWatcher;
     private readonly selfHealingEngine: SelfHealingEngine;
+    private readonly pulseMonitor: PulseMonitor;
     private isRunning: boolean = false;
     private healthCheckInterval?: NodeJS.Timeout;
     private readonly recentChanges: Set<string> = new Set();
@@ -54,14 +57,16 @@ export class MonitorAgent extends EventEmitter {
 
     constructor(
         config: VibeConfig,
-        private readonly executor: ModelExecutor
+        private readonly executor: ModelExecutor,
+        hexagramManager: HexagramManager
     ) {
         super();
         this.MONITOR_MODEL = config.monitorModel || process.env['VIBE_MONITOR_MODEL'] || 'tinyllama:latest';
         this.SNAPSHOT_MODEL = config.snapshotModel || process.env['VIBE_SNAPSHOT_MODEL'] || 'qwen2.5-coder:7b-instruct-q4_K_M';
         this.tscMonitor = new TSCMonitor(config.projectRoot);
         this.astWatcher = new ASTWatcher(config);
-        this.selfHealingEngine = new SelfHealingEngine(config.projectRoot, executor, this.SNAPSHOT_MODEL);
+        this.selfHealingEngine = new SelfHealingEngine(config.projectRoot, executor, hexagramManager, this.SNAPSHOT_MODEL);
+        this.pulseMonitor = new PulseMonitor(config, hexagramManager);
     }
 
     /**
@@ -69,6 +74,14 @@ export class MonitorAgent extends EventEmitter {
      */
     public getCurrentErrors(): readonly TSCError[] {
         return this.tscMonitor.getCurrentErrors();
+    }
+
+    /**
+     * Ingest external issues (e.g. from VS Code Extension) and trigger self-healing.
+     */
+    public reportExternalIssues(report: MonitorReport): void {
+        logger.info({ category: report.category, files: report.affectedFiles }, 'External issue reported from IDE');
+        this.emit('issueDetected', report);
     }
 
     override on<K extends keyof MonitorAgentEvents>(
@@ -121,6 +134,18 @@ export class MonitorAgent extends EventEmitter {
             monitorModel: this.MONITOR_MODEL,
             snapshotModel: this.SNAPSHOT_MODEL
         }, 'Monitor Agent active');
+
+        // Start Biological Pulse
+        this.pulseMonitor.start();
+    }
+
+    public handleGodHeadConnection(pogContext: string): void {
+        logger.info({ contextLength: pogContext.length }, 'God Head Connected via VS Code Extension');
+
+        // Assimilate God Head Context into the Self-Healing Engine
+        this.selfHealingEngine.setGodHeadContext(pogContext);
+
+        this.emit('node_discovered', { type: 'god_head', status: 'active', source: 'vscode' });
     }
 
     private async handleTSCErrors(errors: readonly TSCError[]): Promise<void> {
@@ -136,7 +161,8 @@ Respond with ONLY: low, medium, high, or critical`;
         const result = await this.executor.callModel(this.MONITOR_MODEL, prompt);
 
         if (!result.ok) {
-            logger.error({ error: result.error }, 'Monitor model failed');
+            const error = (result as { ok: false; error: Error }).error;
+            logger.error({ error }, 'Monitor model failed');
             return;
         }
 
@@ -270,6 +296,52 @@ Respond with ONLY: tsc, build, or ignore`;
     }
 
     /**
+     * Executes a full Metabolic Boot sequence:
+     * 1. Health Audit (APIs/MCPs)
+     * 2. TSC Type Check
+     * 3. Self-Testing (npm test)
+     * 4. Outcome Analysis & Healing
+     */
+    public async runMetabolicBoot(): Promise<{ ok: boolean; message: string }> {
+        logger.info('Initiating Sovereign Metabolic Boot...');
+
+        // 1. Check Substrate (Disk/Biological)
+        await this.pulseMonitor.start(); // Ensure pulse is running
+
+        // 2. TSC Check
+        const tscErrors = this.tscMonitor.getCurrentErrors();
+        if (tscErrors.length > 0) {
+            logger.warn({ count: tscErrors.length }, 'Metabolic regression detected: TSC Errors present.');
+            return { ok: false, message: `TSC check failed with ${tscErrors.length} errors.` };
+        }
+
+        // 3. Self-Testing
+        logger.info('Running Sovereign Self-Tests (npm test)...');
+        const testResult = await this.selfHealingEngine.verifyWithTests(this.tscMonitor.getProjectRoot());
+        if (!testResult.ok) {
+            logger.warn('Metabolic regression detected: Self-Tests failed.');
+            return { ok: false, message: `Self-tests failed.\n${testResult.output.slice(-500)}` };
+        }
+
+        logger.info('Sovereign Metabolic Boot: ALL SYSTEMS GREEN.');
+        return { ok: true, message: 'Substrate verified and healthy.' };
+    }
+
+    /**
+     * Executes npm test and reports results.
+     */
+    public async runSelfTests(): Promise<{ ok: boolean; message: string }> {
+        // Delegate to SelfHealingEngine to ensure consistent output redirection
+        const result = await this.selfHealingEngine.verifyWithTests(this.tscMonitor.getProjectRoot());
+        return {
+            ok: result.ok,
+            message: result.ok ? 'Self-tests passed.' : `Self-tests failed.\n${result.output.slice(-500)}`
+        };
+    }
+
+
+
+    /**
      * Internal interference check for the Orchestrator loop.
      */
     async checkInterference(plan?: ExecutionPlan): Promise<{ decision: CognitiveChoice; reasoning: string } | null> {
@@ -286,6 +358,7 @@ Respond with ONLY: tsc, build, or ignore`;
 
         this.tscMonitor.stop();
         this.astWatcher.stop();
+        this.pulseMonitor.stop();
 
         if (this.healthCheckInterval) {
             clearInterval(this.healthCheckInterval);

@@ -62,6 +62,14 @@ export abstract class BaseLimb extends EventEmitter implements NeuralLimb {
      * Returns: 'Yin' (skip), 'YinYang' (maybe), 'Yang' (optimal match)
      */
     async canHandle(intent: Intent): Promise<TernaryDecision> {
+        // Gating Check: If service is explicitly disabled in config, it remains inert.
+        const normalizedServices = (this.config.enabledServices || []).map(s => s.toLowerCase());
+        const isEnabled = !this.config.enabledServices || normalizedServices.includes(this.id.toLowerCase());
+
+        if (!isEnabled) {
+            return 'Yin';
+        }
+
         const p = this.getUserIntent(intent).toLowerCase();
 
         // 'Yang': Direct limb ID match = optimal
@@ -73,7 +81,8 @@ export abstract class BaseLimb extends EventEmitter implements NeuralLimb {
 
         if (matches >= 2) return 'Yang';   // Strong match = escalate
         if (matches === 1) return 'YinYang'; // Partial match = balanced
-        return 'Yin';                     // No match = de-escalate
+
+        return 'YinYang'; // Default to YinYang if enabled but no specific match, allowing specialized limbs to decide
     }
 
 
@@ -125,7 +134,11 @@ User Intent: ${this.getUserIntent(intent)}`;
     async handleToolCall(name: string, args: Record<string, unknown>): Promise<Result<Execution>> {
         this.logger.debug({ tool: name, args }, 'Routing tool call through Spine');
         const res = await this.spine.handleCall(name, args);
-        if (!res.ok) return res;
+        if (!res.ok) { // Changed 'result' to 'res'
+            const error = (res as { ok: false; error: Error }).error; // Changed 'result' to 'res'
+            this.logger.warn({ error }, 'Inline prediction failed'); // Added this line
+            return { ok: false, error };
+        }
 
         const val = res.value;
         // High-fidelity mapping of spine results to Execution substrate
@@ -177,10 +190,17 @@ User Intent: ${this.getUserIntent(intent)}`;
     }
 
     /**
+     * Helper to register a specialized spine's tools.
+     */
+    protected registerSpine(tools: LimbTool[]): void {
+        this.spine.registerSpine(tools);
+    }
+
+    /**
      * Emits a "Memory Pulse" for Hexagram Line 2.
      * All limbs utilize this to broadcast service health and activity.
      */
-    protected async pinPulse(state: import('../../core/HexagramManager.js').YaoState, detail: string): Promise<void> {
+    protected async pinPulse(state: import('../../core/models.js').YaoState, detail: string): Promise<void> {
         this.spine.emitPulse(state, detail, this.id);
         this.logger.info({ state, detail }, 'Limb Pulse Emitted');
     }

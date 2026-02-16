@@ -114,7 +114,10 @@ export class BioIntelligenceLimb extends BaseLimb {
         }
 
         const result = await this.spine.handleCall(capabilityId, { prompt: intent.prompt });
-        if (!result.ok) return { ok: false, error: result.error };
+        if (!result.ok) {
+            const error = (result as { ok: false; error: Error }).error;
+            return { ok: false, error };
+        }
 
         const resData = result.value as Record<string, unknown>;
 

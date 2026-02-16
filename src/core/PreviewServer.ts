@@ -81,6 +81,9 @@ export class PreviewServer extends EventEmitter {
 
             child.stdout?.on('data', (d) => streamLogs(d, 'stdout'));
             child.stderr?.on('data', (d) => streamLogs(d, 'stderr'));
+            child.on('error', (err) => {
+                logger.error({ projectName, error: err.message }, 'Dev server spawn error');
+            });
 
             // 3. Determine if it's a web project (port-based) or terminal project
             let metadata: PreviewMetadata;
@@ -164,10 +167,16 @@ export class PreviewServer extends EventEmitter {
         return this.activePreviews.get(projectName)?.logs ?? [];
     }
 
+    private readonly isWindows = process.platform === 'win32';
+
     private killProcessTree(child: ChildProcess): void {
-        child.kill();
-        if (process.platform === 'win32' && child.pid) {
-            spawn('taskkill', ['/pid', String(child.pid), '/f', '/t'], { shell: true });
+        if (!child.pid) return;
+
+        if (this.isWindows) {
+            logger.info({ pid: child.pid }, 'Killing process tree on Windows');
+            spawn('taskkill', ['/f', '/t', '/pid', String(child.pid)], { shell: true });
+        } else {
+            child.kill('SIGKILL');
         }
     }
 

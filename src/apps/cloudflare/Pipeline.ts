@@ -14,7 +14,10 @@ export class CloudflarePipeline {
     async execute(task: string, type: 'image_gen' | 'code_forge' | 'assets_bake' = 'image_gen'): Promise<Result<Record<string, unknown>>> {
         // Phase 1: Interpretation
         const interpretation = await this.interpretTask(task, type);
-        if (!interpretation.ok) return interpretation;
+        if (!interpretation.ok) {
+            const error = (interpretation as { ok: false; error: Error }).error;
+            return { ok: false, error };
+        }
         const prompt = interpretation.value;
 
         // Phase 2: Generation
@@ -25,7 +28,10 @@ export class CloudflarePipeline {
             return { ok: false, error: new Error(`Pipeline type '${type}' not yet implemented`) };
         }
 
-        if (!generation.ok) return generation;
+        if (!generation.ok) {
+            const error = (generation as { ok: false; error: Error }).error;
+            return { ok: false, error };
+        }
 
         // Phase 3: Persistence
         const assetName = `pipeline_${Date.now()}.png`;

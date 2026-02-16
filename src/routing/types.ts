@@ -35,7 +35,8 @@ export interface RoutingDecision {
     };
 }
 
-import type { CognitiveChoice } from '../core/models.js';
+import type { CognitiveChoice, FreeModelConfig, ModelPerformance, Lesson, YaoState } from '../core/models.js';
+import type { HexagramDefinition } from '../core/HexagramDefinitions.js';
 
 /**
  * Context provided to routing strategies for making decisions.
@@ -57,7 +58,7 @@ export interface RoutingContext {
     complexity?: CognitiveChoice;
 
     /** Cloudflare and Ollama model health grid */
-    availableModels?: any[];
+    availableModels?: FreeModelConfig[];
 
     /** Architecture alignment patterns */
     architectureAlignment?: string[];
@@ -66,19 +67,30 @@ export interface RoutingContext {
     goldenTemplates?: string[];
 
     /** Historical performance logs */
-    historicalPerformance?: any[];
+    historicalPerformance?: ModelPerformance[];
 
     /** Past lessons/regrets identified */
-    lessons?: any[];
+    lessons?: Lesson[];
 
     /** Conversation history for context-aware routing */
-    history?: any[];
+    history?: any[]; // Keep any for history for now, as structure varies
 
     /** Optional abort signal */
     signal?: AbortSignal;
 
     /** Additional metadata */
-    metadata?: Record<string, any>;
+    metadata?: {
+        ternarySignals?: {
+            localAvailability: YaoState;
+            historySignal: YaoState;
+            supervisorSignal: YaoState;
+            architectureAlignmentState: YaoState;
+        };
+        [key: string]: unknown;
+    };
+
+    /** Active Hexagram Strategy (Sovereign Authority) */
+    hexagram?: HexagramDefinition;
 }
 
 /**

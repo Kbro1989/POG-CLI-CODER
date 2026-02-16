@@ -3,8 +3,9 @@ import { z } from 'zod';
 import type { Intent, Execution, TernaryDecision } from './NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
 import { PreviewServer } from '../../core/PreviewServer.js';
-import * as fs from 'fs';
 import { join } from 'path';
+import * as fs from 'fs';
+// import { getDashboardPath } from '../../utils/SovereignPathResolver.js'; // Kept for future use
 
 /**
  * DashboardLimb - Session-specific QOL Control Plane
@@ -18,9 +19,11 @@ export class DashboardLimb extends BaseLimb {
 
     constructor(
         config: VibeConfig,
-        private readonly previewServer: PreviewServer
+        private readonly previewServer: PreviewServer,
+        private readonly vectorDB?: import('../../learning/VectorDB.js').VectorDB
     ) {
         super(config);
+        // Use SovereignPathResolver logic but anchored to config.pogDir for test/portability
         this.dashboardDir = join(this.config.pogDir, 'session_dashboards', this.config.projectId);
         this.registerDashboardTools();
         this.generateAssets();
@@ -41,6 +44,145 @@ export class DashboardLimb extends BaseLimb {
                     const result = await this.activate();
                     if (result.ok) return { ok: true, value: `Dashboard activated: ${result.value.output}` };
                     return result;
+                }
+            },
+            {
+                name: 'toggle_service',
+                description: 'Enable or disable a system service.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        service: { type: 'string' },
+                        enabled: { type: 'boolean' }
+                    },
+                    required: ['service', 'enabled']
+                },
+                schema: z.object({
+                    service: z.string(),
+                    enabled: z.boolean()
+                }),
+                handler: async (args: any) => {
+                    const service = String(args.service);
+                    const enabled = Boolean(args.enabled);
+                    const currentServices = this.config.enabledServices as string[] || [];
+                    const services = [...currentServices];
+                    const index = services.indexOf(service);
+
+                    if (enabled && index === -1) {
+                        services.push(service);
+                    } else if (!enabled && index !== -1) {
+                        services.splice(index, 1);
+                    }
+
+                    // Update config (hack since it's readonly)
+                    (this.config as any).enabledServices = services;
+
+                    this.logger.info({ service, enabled }, 'Service status toggled');
+                    return { ok: true, value: `Service ${service} ${enabled ? 'enabled' : 'disabled'}` };
+                }
+            },
+            {
+                name: 'switch_workspace',
+                description: 'Switch the active project root.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        path: { type: 'string' }
+                    },
+                    required: ['path']
+                },
+                schema: z.object({
+                    path: z.string()
+                }),
+                handler: async (args: any) => {
+                    // This action is often intercepted by Orchestrator, but we implement the logic here too
+                    (this.config as any)['projectRoot'] = String(args.path);
+                    return { ok: true, value: { output: `Workspace switched to ${args.path}`, action: 'switch_workspace', data: { path: args.path } } };
+                }
+            },
+            {
+                name: 'pin_file',
+                description: 'Pin a file to active context.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        path: { type: 'string' }
+                    },
+                    required: ['path']
+                },
+                schema: z.object({
+                    path: z.string()
+                }),
+                handler: async (args: any) => {
+                    return { ok: true, value: { output: `File pinned: ${args['path']}`, action: 'pin_file', data: { path: args['path'] } } };
+                }
+            },
+            {
+                name: 'unpin_file',
+                description: 'Unpin a file from active context.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        path: { type: 'string' }
+                    },
+                    required: ['path']
+                },
+                schema: z.object({
+                    path: z.string()
+                }),
+                handler: async (args: any) => {
+                    return { ok: true, value: { output: `File unpinned: ${args['path']}`, action: 'unpin_file', data: { path: args['path'] } } };
+                }
+            },
+            {
+                name: 'get_sovereign_context',
+                description: 'Retrieve active literary style and recent cognitive storyboards.',
+                parameters: {
+                    type: 'object',
+                    properties: {},
+                    required: []
+                },
+                schema: z.object({}),
+                handler: async () => {
+                    const config = this.config;
+                    let storyboards: any[] = [];
+
+                    if (this.vectorDB) {
+                        try {
+                            const results = await this.vectorDB.searchLessons('storyboard', 5);
+                            if (results.ok) {
+                                storyboards = results.value;
+                            }
+                        } catch (err) {
+                            this.logger.warn({ err }, 'Failed to fetch storyboards for context');
+                        }
+                    }
+
+                    return {
+                        ok: true,
+                        value: {
+                            activeStyle: config.activeStyle || 'None',
+                            substrate: 'D:\\pog-coder-vibe',
+                            pogDir: config.pogDir,
+                            recentStoryboards: storyboards
+                        }
+                    };
+                }
+            },
+            {
+                name: 'rsc_capture_screen',
+                description: 'Capture the active game window or primary screen for visual analysis.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        analyze: { type: 'boolean', description: 'Whether to also run Chromanumber vision analysis on the capture.' }
+                    }
+                },
+                schema: z.object({
+                    analyze: z.boolean().optional().default(false)
+                }),
+                handler: async (args: any) => {
+                    return this.captureScreen(args.analyze);
                 }
             }
         ]);
@@ -78,7 +220,7 @@ export class DashboardLimb extends BaseLimb {
             // Always regenerate assets on activation to ensure they exist
             this.generateAssets();
 
-            const basePort = this.config.wsPort + 1;
+            const basePort = (this.config.wsPort > 0 ? this.config.wsPort : 3000) + 1;
             let targetPort = basePort;
 
             // 1. Detect Conflict & Verify Identity
@@ -108,9 +250,28 @@ export class DashboardLimb extends BaseLimb {
             );
 
             if (!result.ok) {
-                this.logger.error({ error: result.error }, 'Failed to start dashboard server');
-                return { ok: false, error: result.error };
+                const error = (result as { ok: false; error: Error }).error;
+                this.logger.error({ error }, 'Failed to start dashboard server');
+                return { ok: false, error };
             }
+
+            // 2. Poll for Health & Sovereign Status
+            // Note: We need to access the WebSocket server instance to broadcast.
+            // Since PreviewServer doesn't expose it directly, we'll use a file-based signal or 
+            // rely on the client polling an endpoint. 
+            // HOWEVER, the client JS connects to ws://localhost:port.
+            // The PreviewServer starts an http-server. It doesn't seem to start a WS server attached to it?
+            // Wait, the client JS has `new WebSocket`. 
+            // If PreviewServer just runs `http-server`, that doesn't provide WS.
+            // We need to ensuring the CLI's WS server (on config.wsPort) is what the client connects to.
+            // The client JS says: `ws = new WebSocket(\`ws://\${window.location.hostname}:\${this.config.wsPort}\`);`
+            // So the client connects to the MAIN CLI WS SERVER.
+
+            // THEREFORE, DashboardLimb just needs to ensure the CLI (Orchestrator) is broadcasting these state updates.
+            // The Orchestrator should be emitting 'state' events.
+
+            // I need to verify if Orchestrator is broadcasting state.
+            // If so, DashboardLimb doesn't need to do anything here except ensure the data is IN the state.
 
             return {
                 ok: true,
@@ -122,6 +283,86 @@ export class DashboardLimb extends BaseLimb {
         } catch (error) {
             this.logger.error({ error }, 'Critical failure during dashboard activation');
             return { ok: false, error: error as Error };
+        }
+    }
+
+    private async captureScreen(analyze: boolean = false): Promise<Result<Execution>> {
+        const capturePath = join(this.dashboardDir, 'last_capture.png');
+        const scriptPath = join(process.cwd(), 'capture.ps1');
+
+        try {
+            this.logger.info({ capturePath }, 'Initiating screen capture');
+
+            const tempCapturePath = join(process.cwd(), 'temp_capture.png');
+
+            // Generate PS script every time to ensure paths are fresh and correct
+            fs.writeFileSync(scriptPath, `
+                try {
+                    Add-Type -AssemblyName System.Windows.Forms,System.Drawing
+                    $Path = '${tempCapturePath.replace(/\\/g, '/')}'
+                    if (Test-Path $Path) { Remove-Item $Path -Force }
+                    
+                    $Screen = [System.Windows.Forms.Screen]::PrimaryScreen
+                    $Bitmap = New-Object System.Drawing.Bitmap $Screen.Bounds.Width, $Screen.Bounds.Height
+                    $Graphics = [System.Drawing.Graphics]::FromImage($Bitmap)
+                    $Graphics.CopyFromScreen($Screen.Bounds.X, $Screen.Bounds.Y, 0, 0, $Bitmap.Size)
+                    $Bitmap.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)
+                    $Graphics.Dispose()
+                    $Bitmap.Dispose()
+                    Write-Output "SUCCESS"
+                } catch {
+                    Write-Error $_.Exception.Message
+                    exit 1
+                }
+            `);
+
+            const { execSync } = await import('child_process');
+            try {
+                execSync(`powershell -ExecutionPolicy Bypass -File "${scriptPath}"`, { stdio: 'pipe' });
+                if (fs.existsSync(tempCapturePath)) {
+                    const targetDir = join(this.dashboardDir);
+                    if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+
+                    // Force delete target if exists to avoid "File exists" errors on rename
+                    if (fs.existsSync(capturePath)) fs.unlinkSync(capturePath);
+                    fs.renameSync(tempCapturePath, capturePath);
+                } else {
+                    return { ok: false, error: new Error('PowerShell script succeeded but temp image not found.') };
+                }
+            } catch (pErr: any) {
+                const stderr = pErr.stderr ? pErr.stderr.toString() : pErr.message;
+                this.logger.error({ stderr }, 'PowerShell capture script returned an error');
+                return { ok: false, error: new Error(`PowerShell Capture Failed: ${stderr}`) };
+            }
+
+            if (!fs.existsSync(capturePath)) {
+                return { ok: false, error: new Error(`Capture file not created at ${capturePath}`) };
+            }
+
+            const stats = fs.statSync(capturePath);
+            this.logger.info({ size: stats.size }, 'Capture successful');
+
+            let analysis = 'No analysis requested.';
+            if (analyze) {
+                // If we have ChromaLimb, we could trigger it. For now, we signal completion.
+                analysis = 'Visual analysis pending multimodal integration.';
+            }
+
+            // Signal the dashboard to reload the image
+            // In a real scenario, we'd broadcast via WS.
+            // DashboardLimb can access the WebSocket server if passed in, 
+            // but here we just return the path.
+
+            return {
+                ok: true,
+                value: {
+                    output: `Screen captured to ${capturePath}. ${analysis}`,
+                    data: { path: capturePath, timestamp: Date.now() }
+                }
+            };
+        } catch (err) {
+            this.logger.error({ err }, 'Screen capture failed');
+            return { ok: false, error: err as Error };
         }
     }
 
@@ -154,6 +395,7 @@ export class DashboardLimb extends BaseLimb {
             </div>
             <nav class="tab-nav">
                 <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn" data-tab="vibe-viewer" id="tab-viewer">VibeViewer</button>
                 <button class="tab-btn" data-tab="ai">AI Pipeline</button>
                 <button class="tab-btn" data-tab="limbs">Limb Matrix</button>
                 <button class="tab-btn" data-tab="terminal">Terminal</button>
@@ -206,6 +448,40 @@ export class DashboardLimb extends BaseLimb {
                         <div id="neural-heatmap" class="heatmap-container">
                             <p class="muted">No activity data...</p>
                         </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- VIBEVIEWER TAB -->
+            <div id="vibe-viewer" class="tab-content">
+                <div class="grid-layout">
+                    <section class="panel side-panel">
+                        <h3><span class="icon">🔍</span> VISION CONTROL</h3>
+                        <div class="forge-controls">
+                            <button onclick="captureNow()" class="action-btn cyan full-width">📸 Capture Frame</button>
+                            <label class="mt-10">AUTO-REFRESH</label>
+                            <label class="switch">
+                                <input type="checkbox" id="auto-capture" onchange="toggleAutoCapture(this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                            <p class="muted">Feeds visual substrate into Chromanumber multimodal loop.</p>
+                        </div>
+                    </section>
+                    <section class="panel main-panel">
+                        <div class="viewer-header">
+                            <h3><span class="icon">👁️</span> SOVEREIGN EYE</h3>
+                            <div id="capture-status" class="gps-telemetry">READY</div>
+                        </div>
+                        <div class="canvas-box border-glow" style="background:#000; overflow:hidden;">
+                            <img id="live-stream" src="last_capture.png" style="width:100%; height:100%; object-fit:contain;" alt="Game Stream">
+                        </div>
+                    </section>
+                    <section class="panel side-panel">
+                        <h3><span class="icon">🧠</span> MULTIMODAL PERCEPTION</h3>
+                        <div id="vision-analysis" class="scroll-box mini-list">
+                            <p class="muted">Waiting for capture...</p>
+                        </div>
+                        <button onclick="runVisionAnalysis()" class="action-btn purple full-width mt-10">⚡ Analyze View</button>
                     </section>
                 </div>
             </div>
@@ -450,6 +726,7 @@ export class DashboardLimb extends BaseLimb {
             <div class="model-health">
                 <div class="model-tag gemini">Gemini: <span id="gemini-status">IDLE</span></div>
                 <div class="model-tag ollama">Ollama: <span id="ollama-status">IDLE</span></div>
+                <div class="model-tag substrate">Lair: <span id="substrate-status">OFFLINE</span></div>
             </div>
             <div class="orb-telemetry">
                 <div class="orb-unit" title="CPU Phase">
@@ -481,6 +758,9 @@ export class DashboardLimb extends BaseLimb {
     --border-radius: 12px;
     --pulse-intensity: 0;
 }
+.border-glow { border: 1px solid var(--accent-primary); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
+.viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.canvas-box { position: relative; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
 body { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; overflow: hidden; transition: 0.3s; }
 body.pulse { background: radial-gradient(circle at center, rgba(0, 242, 255, calc(var(--pulse-intensity) * 0.05)), var(--bg-dark)); }
 .vibe-theme { background: radial-gradient(circle at top right, #1a0033, #050505 60%), radial-gradient(circle at bottom left, #001a1a, #050505 60%); height: 100vh; }
@@ -586,6 +866,10 @@ input:checked + .slider:before { transform: translateX(16px); }
 .tool-btn:active { transform: scale(0.95); }
 
 .model-tag span { color: var(--accent-primary); font-weight: bold; }
+.model-tag.substrate { border-left: 2px solid var(--accent-primary); }
+.model-tag.substrate span { color: var(--accent-primary); }
+.model-tag.substrate.offline { border-left-color: #ff4444; }
+.model-tag.substrate.offline span { color: #ff4444; }
 
 /* MEMORY PULSE */
 .memory-pulse-container { margin-top: 15px; padding: 12px; border-top: 1px solid rgba(255,255,255,0.05); position: relative; }
@@ -651,8 +935,35 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.add('active');
         targetEl.classList.add('active');
         if (targetId === 'books') requestBooks();
+        if (targetId === 'vibe-viewer') captureNow();
     };
 });
+
+let captureInterval = null;
+function toggleAutoCapture(on) {
+    if (on) {
+        captureInterval = setInterval(captureNow, 5000);
+        addLog("Auto-capture enabled (5s)", "stdout");
+    } else {
+        clearInterval(captureInterval);
+        captureInterval = null;
+        addLog("Auto-capture disabled", "stdout");
+    }
+}
+
+function captureNow() {
+    if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'control', command: 'rsc_capture_screen' }));
+        document.getElementById('capture-status').innerText = 'CAPTURING...';
+    }
+}
+
+function runVisionAnalysis() {
+    if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'control', command: 'rsc_capture_screen', data: { analyze: true } }));
+        addLog("Initiating multimodal vision analysis...", "stdout");
+    }
+}
 
 function requestBooks() { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'control', command: 'requestBooks' })); }
 
@@ -713,13 +1024,33 @@ function connect() {
         document.getElementById('ws-text').innerText = 'Online';
         ws.send(JSON.stringify({ type: 'control', command: 'requestState' }));
     };
+
+    // Neural Heatmap Visualization
+    function renderHeatmap(data) {
+        const container = document.getElementById('neural-heatmap');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        const maxVal = Math.max(...Object.values(data), 1);
+        
+        Object.entries(data).forEach(([tool, count]) => {
+            const intensity = count / maxVal;
+            const block = document.createElement('div');
+            block.className = 'heatmap-block';
+            block.style.backgroundColor = 'rgba(0, 255, 136, ' + (intensity * 0.8 + 0.2) + ')';
+            block.title = tool + ': ' + count;
+            block.innerText = tool.substring(0, 2).toUpperCase();
+            container.appendChild(block);
+        });
+    }
+
     ws.onmessage = (e) => {
         const msg = JSON.parse(e.data);
         if (msg.type === 'books') { allBooks = msg.data; renderBooks(allBooks); }
         else if (msg.type === 'bookContent') {
             currentBook = msg.data.book;
             document.getElementById('reader-content').innerText = msg.data.content;
-            document.getElementById('reader-title').innerText = \`📖 \${currentBook.title}\`;
+            document.getElementById('reader-title').innerText = '📖 ' + currentBook.title;
             if (msg.data.book.styleProfile) renderStyle(msg.data.book.styleProfile);
         }
         else if (msg.type === 'storyboard') { renderStoryboard(msg.data.storyboard); }
@@ -751,6 +1082,11 @@ function connect() {
             addConstitutionalLog(msg.data);
             if (window.constellation) window.constellation.triggerPressure(msg.data);
             if (window.constellationSov) window.constellationSov.triggerPressure(msg.data);
+        }
+        else if (msg.type === 'capture_completed') {
+            const img = document.getElementById('live-stream');
+            if (img) img.src = 'last_capture.png?t=' + Date.now();
+            document.getElementById('capture-status').innerText = 'SYNCED';
         }
     };
     ws.onclose = () => {
@@ -800,6 +1136,13 @@ function updateStateUI(state) {
     if (document.getElementById('gemini-status')) {
         const gem = state.envStatus?.find(e => e.service === 'gemini');
         document.getElementById('gemini-status').innerText = gem ? gem.status : 'IDLE';
+    }
+    
+    if (document.getElementById('substrate-status')) {
+        const sub = document.getElementById('substrate-status');
+        const isOnline = state.somaticLair !== false;
+        sub.innerText = isOnline ? 'LINKED' : 'OFFLINE';
+        sub.parentElement.classList.toggle('offline', !isOnline);
     }
 }
 

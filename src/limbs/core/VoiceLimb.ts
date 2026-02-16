@@ -2,7 +2,7 @@ import { BaseLimb } from './BaseLimb.js';
 import { z } from 'zod';
 import { Result, VibeConfig } from '../../core/models.js';
 import { ModelExecutor } from '../../core/ModelExecutor.js';
-import { YaoState } from '../../core/HexagramManager.js';
+import { YaoState } from '../../core/models.js';
 import { spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
@@ -169,7 +169,7 @@ Start-Sleep -Seconds ${seconds}
 [Win32.AudioRecorder]::mciSendString("close recsound", $null, 0, [IntPtr]::Zero)
 `;
             return await new Promise<Result<string>>((resolve) => {
-                child = spawn('powershell', ['-Command', psScript]);
+                child = spawn('powershell', ['-Command', psScript], { shell: true });
                 this.activeProcesses.add(child);
 
                 child.on('close', async (code) => {
@@ -213,7 +213,7 @@ Start-Sleep -Seconds ${seconds}
             const psScript = `Add-Type -AssemblyName System.speech; $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer; $speak.Rate = 1; $speak.Speak("${sanitizedText}")`;
 
             return await new Promise<Result<void>>((resolve) => {
-                child = spawn('powershell', ['-Command', psScript]);
+                child = spawn('powershell', ['-Command', psScript], { shell: true });
                 this.activeProcesses.add(child);
 
                 child.on('close', (code) => {
@@ -246,7 +246,7 @@ Start-Sleep -Seconds ${seconds}
             const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/openai/whisper`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${apiToken}`, 'Content-Type': 'application/octet-stream' },
-                body: audioBuffer
+                body: audioBuffer.buffer as any
             });
             if (!response.ok) return { ok: false, error: new Error(`Whisper API error: ${response.status}`) };
             const result = await response.json() as { result?: { text?: string } };

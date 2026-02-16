@@ -5,7 +5,7 @@ export { CatalogMetadata };
 
 export type AIServiceType = 'GEMINI' | 'VERTEX_AI' | 'CLOUD_VISION' | 'DOCUMENT_AI' | 'SPEECH' | 'GEOSPATIAL' | 'HEALTH_AI' | 'MEDIA_FORGE' | 'GUTENBERG' | 'VIDEO_INTELLIGENCE' | 'TRANSLATION' | 'NATURAL_LANGUAGE' | 'OLLAMA' | 'CLOUDFLARE' | 'HUGGINGFACE';
 
-export type AITaskType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'MULTIMODAL' | 'EMBEDDING' | 'HEALTH' | 'GEO';
+export type AITaskType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'MULTIMODAL' | 'EMBEDDING' | 'HEALTH' | 'GEO' | 'VISION';
 
 export interface AICapability {
     readonly id: string;
@@ -88,7 +88,7 @@ export const CapabilityRegistry: Record<string, AICapability> = {
         serviceType: 'GEMINI',
         taskType: 'TEXT',
         description: 'Create full-stack project structures (React, Next.js, etc) with boilerplate.',
-        passthroughEnabled: false
+        passthroughEnabled: true
     },
     'webapp_db_setup': {
         id: 'setup_database',
@@ -96,7 +96,7 @@ export const CapabilityRegistry: Record<string, AICapability> = {
         serviceType: 'GEMINI',
         taskType: 'TEXT',
         description: 'Initialize local databases (SQLite) for web apps.',
-        passthroughEnabled: false
+        passthroughEnabled: true
     },
     'webapp_preview': {
         id: 'start_preview_server',
@@ -104,7 +104,7 @@ export const CapabilityRegistry: Record<string, AICapability> = {
         serviceType: 'GEMINI',
         taskType: 'TEXT',
         description: 'Launch and manage local dev servers for previewing web apps.',
-        passthroughEnabled: false
+        passthroughEnabled: true
     },
     // Esoteric Media Forge
     'imagen_v4_generation': {
@@ -194,7 +194,7 @@ export const CapabilityRegistry: Record<string, AICapability> = {
         serviceType: 'GEMINI',
         taskType: 'TEXT',
         description: 'Specialized SQL architecture, migration, and optimization forge.',
-        passthroughEnabled: false
+        passthroughEnabled: true
     },
     'docs_forge': {
         id: 'docs_forge',
@@ -202,7 +202,7 @@ export const CapabilityRegistry: Record<string, AICapability> = {
         serviceType: 'GEMINI',
         taskType: 'TEXT',
         description: 'Specialized technical documentation and architecture deep-dive forge.',
-        passthroughEnabled: false
+        passthroughEnabled: true
     },
     'refactor_forge': {
         id: 'refactor_forge',
@@ -210,7 +210,7 @@ export const CapabilityRegistry: Record<string, AICapability> = {
         serviceType: 'GEMINI',
         taskType: 'TEXT',
         description: 'Specialized architectural cleanup and code quality forge.',
-        passthroughEnabled: false
+        passthroughEnabled: true
     },
     'esoteric_reasoning': {
         id: 'esoteric_reasoning',

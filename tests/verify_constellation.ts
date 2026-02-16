@@ -11,7 +11,7 @@ async function verifyConstellation() {
 
     const config: VibeConfig = {
         pogDir: path.resolve('./.pog'),
-        projectRoot: path.resolve('.'),
+        rootStack: [], projectRoot: path.resolve('.'),
         agentName: 'POG-VERIFIER',
         wsPort: 9005,
         maxSnapshotAge: 3600,
@@ -20,16 +20,11 @@ async function verifyConstellation() {
         embeddingDimensions: 768,
         logLevel: 'info',
         projectId: 'verification-test',
-        enabledServices: ['cloudflare'],
+        enabledServices: [],
         cloudflareAccountId: 'test-account',
-        cloudflareApiToken: 'test-token',
-        sovereignBoundaries: {
-            maxLatencyMs: 500,
-            dailyBudgetUsd: 1.0,
-            allowCloud: true
-        },
         gutenbergPath: undefined,
-        workspaces: [path.resolve('.')]
+        workspaces: [process.cwd()],
+        environment: 'local'
     };
 
     const watcher = new ASTWatcher(config);
@@ -90,6 +85,7 @@ async function verifyConstellation() {
     await new Promise(r => setTimeout(r, 2000));
 
     console.log('Verification Complete.');
+    await orchestrator.cleanup();
     process.exit(0);
 }
 
@@ -97,3 +93,4 @@ verifyConstellation().catch(err => {
     console.error('Verification failed:', err);
     process.exit(1);
 });
+

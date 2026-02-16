@@ -4,7 +4,7 @@
   "description": "Terminal-first AI coding assistant with binary-optimized routing",
   "type": "module",
   "bin": {
-    "pog": "./dist/cli.js"
+    "pog": "./dist/cli.cjs"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -12,8 +12,10 @@
   "scripts": {
     "start": "node cli/entry.js",
     "dev": "tsx watch cli/index.ts",
-    "build": "tsc --noEmit && esbuild cli/index.ts --bundle --outfile=dist/cli.js --platform=node --target=node20 --format=esm --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url); globalThis.__filename = require('url').fileURLToPath(import.meta.url); globalThis.__dirname = require('path').dirname(globalThis.__filename); var BWTC, Dmc, PPM;\" --external:sqlite3 --external:tree-sitter --external:pino-pretty --minify",
-    "pog": "node dist/cli.js",
+    "build": "tsc && node scripts/build-cli.js",
+    "build:all": "npx tsx scripts/build-all.ts",
+    "build:deploy": "npx tsx scripts/build-all.ts --deploy",
+    "pog": "node dist/cli.cjs",
     "demo": "tsx tests/demo.ts",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "npm run test -- --watch",
@@ -54,9 +56,15 @@
     "deploy:all": "npm run deploy:gateway && npm run deploy:worker",
     "cf:cli": "tsx src/apps/cloudflare/cli.ts",
     "cf:serve": "wrangler dev src/apps/cloudflare/worker.ts --config src/apps/cloudflare/wrangler.toml --port 8787",
+    "fleet:list": "tsx scripts/wrangler-fleet.ts --list",
+    "fleet:dev": "tsx scripts/wrangler-fleet.ts --dev",
+    "fleet:build": "tsx scripts/wrangler-fleet.ts --build",
+    "fleet:deploy": "tsx scripts/wrangler-fleet.ts --deploy",
+    "fleet:html-dev": "tsx scripts/wrangler-fleet.ts --dev --html",
     "pog:health": "npm run health:verify",
     "registry:gen": "tsx tests/generateRegistry.ts && tsx tests/generateCloudflareRegistry.ts",
     "vscode:package": "cd vscode-extension && vsce package",
+    "pog:link": "npm link --force",
     "prepare": "husky install"
   },
   "dependencies": {
@@ -74,11 +82,13 @@
     "globby": "^14.0.2",
     "ignore": "^7.0.5",
     "lodash": "^4.17.21",
+    "partyserver": "^0.1.5",
     "pino": "^8.19.0",
     "pino-pretty": "^10.3.1",
     "prompts": "^2.4.2",
     "simple-git": "^3.30.0",
-    "sqlite3": "^5.0.2",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "tree-sitter": "^0.21.1",
     "tree-sitter-typescript": "^0.21.2",
     "wavefile": "^11.0.0",
@@ -86,6 +96,10 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260214.0",
+    "@google-cloud/speech": "^7.2.1",
+    "@google-cloud/text-to-speech": "^6.4.0",
+    "@google/generative-ai": "^0.24.1",
     "@types/diff": "^5.0.8",
     "@types/globby": "^9.1.0",
     "@types/jest": "^30.0.0",
@@ -93,6 +107,7 @@
     "@types/node": "^20.14.0",
     "@types/prompts": "^2.4.9",
     "@types/sqlite3": "^3.1.11",
+    "@types/vscode": "^1.109.0",
     "@types/ws": "^8.5.12",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
@@ -103,7 +118,8 @@
     "jest": "^29.7.0",
     "ts-jest": "^29.4.6",
     "tsx": "^4.19.1",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vitest": "^4.0.18"
   },
   "keywords": [
     "ai",
@@ -117,7 +133,7 @@
   "overrides": {
     "tar": "^7.5.3"
   },
-  "main": "./dist/cli.js",
+  "main": "./dist/cli.cjs",
   "directories": {
     "doc": "docs",
     "test": "tests"

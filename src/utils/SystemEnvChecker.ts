@@ -95,6 +95,15 @@ export class SystemEnvChecker {
             source: 'path'
         });
 
+        // 4. Resolve Identity (God State Awareness)
+        const identityEmail = process.env['CLOUDFLARE_AUTH_EMAIL'] || process.env['VIBE_USER_EMAIL'];
+        status.push({
+            key: 'IDENTITY_EMAIL',
+            value: identityEmail || 'UNKNOWN',
+            active: !!identityEmail,
+            source: 'env'
+        });
+
         return status;
     }
 

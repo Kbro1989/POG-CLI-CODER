@@ -153,9 +153,9 @@ export function drawBox(title: string, content: string[], width?: number): void 
 /**
  * Draws a chat-style message bubble
  */
-export function drawMessage(role: 'USER' | 'POG' | 'SYSTEM', text: string, width = 70): void {
-    const color = role === 'USER' ? chalk.blue : role === 'POG' ? chalk.green : chalk.yellow;
-    const label = role === 'USER' ? '👤 YOU' : role === 'POG' ? '🤖 POG' : '⚙️  SYS';
+export function drawMessage(role: 'USER' | 'POG' | 'SYSTEM' | 'THOUGHT', text: string, width = 70): void {
+    const color = role === 'USER' ? chalk.blue : role === 'POG' ? chalk.green : role === 'THOUGHT' ? chalk.magenta : chalk.yellow;
+    const label = role === 'USER' ? '👤 YOU' : role === 'POG' ? '🤖 POG' : role === 'THOUGHT' ? '🧠 THOUGHT' : '⚙️  SYS';
 
     process.stdout.write(`\n${color.bold(label)}:\n`);
     const maxWidth = Math.min(process.stdout.columns - 4 || width, width);
@@ -185,6 +185,7 @@ export function drawSovereignReport(title: string, data: Record<string, string |
  */
 export function drawSovereignFooter(stats: {
     substrate: string;
+    identity: string;
     extension: string;
     edge: string;
     session: string;
@@ -198,6 +199,7 @@ export function drawSovereignFooter(stats: {
 
     const line = [
         chalk.cyan('🏰 ') + substrateColor(stats.substrate.split(' ')[0]),
+        chalk.cyan('🆔 ') + chalk.magenta(stats.identity),
         chalk.cyan('🔌 ') + extColor(stats.extension),
         chalk.cyan('🌩️ ') + edgeColor(stats.edge),
         chalk.cyan('💾 ') + chalk.gray(stats.session.substring(0, 8)),

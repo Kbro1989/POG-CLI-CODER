@@ -6,7 +6,7 @@ import { FreeModelConfig, ModelType } from './models.js';
  * Bridges the static registry (scraped from AI+API_LIST.md) to the dynamic router.
  */
 export class ModelInventory {
-    static getAvailableModels(): FreeModelConfig[] {
+    static getAvailableModels(config?: import('./models.js').VibeConfig): FreeModelConfig[] {
         return Object.values(StaticModelRegistry).map(cap => {
             const serviceType = cap.serviceType as string;
             const modelId = cap.modelId || 'unknown-model';
@@ -14,50 +14,61 @@ export class ModelInventory {
 
             const isLocal = serviceType === 'OLLAMA';
             const isCloudflare = serviceType === 'MEDIA_FORGE' && modelId.startsWith('@cf');
-            const isGemini = serviceType === 'GEMINI';
+            const isHuggingFace = serviceType === 'HUGGINGFACE';
 
             let type = ModelType.CloudFree;
             if (isLocal) type = ModelType.Local;
             else if (isCloudflare) type = ModelType.Cloudflare;
+            else if (isHuggingFace) type = ModelType.CloudFree;
 
-            const taskType = cap.taskType.toLowerCase();
+            const taskType = cap.taskType.toUpperCase();
+            const capabilities: string[] = ['agentic']; // All models are agentic by default in Bunker Mode
+
+            // Map taskType to ModelAbility enum values
+            if (taskType === 'IMAGE') capabilities.push('IMAGE_GEN');
+            else if (taskType === 'VISION') capabilities.push('VISION');
+            else if (taskType === 'TEXT') capabilities.push('CHAT', 'CODE');
+            else if (taskType === 'AUDIO') capabilities.push('TRANSCRIPTION', 'TTS');
+            else capabilities.push(taskType);
 
             // Determine command
             let command = `google:${modelId}`;
             if (isLocal) command = `ollama run ${modelId}`;
             else if (isCloudflare) command = `cloudflare:run ${modelId}`;
+            else if (isHuggingFace) command = `huggingface:${modelId}`;
 
-            // Determine Priority & Dynamic Fallback
-            let priority = id.startsWith('gold_') ? 90 : 50;
-            if (id.startsWith('side_')) priority = 70; // High priority for side-tasks
-            if (id.includes('pro')) priority = 100;
-            if (id.includes('flash')) priority = 80;
-
-            // Tiered Fallback Logic (Trinity Substrate)
-            let fallback: string | undefined;
-            if (isGemini) {
-                // Gemini (Reasoning) falls back to Cloudflare (Utility)
-                fallback = 'gold_cloudflare_llama_3_1';
-            } else if (isCloudflare) {
-                // Cloudflare (Utility) falls back to Local (Sovereign)
-                fallback = 'gold_qwen_2_5_coder_7b';
-            } else if (id.startsWith('side_')) {
-                // Side models fall back to primary local core
-                fallback = 'gold_qwen_2_5_coder_7b';
-            } else if (isLocal) {
-                // Local core is the final substrate floor
-                fallback = undefined;
+            // ═══════════════════════════════════════════════════
+            // LOCAL-FIRST PRIORITY: Local = 90+, Cloud = 30
+            // Cloud is an ADDITION, not a fallback.
+            // ═══════════════════════════════════════════════════
+            let priority = 30; // Cloud default: low priority
+            if (isLocal) {
+                priority = 90; // Local: sovereign priority
+                if (id.includes('coder')) priority = 95;
             }
+            if (id.includes('pro')) priority = Math.min(priority + 10, 100);
+
+            // .env Role Overrides (Hyper-Priority for LOCAL models)
+            if (config) {
+                if (config.planningModel === modelId || config.planningModel === id) priority = 110;
+                if (config.codingModel === modelId || config.codingModel === id) priority = 110;
+                if (config.criticModel === modelId || config.criticModel === id) priority = 110;
+                if (config.monitorModel === modelId || config.monitorModel === id) priority = 110;
+            }
+
+            // ═══════════════════════════════════════════════════
+            // ALL FALLBACKS → LOCAL. No cloud-to-cloud chains.
+            // ═══════════════════════════════════════════════════
+            const fallback = isLocal ? undefined : (config?.codingModel || 'qwen2.5-coder:7b-instruct-q4_K_M');
 
             return {
                 name: modelId,
                 command,
                 type,
-                capabilities: [taskType, 'agentic'],
-                fallback: fallback || 'gold_qwen_2_5_coder_7b', // Final Sovereign floor
+                capabilities,
+                fallback: fallback || 'gold_qwen_2_5_coder_7b',
                 maxTokens: id.includes('pro') ? 128000 : 32768,
                 priority
-                // Health is determined dynamically by Router.getModelHealthGrid()
             } as FreeModelConfig;
         });
     }

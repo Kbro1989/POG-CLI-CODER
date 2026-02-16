@@ -8,7 +8,7 @@ import { GeminiService } from '../core/GeminiService.js';
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, relative } from 'path';
 import ignore from 'ignore';
-import pino from 'pino';
+import { pino } from 'pino';
 
 const logger = pino({
     name: 'CodebaseIndexer',

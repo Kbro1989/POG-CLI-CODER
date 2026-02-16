@@ -13,7 +13,7 @@ async function verifyEmergentSovereignty() {
 
     const config: VibeConfig = {
         projectId: 'verification-test',
-        projectRoot: resolve('.'),
+        rootStack: [], projectRoot: resolve('.'),
         pogDir: resolve('./.pog'),
         agentName: 'VerificationAgent',
         wsPort: 9001,
@@ -21,7 +21,7 @@ async function verifyEmergentSovereignty() {
         circuitBreakerThreshold: 5,
         circuitBreakerCooldown: 60000,
         logLevel: 'info',
-        workspaces: [resolve('.')],
+        workspaces: [process.cwd()],
         enabledServices: ['ollama', 'gemini'],
         embeddingDimensions: 768,
         sovereignBoundaries: {
@@ -29,7 +29,8 @@ async function verifyEmergentSovereignty() {
             dailyBudgetUsd: 10,
             allowCloud: true
         },
-        gutenbergPath: undefined
+        gutenbergPath: undefined,
+        environment: 'local'
     };
 
     const watcher = new ASTWatcher(config);
@@ -79,9 +80,11 @@ async function verifyEmergentSovereignty() {
 
     if (negotiationEventEmitted) {
         console.log('--- Verification SUCCESS ---');
+        await orchestrator.cleanup();
         process.exit(0);
     } else {
         console.error('--- Verification FAILED: No negotiation event emitted ---');
+        await orchestrator.cleanup();
         process.exit(1);
     }
 }
@@ -90,3 +93,4 @@ verifyEmergentSovereignty().catch(e => {
     console.error('Verification failed with error:', e);
     process.exit(1);
 });
+

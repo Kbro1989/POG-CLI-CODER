@@ -22,7 +22,7 @@ async function verifyKimiReasoning() {
     const results: any[] = [];
     const config: VibeConfig = {
         pogDir: join(process.cwd(), '.pog'),
-        projectRoot: process.cwd(),
+        rootStack: [], projectRoot: process.cwd(),
         agentName: 'POG-CODER-VIBE',
         wsPort: 3000,
         maxSnapshotAge: 3600,
@@ -31,9 +31,10 @@ async function verifyKimiReasoning() {
         embeddingDimensions: 768,
         logLevel: 'info',
         projectId: 'test-project',
-        enabledServices: ['GEMINI', 'CLOUDFLARE', 'OLLAMA', 'HUGGINGFACE'],
+        enabledServices: ['gemini'],
         gutenbergPath: undefined,
-        workspaces: [process.cwd()]
+        workspaces: [process.cwd()],
+        environment: 'local'
     };
 
     const router = new FreeModelRouter(config);
@@ -97,3 +98,4 @@ verifyKimiReasoning().catch(err => {
     console.error('Fatal Verification Error:', err);
     process.exit(1);
 });
+

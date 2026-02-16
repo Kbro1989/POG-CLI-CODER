@@ -8,7 +8,7 @@ import { OmegaLimb } from '../src/limbs/experimental/OmegaLimb.js';
 
 async function verify() {
     const config: any = {
-        projectRoot: process.cwd(),
+        rootStack: [], projectRoot: process.cwd(),
         pogDir: process.cwd(), // Simplified for test
         enabledServices: ['gemini', 'relic', 'quantum', 'omega'],
         cloudflareAccountId: '',
@@ -53,3 +53,4 @@ verify().catch(err => {
     console.error('Verification failed:', err);
     process.exit(1);
 });
+

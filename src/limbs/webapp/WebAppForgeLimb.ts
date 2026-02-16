@@ -97,6 +97,7 @@ export class WebAppForgeLimb extends BaseLimb {
             name: t.name,
             description: t.description,
             parameters: t.parameters,
+            isAI: !!t.isAI,
             handler: async (args: Record<string, unknown>): Promise<Result<unknown | Record<string, unknown>>> => {
                 if (t.name === 'digest_component') {
                     return await this.handleDigestComponent(args);
@@ -180,9 +181,12 @@ The component will be saved in ${componentName}.tsx.`;
 
             // Add to Provenance if needed, but for now just return success
             return { ok: true, value: `Successfully distilled ${componentName} from neural patterns.` };
+        } else if (!result.ok) {
+            const error = (result as { ok: false; error: Error }).error;
+            this.logger.error({ error }, 'Model failed to distill component');
+            return { ok: false, error: error };
         }
-
-        return { ok: false, error: new Error(`Failed to digest component: ${result.ok ? 'No response' : result.error}`) };
+        return { ok: false, error: new Error('Model did not return a response for component distillation.') };
     }
 
     override async execute(intent: Intent): Promise<Result<Execution>> {
@@ -192,8 +196,9 @@ The component will be saved in ${componentName}.tsx.`;
         const matchedCap = this.spine.getCapabilities().find(cap => p.includes(cap));
         if (matchedCap) {
             const result = await this.spine.handleCall<Execution>(matchedCap, { prompt: intent.prompt });
-            if (!result.ok) return { ok: false, error: result.error };
-            return { ok: true, value: result.value };
+            if (result.ok) return { ok: true, value: result.value };
+            const error = (result as { ok: false; error: Error }).error;
+            return { ok: false, error };
         }
 
         // Ternary Orchestration: Plan -> Scaffold -> Preview
@@ -247,6 +252,15 @@ The component will be saved in ${componentName}.tsx.`;
                     template.defaultPort ?? 5173
                 );
                 if (previewResult.ok) previewUrl = previewResult.value.url;
+            }
+
+            if (blueprint.name.toLowerCase().includes('globe')) {
+                this.emit('globe_forge_completed', {
+                    path: projectDir,
+                    name: blueprint.name,
+                    liveUrl: previewUrl || 'Local Trace',
+                    timestamp: new Date().toISOString()
+                });
             }
 
             return {
@@ -442,14 +456,17 @@ Example:
                 systemPrompt
             );
 
-            if (!result.ok) throw result.error;
+            if (result.ok) {
+                const response = result.value.response;
+                // Robust JSON extraction
+                const jsonMatch = response.match(/\{[\s\S]*\}/);
+                const jsonStr = jsonMatch ? jsonMatch[0] : response.replace(/```json/g, '').replace(/```/g, '').trim();
 
-            const response = result.value.response;
-            // Robust JSON extraction
-            const jsonMatch = response.match(/\{[\s\S]*\}/);
-            const jsonStr = jsonMatch ? jsonMatch[0] : response.replace(/```json/g, '').replace(/```/g, '').trim();
-
-            return JSON.parse(jsonStr);
+                return JSON.parse(jsonStr);
+            } else {
+                const error = (result as { ok: false; error: Error }).error;
+                throw error;
+            }
         } catch (e) {
             this.logger.warn({ error: e }, 'Planning failed, checking fallback strategy');
 

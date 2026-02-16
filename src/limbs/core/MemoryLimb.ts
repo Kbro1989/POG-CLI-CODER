@@ -50,15 +50,17 @@ export class MemoryLimb extends BaseLimb {
                     // Reality Lock: 1. Generate real embedding via Gemini
                     const embedResult = await this.gemini.embed(query);
                     if (!embedResult.ok) {
-                        this.logger.error({ error: embedResult.error, query }, 'Cognitive embedding failed');
-                        return { ok: false, error: embedResult.error };
+                        const error = (embedResult as { ok: false; error: Error }).error;
+                        this.logger.error({ error, query }, 'Cognitive embedding failed');
+                        return { ok: false, error };
                     }
 
                     // 2. Search VectorDB with high-fidelity Float32Array
-                    const results = await this.vectorDB.searchSimilar(embedResult.value, limit);
+                    const results = await this.vectorDB.searchSimilar(embedResult.value, limit, this.config.rootStack);
 
                     if (!results.ok) {
-                        return { ok: false, error: results.error };
+                        const error = (results as { ok: false; error: Error }).error;
+                        return { ok: false, error };
                     }
 
                     return {
@@ -111,7 +113,10 @@ export class MemoryLimb extends BaseLimb {
                     this.logger.info({ text: text.substring(0, 50), errorType }, 'Injecting manual lesson into VectorDB');
 
                     const embedResult = await this.gemini.embed(text);
-                    if (!embedResult.ok) return { ok: false, error: embedResult.error };
+                    if (!embedResult.ok) {
+                        const error = (embedResult as { ok: false; error: Error }).error;
+                        return { ok: false, error };
+                    }
 
                     const lesson = {
                         id: `manual_${Date.now()}`,
@@ -121,7 +126,8 @@ export class MemoryLimb extends BaseLimb {
                         errorType: errorType || 'None',
                         regretLikelihood,
                         projectId: this.config.projectId || 'global',
-                        sessionId: process.env['SESSION_ID'] || 'manual'
+                        sessionId: process.env['SESSION_ID'] || 'manual',
+                        rootStack: this.config.rootStack
                     };
 
                     return this.vectorDB.addLesson(lesson);

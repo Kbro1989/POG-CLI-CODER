@@ -16,7 +16,7 @@ interface RateLimitState {
 export class RateLimiter implements DurableObject {
     private state: DurableObjectState;
 
-    constructor(state: DurableObjectState, env: any) {
+    constructor(state: DurableObjectState, _env: any) {
         this.state = state;
     }
 

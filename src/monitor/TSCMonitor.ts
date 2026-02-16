@@ -36,6 +36,10 @@ export class TSCMonitor extends EventEmitter {
         super();
     }
 
+    public getProjectRoot(): string {
+        return this.projectRoot;
+    }
+
     override on<K extends keyof TSCMonitorEvents>(
         event: K,
         listener: TSCMonitorEvents[K]

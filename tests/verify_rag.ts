@@ -21,7 +21,7 @@ async function main() {
     // Initialize Services
     const config: VibeConfig = {
         projectId: 'rag-verify',
-        projectRoot: process.cwd(),
+        rootStack: [], projectRoot: process.cwd(),
         pogDir: './.pog',
         agentName: 'RAG-VERIFIER',
         wsPort: 9002,
@@ -32,7 +32,8 @@ async function main() {
         enabledServices: ['gemini'],
         embeddingDimensions: 768,
         gutenbergPath: undefined,
-        workspaces: [process.cwd()]
+        workspaces: [process.cwd()],
+        environment: 'local'
     };
 
     const gemini = new GeminiService(apiKey);
@@ -82,3 +83,4 @@ async function main() {
 }
 
 main().catch(console.error);
+

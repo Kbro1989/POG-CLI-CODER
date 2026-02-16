@@ -76,3 +76,4 @@ ${models.map(m => `    '${m.id}': {
 
 writeFileSync(outputPath, tsContent);
 console.log(`Successfully generated ${models.length} Cloudflare model definitions in ${outputPath}`);
+

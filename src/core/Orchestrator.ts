@@ -13,6 +13,9 @@
 import { EventEmitter } from 'events';
 import { homedir } from 'os';
 import { join, resolve, relative } from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { WebSocketServer } from 'ws';
 import pino from 'pino';
 import * as fs from 'fs';
 import { createHash } from 'crypto';
@@ -47,10 +50,10 @@ import { StoryboardLimb } from '../limbs/webapp/StoryboardLimb.js';
 import { MediaForgeLimb } from '../limbs/media/MediaForgeLimb.js';
 import { BioIntelligenceLimb } from '../limbs/bio/BioIntelligenceLimb.js';
 import { GutenbergLimb } from '../limbs/gutenberg/GutenbergLimb.js';
-import { YoloLimb } from '../limbs/core/YoloLimb.js';
 import { NeuralLimb } from '../limbs/core/NeuralLimb.js';
+import { CompressionLimb } from '../limbs/core/CompressionLimb.js';
 import { BaseLimb } from '../limbs/core/BaseLimb.js';
-import { FileSystemLimb } from '../limbs/core/FileSystemLimb.js';
+import { SovereignCLILimb } from '../limbs/core/SovereignCLILimb.js';
 import { VoiceLimb } from '../limbs/core/VoiceLimb.js';
 import { DashboardLimb } from '../limbs/core/DashboardLimb.js';
 import { constructInitialPrompt, PLANNING_PROMPT } from './SystemPrompts.js';
@@ -66,6 +69,7 @@ import { ArchitectureDigest } from './ArchitectureDigest.js';
 import { IntentVerifier } from './verification/IntentVerifier.js';
 import { PreviewServer, PreviewMetadata } from './PreviewServer.js';
 import { HexagramManager } from './HexagramManager.js';
+import { YaoState } from './models.js';
 import { HexagramLimb } from '../limbs/core/HexagramLimb.js';
 import { MonitorAgent } from '../monitor/MonitorAgent.js';
 import { AILimb } from '../api/ai/AILimb.js';
@@ -73,7 +77,6 @@ import { CloudflareLimb } from '../limbs/cloud/CloudflareLimb.js';
 import { GoogleServices } from '../services/GoogleServices.js';
 import { CloudflareServices } from '../services/CloudflareServices.js';
 import { NeuralForgeLimb } from '../limbs/core/NeuralForgeLimb.js';
-import { SovereignShellLimb } from '../limbs/system/SovereignShellLimb.js';
 import { SubstrateLimb } from '../limbs/system/SubstrateLimb.js';
 import { WebSensoryLimb } from '../limbs/system/WebSensoryLimb.js';
 import { MCPLimb } from '../limbs/system/MCPLimb.js';
@@ -90,6 +93,17 @@ import { QuantumLimb } from '../limbs/experimental/QuantumLimb.js';
 import { RelicLimb } from '../limbs/experimental/RelicLimb.js';
 import { OmegaLimb } from '../limbs/experimental/OmegaLimb.js';
 import { GhostLimb } from '../limbs/core/GhostLimb.js';
+import { hasSovereignDrive, getSovereignRoot } from '../utils/SovereignPathResolver.js';
+import { CognitiveTranslator } from '../utils/CognitiveTranslator.js';
+import { ChromanumberLimb } from '../limbs/chroma/ChromanumberLimb.js';
+import { EnvironmentLimb } from '../limbs/system/EnvironmentLimb.js';
+import { FileSystemLimb } from '../limbs/core/FileSystemLimb.js';
+import { YoloLimb } from '../limbs/core/YoloLimb.js';
+import { ServiceDiscovery } from './ServiceDiscovery.js';
+import { StateManager } from './StateManager.js';
+import { IntentMap } from '../api/ai/IntentMap.js';
+import { CircuitBreaker } from './CircuitBreaker.js';
+import { PulseMonitor } from '../monitor/PulseMonitor.js';
 
 // Note: Component logger is initialized in the constructor for dynamic identity.
 
@@ -117,11 +131,12 @@ export interface OrchestratorEvents {
 }
 
 export class FreeOrchestrator extends EventEmitter {
+  private readonly startTimestamp: number = Date.now();
   private readonly router: FreeModelRouter;
-  private readonly geminiService?: GeminiService;
+  private readonly geminiService: GeminiService;
   private readonly sessionId: string;
   private readonly intentHistory: IntentHistory[] = [];
-  private wsServer?: import('ws').WebSocketServer | undefined;
+  private wsServer?: WebSocketServer | undefined;
   private readonly logger: pino.Logger;
   private readonly webAppForgeLimb: WebAppForgeLimb;
   private readonly contextBuilder: ContextBuilder;
@@ -139,7 +154,10 @@ export class FreeOrchestrator extends EventEmitter {
   public getModelExecutor(): ModelExecutor {
     return this.modelExecutor;
   }
-  private readonly sovereignShellLimb: SovereignShellLimb;
+  public getHexagramManager(): HexagramManager {
+    return this.hexagramManager;
+  }
+  private readonly cliLimb: SovereignCLILimb;
   private readonly substrateLimb: SubstrateLimb;
   private readonly lastSentFileHashes: Map<string, string> = new Map();
   private forceFullContext = true;
@@ -151,8 +169,114 @@ export class FreeOrchestrator extends EventEmitter {
   private neuralLatency = 0;
   private toolUsageHeatmap: Record<string, number> = {};
   private readonly ghostLimb: GhostLimb;
+  private readonly serviceDiscovery: ServiceDiscovery;
+  private readonly stateManager: StateManager;
+  private readonly circuitBreaker: CircuitBreaker;
+  private readonly pulseMonitor: PulseMonitor;
+  private heartbeatInterval?: NodeJS.Timeout;
+  private narrativeInterval?: NodeJS.Timeout;
+  private workforceInterval?: NodeJS.Timeout;
+  private lastIntentTime = Date.now();
+  private readonly IDLE_THRESHOLD = 30000; // 30s
+  private idleInterval?: NodeJS.Timeout;
 
+  // Prioritized Idle Categories
+  private readonly IDLE_PRIORITIES = {
+    HEALTH: ['monitor_agent', 'circuit_breaker', 'memory_limb'],
+    CREATIVE: ['gutenberg_knowledge', 'media_forge', 'rsc_limb', 'storyboard_forge'],
+    MAINTENANCE: ['file_system', 'entity_limb', 'mcp_limb']
+  };
 
+  /**
+   * Starts the Sovereign Idle Loop (Heartbeat of the Machine)
+   */
+  public startIdleLoop(): void {
+    if (this.idleInterval) return;
+
+    this.logger.info('Sovereign Idle Loop initiated');
+    this.idleInterval = setInterval(() => {
+      this.handleIdleTick().catch(err => this.logger.error({ err }, 'Idle Loop Error'));
+    }, 30000);
+  }
+
+  private async handleIdleTick(): Promise<void> {
+    const timeSinceLastIntent = Date.now() - this.lastIntentTime;
+    if (timeSinceLastIntent < this.IDLE_THRESHOLD) return;
+
+    // 1. Check Objectives (Objectivity)
+    await this.checkObjectiveProgress();
+
+    // 2. Prioritized Exploration
+    await this.exploreLimbs();
+
+    // 3. Heartbeat Pulse
+    await this.broadcastPulse();
+  }
+
+  /**
+   * Reads objectives.md and tracks progress (Objectivity)
+   */
+  public async checkObjectiveProgress(): Promise<void> {
+    const objPath = resolve(this.config.projectRoot, 'objectives.md');
+    try {
+      if (!fs.existsSync(objPath)) return;
+
+      const content = fs.readFileSync(objPath, 'utf8');
+      const lines = content.split('\n');
+      const total = lines.filter(l => l.includes('- [ ]') || l.includes('- [x]')).length;
+      const completed = lines.filter(l => l.includes('- [x]')).length;
+
+      if (total > 0) {
+        const progress = Math.round((completed / total) * 100);
+        this.logger.info({ progress, completed, total }, 'Objective Progress Checked');
+
+        // Pin progress to Hexagram Line 5 (The Center)
+        if (Math.random() < 0.1) { // 10% chance to pin generic progress
+          void this.hexagramManager.pinCard(5, 'Objective Tracker', `Current System Completion: ${progress}%`, YaoState.YoungYang);
+        }
+      }
+    } catch (error) {
+      this.logger.warn({ error }, 'Failed to read objectives.md');
+    }
+  }
+
+  private async exploreLimbs(): Promise<void> {
+    const rand = Math.random();
+    let category = 'MAINTENANCE';
+
+    // User-defined Probabilities: Health (40%), Creative (40%), Maintenance (20%)
+    if (rand < 0.4) category = 'HEALTH';
+    else if (rand < 0.8) category = 'CREATIVE';
+
+    const candidates = this.IDLE_PRIORITIES[category as keyof typeof this.IDLE_PRIORITIES];
+    const targetId = candidates[Math.floor(Math.random() * candidates.length)];
+    const limb = this.limbs.find(l => l.id === targetId);
+
+    if (limb) {
+      const status = limb.getStatus ? limb.getStatus() : { id: limb.id, type: limb.type };
+      const thought = `Thinking about ${category} (${limb.id}): ${JSON.stringify(status).slice(0, 100)}...`;
+
+      this.logger.info({ category, limb: limb.id }, 'Sovereign Idle Thought');
+      void this.hexagramManager.pinCard(
+        category === 'HEALTH' ? 4 : category === 'CREATIVE' ? 1 : 6,
+        `Idle Reflection (${category})`,
+        thought,
+        category === 'CREATIVE' ? YaoState.OldYang : YaoState.YoungYin
+      );
+
+      // 10% chance to deeply consult Oracle on this thought
+      if (Math.random() < 0.1) {
+        void this.hexagramManager.consultOracle({
+          intent: `Idle reflection on ${limb.id} health/status`,
+          axes: [
+            { axis: 'X', positive: 'Healthy', negative: 'Degraded', neutral: 'Stable' },
+            { axis: 'Y', positive: 'Creative', negative: 'Dormant', neutral: 'Idle' },
+            { axis: 'Z', positive: 'Active', negative: 'Offline', neutral: 'Standby' }
+          ]
+        }, this.modelExecutor);
+      }
+    }
+  }
 
   constructor(
     private readonly config: VibeConfig,
@@ -164,16 +288,28 @@ export class FreeOrchestrator extends EventEmitter {
     this.sessionId = config.projectId + '_' + (process.env['SESSION_ID'] || `vibe_${Date.now()}_${Math.random().toString(36).substring(7)}`);
     this.logger = pino({
       name: 'Orchestrator',
-      base: { hostname: 'POG-VIBE', projectId: config.projectId }
+      base: { hostname: 'POG-VIBE', projectId: config.projectId, sessionStart: this.startTimestamp }
+    });
+
+    // Initialize Hexagram Manager (The Nervous System) - FIRST
+    this.hexagramManager = new HexagramManager(this.vectorDB, config.projectId);
+    this.hexagramManager.on('cardPinned', (data: { index: number, card: import('./HexagramManager.js').ContextCard }) => {
+      this.broadcastState();
+      this.narrateCognition(data.card);
     });
 
     // 1. Core Services (Prerequisites)
     this.previewServer = new PreviewServer();
-    this.hexagramManager = new HexagramManager(this.vectorDB, config.projectId);
     const keyVault = new KeyVault();
     this.geminiService = new GeminiService({ apiKey: process.env['GOOGLE_API_KEY'] || '' }, keyVault);
     this.router = new FreeModelRouter(config, this.geminiService);
-    this.modelExecutor = new ModelExecutor(config, this.geminiService, this.router);
+    this.modelExecutor = new ModelExecutor(
+      config,
+      this.geminiService,
+      this.hexagramManager,
+      this.router,
+      () => { if (this.ghostLimb) this.ghostLimb.reportSilence(); }
+    );
 
     // 1b. GCloud & Cloudflare Base Services
     const googleServices = new GoogleServices({
@@ -205,7 +341,9 @@ export class FreeOrchestrator extends EventEmitter {
       this.vectorDB,
       config.projectRoot,
       config.projectId,
-      this.geminiService
+      this.modelExecutor,
+      config.rootStack,
+      config.aiContextPath
     );
 
     // Initializing the automated codebase indexer with real Gemini dependency
@@ -230,20 +368,19 @@ export class FreeOrchestrator extends EventEmitter {
 
     // 2. Specialized Limbs (Utilizing Core Services)
     this.webAppForgeLimb = new WebAppForgeLimb(config, this.previewServer, this.modelExecutor, this.adversarialOrchestrator);
-    this.hexagramLimb = new HexagramLimb(config, this.hexagramManager);
+    this.hexagramLimb = new HexagramLimb(config, this.hexagramManager, this.modelExecutor);
 
     const mediaForgeLimb = new MediaForgeLimb(config, this.modelExecutor, this.router);
     const bioIntelligenceLimb = new BioIntelligenceLimb(config);
     const gutenbergLimb = new GutenbergLimb(config, this.vectorDB, this.geminiService, this.modelExecutor);
-    const yoloLimb = new YoloLimb(config);
+    this.cliLimb = new SovereignCLILimb(config, sandbox);
     const aiLimb = new AILimb(config, this.modelExecutor, this.router);
-    const fileSystemLimb = new FileSystemLimb(config, sandbox);
     const voiceLimb = new VoiceLimb(config, this.modelExecutor);
-    const dashboardLimb = new DashboardLimb(config, this.previewServer);
+    const dashboardLimb = new DashboardLimb(config, this.previewServer, this.vectorDB);
     const cloudflareLimb = new CloudflareLimb(config);
     const storyboardLimb = new StoryboardLimb(config, this.geminiService, this.vectorDB, this.modelExecutor);
     const neuralForgeLimb = new NeuralForgeLimb(config, this.adversarialOrchestrator);
-    const sovereignShellLimb = new SovereignShellLimb(config);
+    const compressionLimb = new CompressionLimb(config, this.vectorDB);
     const aiModelLimb = new AIModelLimb(config);
     const fileLimb = new FileLimb(config);
     const entityLimb = new EntityLimb(config);
@@ -253,12 +390,23 @@ export class FreeOrchestrator extends EventEmitter {
     const controlPlaneLimb = new ControlPlaneLimb(config, this.router);
     const memoryLimb = new MemoryLimb(config, this.vectorDB, this.indexer, this.geminiService);
     const cognitionLimb = new CognitionLimb(config, this.modelExecutor);
+    const chromanumberLimb = new ChromanumberLimb(config);
+    chromanumberLimb.setExecutor(this.modelExecutor);
+    const environmentLimb = new EnvironmentLimb(config, this.vectorDB, this.modelExecutor);
+    const fileSystemLimb = new FileSystemLimb(config);
+    const yoloLimb = new YoloLimb(config);
 
     // Phase 14: Ghost Limb Synthesis
     this.ghostLimb = new GhostLimb(config, this.modelExecutor);
     const quantumLimb = new QuantumLimb(config, this.modelExecutor);
     const relicLimb = new RelicLimb(config, this.modelExecutor);
     const omegaLimb = new OmegaLimb(config, this.modelExecutor);
+
+    // Core subsystem integration (Reverse Audit Phase 2)
+    this.serviceDiscovery = new ServiceDiscovery(config);
+    this.stateManager = StateManager.getInstance();
+    this.circuitBreaker = new CircuitBreaker();
+    this.pulseMonitor = new PulseMonitor(config, this.hexagramManager);
 
     cloudflareLimb.setExecutor(this.modelExecutor);
 
@@ -267,10 +415,40 @@ export class FreeOrchestrator extends EventEmitter {
     cloudflareLimb.on('failover_tracer', (data) => this.broadcastToDashboard('failover_tracer', data));
     cloudflareLimb.on('globe_forge_completed', (data) => this.broadcastToDashboard('globe_forge_completed', data));
 
+    // WebAppForge Globe integration
+    this.webAppForgeLimb.on('globe_forge_completed', (data) => this.broadcastToDashboard('globe_forge_completed', data));
+
+    // Periodic Local Spatial Health (Sovereign Metabolism)
+    setInterval(() => {
+      const health = this.getSystemHealth();
+      this.broadcastToDashboard('spatial_health_update', {
+        provider: 'local',
+        health: 'READY',
+        cpu: health.cpu,
+        mem: health.mem,
+        disk: health.disk,
+        timestamp: Date.now()
+      });
+    }, 60000); // Once per minute
+
+    // Phase 24: Ghost Failover Wiring
+    if (this.ghostLimb) {
+      this.ghostLimb.on('engagementChanged', (data) => {
+        this.broadcastToDashboard('failover_tracer', {
+          from: data.old === YaoState.YoungYin ? 'cloud' : 'ghost-transition',
+          to: data.new === YaoState.OldYang ? 'ghost' : 'cloud',
+          reason: data.reason,
+          consecutiveFailures: data.new === YaoState.OldYang ? 3 : 0
+        });
+        this.broadcastState();
+      });
+    }
+
     // Store in collection for intent routing
-    const limbs: NeuralLimb[] = [
+    let limbs: NeuralLimb[] = [
       controlPlaneLimb,
       memoryLimb,
+      compressionLimb,
       cognitionLimb,
       aiModelLimb,
       fileLimb,
@@ -286,17 +464,30 @@ export class FreeOrchestrator extends EventEmitter {
       mediaForgeLimb,
       bioIntelligenceLimb,
       gutenbergLimb,
-      yoloLimb,
+      this.cliLimb,
       aiLimb,
-      fileSystemLimb,
       voiceLimb,
+      chromanumberLimb,
+      environmentLimb,
       dashboardLimb,
-      sovereignShellLimb,
       this.ghostLimb,
       quantumLimb,
       relicLimb,
-      omegaLimb
+      omegaLimb,
+      fileSystemLimb,
+      yoloLimb
     ];
+
+    // Filter limbs if enabledServices is specified (Sovereign Optimization)
+    if (this.config.enabledServices && this.config.enabledServices.length > 0) {
+      this.logger.info({ enabled: this.config.enabledServices }, 'Selective limb loading active');
+      limbs = limbs.filter(l =>
+        this.config.enabledServices.some(s =>
+          l.id.toLowerCase().includes(s.toLowerCase()) ||
+          l.constructor.name.toLowerCase().includes(s.toLowerCase())
+        )
+      );
+    }
 
     // Register all limbs to the executive spine
     limbs.forEach(limb => {
@@ -328,13 +519,13 @@ export class FreeOrchestrator extends EventEmitter {
       }
     });
 
-    this.sovereignShellLimb = sovereignShellLimb;
+    this.cliLimb.setExecutor(this.modelExecutor);
 
     // 3. Post-Limb Systems
 
     // Initialize MonitorAgent (Background Helper) - ENABLED BY DEFAULT
     if (process.env['ENABLE_MONITOR'] !== 'false') {
-      this.monitorAgent = new MonitorAgent(config, this.modelExecutor);
+      this.monitorAgent = new MonitorAgent(config, this.modelExecutor, this.hexagramManager);
       this.setupMonitorListeners();
       this.logger.info('Monitor Agent enabled - continuous TSC watch active');
     }
@@ -351,6 +542,26 @@ export class FreeOrchestrator extends EventEmitter {
 
     // Phase 13: Project Pulse Initialization
     ProjectPulse.initManifest(config.projectRoot, config.agentName);
+
+    // Phase 24: Service Discovery + Circuit Breaker + Pulse Monitor boot
+    void this.serviceDiscovery.auditAll().then(statuses => {
+      statuses.forEach(s => this.updateEndpointStatus(s.id, s.status === 'ACTIVE' ? 'ACTIVE' : s.status === 'ERROR' ? 'INACTIVE' : 'PARTIAL'));
+      this.logger.info({ discovered: statuses.length }, 'ServiceDiscovery audit complete');
+    }).catch(err => this.logger.warn({ err }, 'ServiceDiscovery audit failed'));
+
+    void this.pulseMonitor.start().catch(err => this.logger.warn({ err }, 'PulseMonitor start failed'));
+
+    // Wire CircuitBreaker events to Hexagram
+    this.circuitBreaker.on('circuit_open', (data) => {
+      this.logger.warn({ data }, 'CircuitBreaker: provider soldiered (OPEN)');
+      void this.hexagramManager.pinCard(4, `Circuit OPEN: ${(data as Record<string, unknown>)['provider']}`, 'Provider disabled after 3 strikes.', YaoState.OldYin);
+    });
+    this.circuitBreaker.on('circuit_closed', (data) => {
+      this.logger.info({ data }, 'CircuitBreaker: provider recovered (CLOSED)');
+      void this.hexagramManager.pinCard(4, `Circuit CLOSED: ${(data as Record<string, unknown>)['provider']}`, 'Provider recovered.', YaoState.YoungYang);
+    });
+
+    this.startIdleLoop();
   }
 
   private envStatus: EnvStatus[] = [];
@@ -388,6 +599,9 @@ export class FreeOrchestrator extends EventEmitter {
 
   async initialize(): Promise<Result<void>> {
     try {
+      // 0. Sync Substrate/Workforce (Sense the being)
+      await this.syncSubstrateWorkforce();
+
       await this.setupWebSocket();
 
       // Automatically activate the dashboard
@@ -435,16 +649,21 @@ export class FreeOrchestrator extends EventEmitter {
       this.logger.info({ port: this.config.wsPort }, 'WebSocket server started');
 
       // Heartbeat for dashboard telemetry
-      setInterval(() => {
+      this.heartbeatInterval = setInterval(() => {
         void this.refreshSystemHealth();
         this.broadcastState();
         void this.broadcastPulse();
       }, 5000); // More frequent heartbeat for high-fidelity pulse
 
       // Sovereign Voice Narrative Loop (Rhythmic introspection)
-      setInterval(() => {
+      this.narrativeInterval = setInterval(() => {
         void this.generateSovereignVoice();
       }, 60000); // Narrate vibe every minute
+
+      // workforce heartbeat every minute
+      this.workforceInterval = setInterval(() => {
+        void this.syncSubstrateWorkforce();
+      }, 60000);
 
       return { ok: true, value: undefined };
     } catch (error) {
@@ -454,50 +673,180 @@ export class FreeOrchestrator extends EventEmitter {
     }
   }
 
-  private async setupWebSocket(): Promise<void> {
-    const { WebSocketServer } = await import('ws');
-    this.wsServer = new WebSocketServer({ port: this.config.wsPort, host: '0.0.0.0' });
+  public async cleanup(): Promise<void> {
+    this.logger.info('Shutting down Orchestrator...');
 
-    this.wsServer.on('connection', (ws: import('ws').WebSocket) => {
-      this.logger.debug('Client connected');
-      ws.send(JSON.stringify({ type: 'state', data: this.getCurrentState() }));
+    // 1. Clear intervals
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    if (this.narrativeInterval) clearInterval(this.narrativeInterval);
+    if (this.workforceInterval) clearInterval(this.workforceInterval);
 
-      // Event propagation
-      const forwardEvent = (type: string, data: unknown) => {
-        if (ws.readyState === 1) { // OPEN
-          ws.send(JSON.stringify({ type, data }));
-        }
+    // 2. Stop Monitor Agent
+    if (this.monitorAgent) {
+      if (typeof (this.monitorAgent as any).stop === 'function') {
+        (this.monitorAgent as any).stop();
+      }
+    }
+
+    // 3. Stop Preview Server
+    if (this.previewServer) {
+      await this.previewServer.stopAll();
+    }
+
+    // 4. Close WebSocket Server
+    if (this.wsServer) {
+      this.wsServer.close();
+    }
+
+    // 5. Stop Watcher
+    if (this.watcher && typeof this.watcher.stop === 'function') {
+      this.watcher.stop();
+    }
+
+    this.logger.info('Orchestrator cleanup complete.');
+  }
+
+
+  /**
+   * SOVEREIGN LIVING SUBSTRATE: Sync Model Workforce
+   * Retrieves real-time availability of professional models (Ollama/Env)
+   * and pins the state to the hexagram.
+   */
+  public async syncSubstrateWorkforce(): Promise<void> {
+    try {
+      this.logger.info('Syncing Sovereign Model Workforce...');
+
+      // 1. Fetch Ollama Models (Real-time heartbeat)
+      let ollamaModels: string[] = [];
+      try {
+        const execAsync = promisify(exec);
+        const { stdout } = await execAsync('ollama list');
+        ollamaModels = stdout.split('\n').slice(1).map(line => line.trim().split(/\s+/)[0]).filter((m): m is string => !!m);
+      } catch (e) {
+        this.logger.warn('Ollama heartbeat failed - system currently cloud-reliant or local-only');
+      }
+
+      // 2. Identify Pro Members (Team Composition)
+      const team = {
+        planning: this.config.planningModel || 'None (Fallback active)',
+        coding: this.config.codingModel || 'None (Fallback active)',
+        critic: this.config.criticModel || 'None (Fallback active)',
+        monitor: this.config.monitorModel || 'None (Fallback active)',
+        availableLocal: ollamaModels
       };
 
-      this.on('intentExecuted', (data) => forwardEvent('intentExecuted', data));
-      this.on('previewStarted', (data) => forwardEvent('previewStarted', data));
+      // 3. Update Workforce State
+      await this.updateModelWorkforceState(team);
 
-      // Phase 23: Global Node Discovery & Telemetry
-      this.substrateLimb.on('node_discovered', (data) => forwardEvent('node_discovered', data));
+      this.logger.info({ teamSize: ollamaModels.length }, 'Model Workforce Synced');
+    } catch (error) {
+      this.logger.error({ error }, 'Failed to sync model workforce');
+    }
+  }
 
-      // 1d. Universal Log Streaming (Phase 8)
-      this.previewServer.on('log', (log) => forwardEvent('preview_log', log));
-      this.previewServer.on('exit', (exit) => forwardEvent('preview_exit', exit));
+  private async updateModelWorkforceState(team: {
+    planning: string;
+    coding: string;
+    monitor: string;
+    availableLocal: string[]
+  }): Promise<void> {
+    const isHealthy = team.availableLocal.length > 0;
+    const proPresence = team.planning.includes('pro') || team.coding.includes('14b') || team.coding.includes('7b');
 
-      // 1e. Human-in-the-Loop Feedback Channel
-      ws.on('message', (msg: import('ws').Data) => {
-        try {
-          const payload = JSON.parse(msg.toString());
-          if (payload.type === 'user_feedback') {
-            this.logger.info({ feedback: payload.data }, 'Human-in-the-Loop feedback received');
-            this.emit('userFeedback', payload.data);
-          } else if (payload.type === 'control') {
-            this.handleControlMessage(payload, ws);
-          } else if (payload.type === 'audio_input') {
-            void this.handleAudioInput(payload.data, ws);
+    let state = YaoState.YoungYang; // Stable Yang (Active Workforce)
+    if (!isHealthy) state = YaoState.YoungYin; // Receptive/Silent (Cloud Only)
+    else if (!proPresence) state = YaoState.OldYang; // Moving Yang (Limited Capacity)
+
+    const workforceContent = `
+TEAM COMPOSITION:
+- Planning: ${team.planning}
+- Coding: ${team.coding}
+- Oversight: ${team.monitor}
+- Local Bench: ${team.availableLocal.join(', ') || 'None'}
+
+STATUS: ${isHealthy ? 'High-Continuity Workforce Active' : 'Biological/Local Disconnect - Cloud Bridge Only'}
+    `.trim();
+
+    await this.hexagramManager.pinCard(2, 'Biological Pulse', workforceContent, state);
+  }
+
+  private async setupWebSocket(): Promise<void> {
+    if (this.config.wsPort === -1) {
+      this.logger.info('WebSocket Server disabled via wsPort: -1');
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        this.logger.info({ port: this.config.wsPort }, 'Initializing WebSocket Server...');
+        this.wsServer = new WebSocketServer({ port: this.config.wsPort, host: 'localhost' });
+
+        this.wsServer.on('listening', () => {
+          const addr = this.wsServer?.address();
+          if (addr && typeof addr === 'object' && this.config.wsPort === 0) {
+            (this.config as any).wsPort = addr.port;
           }
-        } catch (e) {
-          this.logger.error({ error: e }, 'Failed to parse WebSocket message');
-        }
-      });
-    });
+          this.logger.info({ port: this.config.wsPort }, 'WebSocket Server LISTENING');
+          resolve();
+        });
 
-    this.wsServer.on('error', (error: Error) => this.logger.error({ error }, 'WebSocket error'));
+        this.wsServer.on('error', (error: Error & { code?: string }) => {
+          this.logger.error({ error }, 'WebSocket Server FATAL ERROR');
+          if (error.code === 'EADDRINUSE' && this.config.wsPort !== 0) {
+            this.logger.warn('Port in use, falling back to dynamic port...');
+            this.wsServer?.close();
+            (this.config as any).wsPort = 0;
+            this.setupWebSocket().then(resolve).catch(reject);
+          } else {
+            reject(error);
+          }
+        });
+
+        this.wsServer.on('connection', (ws: import('ws').WebSocket) => {
+          this.logger.debug('Client connected');
+          ws.send(JSON.stringify({ type: 'state', data: this.getCurrentState() }));
+
+          const forwardEvent = (type: string, data: unknown) => {
+            if (ws.readyState === 1) { // OPEN
+              ws.send(JSON.stringify({ type, data }));
+            }
+          };
+
+          this.on('intentExecuted', (data) => forwardEvent('intentExecuted', data));
+          this.on('previewStarted', (data) => forwardEvent('previewStarted', data));
+          this.substrateLimb.on('node_discovered', (data) => forwardEvent('node_discovered', data));
+          this.previewServer.on('log', (log) => forwardEvent('preview_log', log));
+          this.previewServer.on('exit', (exit) => forwardEvent('preview_exit', exit));
+
+          ws.on('message', (msg: import('ws').Data) => {
+            try {
+              const payload = JSON.parse(msg.toString());
+              if (payload.type === 'user_feedback') {
+                this.logger.info({ feedback: payload.data }, 'Human-in-the-Loop feedback received');
+                this.emit('userFeedback', payload.data);
+              } else if (payload.type === 'control') {
+                this.handleControlMessage(payload, ws);
+              } else if (payload.type === 'audio_input') {
+                void this.handleAudioInput(payload.data, ws);
+              } else if (payload.type === 'diagnostic_report') {
+                if (this.monitorAgent) {
+                  this.monitorAgent.reportExternalIssues(payload.data);
+                }
+              } else if (payload.type === 'god_head_connected') {
+                if (this.monitorAgent) {
+                  this.monitorAgent.handleGodHeadConnection(payload.data.context);
+                }
+              }
+            } catch (e) {
+              this.logger.error({ error: e }, 'Failed to parse WebSocket message');
+            }
+          });
+        });
+      } catch (error) {
+        this.logger.error({ error }, 'Failed to initialize WebSocket server');
+        reject(error);
+      }
+    });
   }
 
   private setupMonitorListeners(): void {
@@ -560,6 +909,17 @@ export class FreeOrchestrator extends EventEmitter {
     this.monitorAgent.on('provenanceCandidate', () => { void this.refreshHexagramState(); });
   }
 
+  private broadcastEvent(type: string, data: unknown): void {
+    if (!this.wsServer) return;
+
+    // Broadcast to all connected clients
+    this.wsServer.clients.forEach((client: import('ws').WebSocket) => {
+      if (client.readyState === 1) { // OPEN
+        client.send(JSON.stringify({ type, data }));
+      }
+    });
+  }
+
   /**
    * Updates the Hexagram Strategy Engine with real-time system metrics.
    * Maps the physiology (Build, Cloud, Errors) to the Psychology (Hexagram).
@@ -580,15 +940,47 @@ export class FreeOrchestrator extends EventEmitter {
       // Approximate System State
       const state: import('../core/HexagramManager.js').SystemState = {
         buildPass,
-        cloudHealthy: geminiHealth.state === 'READY' ? HealthStatus.Ready : (geminiHealth.state === 'RATE_LIMITED' ? HealthStatus.Degraded : HealthStatus.Critical),
+        cloudHealthy: geminiHealth.state === 'READY' ? HealthStatus.Ready : (geminiHealth.state === 'SOVEREIGN_SILENCE' ? HealthStatus.Silence : (geminiHealth.state === 'RATE_LIMITED' ? HealthStatus.Degraded : HealthStatus.Critical)),
+        adminPresent: geminiHealth.state !== 'SOVEREIGN_SILENCE' && geminiHealth.state !== 'OFF_GRID',
         localModels: HealthStatus.Ready, // Always true for this architecture
         noRecentErrors: (!this.monitorAgent || this.monitorAgent.getCurrentErrors().length === 0) ? HealthStatus.Ready : HealthStatus.Degraded,
         userActive: UserEngagement.Active, // Assumed active if events are firing
         lowResourcePressure: ResourcePressure.Optimal, // Default for now
-        dashboardHealthy: this.checkDashboardHealth() // Line 6: UI Culmination
+        dashboardHealthy: this.checkDashboardHealth(), // Line 6: UI Culmination
+        somaticLair: hasSovereignDrive()
       };
 
       await this.hexagramManager.updateLinesFromState(state);
+
+      // Enhance cached health with real monitor data if available
+
+      // Enhance cached health with real monitor data if available
+      if (this.monitorAgent) {
+        // Use diagnostics if available, otherwise fall back to cached
+        // For now, avoiding the unused variable warning by actually using it or removing it
+        // The MonitorReport doesn't map 1:1 to cpu/mem yet, so we'll keep using cachedHealth but log the diagnostics for debug
+        const diagnostics = await this.monitorAgent.diagnoseState();
+        if (diagnostics.decision === 'Yin') {
+          // If system is yielding/unhealthy, maybe reflect that in the signal
+        }
+
+        // Also check Sovereign Status
+        const sovereignActive = hasSovereignDrive();
+
+        // Broadcast specialized 'health_signal' event for the gauges
+        this.broadcastEvent('health_signal', {
+          cpu: this.cachedHealth.cpu,
+          mem: this.cachedHealth.mem,
+          disk: this.cachedHealth.disk,
+          neuralLatency: this.neuralLatency,
+          sovereign: {
+            active: sovereignActive,
+            root: getSovereignRoot()
+          },
+          status: diagnostics.decision // Include decision in the signal
+        });
+      }
+
 
       const currentHex = this.hexagramManager.getInterpretation();
       this.logger.debug({
@@ -752,12 +1144,19 @@ export class FreeOrchestrator extends EventEmitter {
   /**
    * Get current strategic posture for external consumers.
    */
-  public getStrategicPosture(): { strategy: string; hexagram: string; binary: string } {
+  public getStrategicPosture(): { strategy: string; hexagram: string; binary: string; lines: { index: number; state: string; title: string }[] } {
     const hex = this.hexagramManager.getInterpretation();
+    const lines = this.hexagramManager.getLines().map(l => ({
+      index: l.lineIndex,
+      state: this.hexagramManager.getStateString(l.state),
+      title: l.title
+    }));
+
     return {
       strategy: hex.strategy,
       hexagram: hex.name,
-      binary: hex.binary
+      binary: hex.binary,
+      lines
     };
   }
 
@@ -791,7 +1190,8 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
     if (result.ok) {
       this.logger.info('Auto-heal workflow completed successfully using Adversarial Loop');
     } else {
-      this.logger.error({ error: result.error }, 'Auto-heal workflow failed');
+      const error = (result as { ok: false; error: Error }).error;
+      this.logger.error({ error }, 'Auto-heal workflow failed');
     }
   }
 
@@ -827,21 +1227,49 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
   }
 
   /**
+   * REFLECTIVE LAYER: Synthesize user intent before planning.
+   * "User intent should pass to conversation to get intent, not tool calls, stacking info and user desires."
+   */
+  private async synthesizeIntent(prompt: string, context: string): Promise<string> {
+    const adminModel = this.config.thinkingAdminModel || 'gold_ollama_kimi_k2_5';
+    const synthesisPrompt = `${(await import('./SystemPrompts.js')).INTENT_SYNTHESIS_PROMPT}\n\nCONTEXT:\n${context}\n\nUSER INPUT:\n${prompt}`;
+
+    this.logger.info({ model: adminModel }, 'Synthesizing intent through Thinking Admin...');
+    const result = await this.modelExecutor.callModel(adminModel, synthesisPrompt);
+
+    if (result.ok) {
+      return result.value.response;
+    }
+    return `# 🧠 Intent Recoil\nFailed to synthesize intent. Proceeding with raw input: "${prompt}"`;
+  }
+
+  /**
    * Execute user intent with "Research -> Plan -> Execute -> Review" loop
    * High-level entry point for executing user intents.
    * Leverages ternary routing and adversarial loops for maximum quality.
    */
-  async executeIntent(promptOrOptions: string | { prompt: string; model?: string; force?: boolean }, filePath?: string): Promise<Result<Execution>> {
-    const prompt = typeof promptOrOptions === 'string' ? promptOrOptions : promptOrOptions.prompt;
-    const modelOverride = typeof promptOrOptions === 'string' ? undefined : promptOrOptions.model;
-    const forceRaw = typeof promptOrOptions === 'string' ? false : promptOrOptions.force;
+  public async executeIntent(input: string | { prompt: string; model?: string; force?: boolean; filePath?: string }): Promise<Result<Execution>> {
+    const rawPrompt = typeof input === 'string' ? input : input.prompt;
+    const modelOverride = typeof input === 'string' ? undefined : input.model;
+    const forceRaw = typeof input === 'string' ? false : input.force;
+    const filePath = typeof input === 'string' ? undefined : input.filePath;
     const force = forceRaw ? ExecutionEscalation.Aggressive : ExecutionEscalation.Standby;
+    const startTime = Date.now();
+
+    // 1. Build Context
+    const contextObj = await this.contextBuilder.buildContext(rawPrompt);
+    const contextString = this.contextBuilder.formatContextForPrompt(contextObj);
+
+    // 2. CONVERSATION-FIRST: Synthesize Intent
+    const prompt = await this.synthesizeIntent(rawPrompt, contextString);
+    this.broadcastToDashboard('awaitingFeedback', { message: prompt }); // Push to CLI/Dashboard
 
     const context: ExecutionContext = {
-      prompt,
+      prompt: prompt, // Use synthesized intent for the main execution context
+      rawPrompt: rawPrompt, // Keep original prompt for reference
       ...(filePath ? { filePath } : {}),
       sessionId: this.sessionId,
-      startTime: Date.now(),
+      startTime,
       ...(force !== undefined ? { force } : {})
     };
 
@@ -859,6 +1287,8 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
         strategy: negotiation.strategyOverride
       });
     }
+    // Line 1: SENSE - Input received
+    void this.hexagramManager.pinCognitiveCard(1, 'SENSE', `Input: ${prompt.substring(0, 50)}...`, YaoState.YoungYang);
 
     // Inject Immutable System Prompt
     const fullPrompt = constructInitialPrompt(prompt);
@@ -923,7 +1353,8 @@ Fix these errors. Do not use placeholders or TODOs. Provide production-ready fix
           this.recordIntent(context, limb.id, SuccessRating.Success, Date.now() - context.startTime, result.value.output, result.value.data);
           return { ok: true, value: result.value };
         }
-        return { ok: false, error: result.error };
+        const error = (result as { ok: false; error: Error }).error;
+        return { ok: false, error };
       }
     }
 
@@ -947,7 +1378,8 @@ User: ${prompt}`,
         this.recordSuccessMetadata('conversational', prompt, Date.now() - context.startTime, filePath);
         return { ok: true, value: { output: result.value.response } };
       }
-      return { ok: false, error: result.error };
+      const error = (result as { ok: false; error: Error }).error;
+      return { ok: false, error };
     }
 
     let turnCounter = 0;
@@ -999,6 +1431,11 @@ User: ${prompt}`,
       }
     }
 
+    // Line 3: THINK - Strategy established
+    const planMood = CognitiveTranslator.translate(executionPlan.steps.length / 3, 'planning_complexity');
+    void this.hexagramManager.pinCognitiveCard(3, 'THINK', `Plan: ${executionPlan.goal} (${executionPlan.steps.length} steps). Vibe: ${planMood}`, YaoState.OldYang);
+    this.logger.info({ planMood }, 'PLAN CONCLUDED: Bottlenecking intent to substrate...');
+
     let totalResponse = '';
     let lastModel = 'unknown';
 
@@ -1019,6 +1456,9 @@ User: ${prompt}`,
       i++;
       turnCounter++;
       this.logger.info({ step: i, tool: step.tool }, `Executing step: ${step.reasoning}`);
+
+      // Line 5: ACT - Tool execution
+      void this.hexagramManager.pinCognitiveCard(5, 'ACT', `Executing: ${step.tool} - ${step.reasoning.substring(0, 30)}...`, YaoState.YoungYang);
 
       const stepHexagram = await this.hexagramManager.formatForPrompt(embeddingValue);
       const stepPrompt = `OVERALL GOAL: ${executionPlan.goal}
@@ -1058,6 +1498,11 @@ Perform the current step and output results. If verifying, ensure you run the ne
         this.logger.warn({ score: audit.score, correction: audit.correction }, 'Sovereign Drift Detected');
         // Inject the correction into the totalResponse so it affects subsequent steps' context
         totalResponse += `\n[SOVEREIGN DRIFT DETECTED]: Your last action deviated from the sovereign intent.\nDrift Score: ${audit.score}\nPROACTIVE CORRECTION: ${audit.correction}\n`;
+        // Line 6: REFLECT - Deviation detected
+        void this.hexagramManager.pinCognitiveCard(6, 'REFLECT', `Sovereign Drift [Score: ${audit.score}]`, YaoState.OldYin);
+      } else {
+        // Line 6: REFLECT - Alignment confirmed
+        void this.hexagramManager.pinCognitiveCard(6, 'REFLECT', 'Alignment Confirmed', YaoState.YoungYang);
       }
 
 
@@ -1086,6 +1531,11 @@ Perform the current step and output results. If verifying, ensure you run the ne
         totalResponse += `\n\n--- OMEGA VERIFICATION ---\n${omegaResult.value.output}`;
       }
     }
+
+    const conclusionState = CognitiveTranslator.translate(totalResponse, 'conclusion_synthesis');
+    void this.hexagramManager.pinCognitiveCard(6, 'REFLECT', `Conclusion: ${conclusionState}`, YaoState.OldYin);
+
+    this.logger.info({ conclusionState }, 'COGNITIVE CYCLE COMPLETE: Result converged.');
 
     return { ok: true, value: { output: totalResponse } };
   }
@@ -1116,6 +1566,27 @@ Perform the current step and output results. If verifying, ensure you run the ne
     }
 
     // 1. Route to best model (or use override)
+    // Sovereign Context Injection
+    const hexagram = this.hexagramManager.getInterpretation();
+    this.logger.info({
+      hexagram: hexagram.name,
+      strategy: hexagram.strategy,
+      binary: hexagram.binary
+    }, `[SOVEREIGN PULSE] Archetype: ${hexagram.name} (${hexagram.binary})`);
+
+    // Dynamic 3-Question Logging (No False Positives)
+    const contextResult = await this.hexagramManager.getHexagramContext();
+    if (contextResult.ok) {
+      const oracleLine = contextResult.value.find(c => c.content.includes('Oracle Analysis'));
+      if (oracleLine) {
+        this.logger.debug({
+          content: oracleLine.content
+        }, '[ORACLE] Tri-Axis Evaluation Active (Derived from Hexagram Context)');
+      } else {
+        this.logger.trace('[SOVEREIGN] Hexagram derived from System Metrics (Build/Cloud/Health)');
+      }
+    }
+
     let selectedModel: string;
     if (modelOverride) {
       selectedModel = modelOverride;
@@ -1155,7 +1626,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
       return {
         status: 'stop',
         terminateReason: AgentTerminateMode.ERROR,
-        finalResult: ghostResult.error.message,
+        finalResult: (ghostResult as { ok: false; error: Error }).error.message,
         model: 'ghost-terminator'
       };
     }
@@ -1225,9 +1696,10 @@ Perform the current step and output results. If verifying, ensure you run the ne
             callResult = {
               ok: true,
               value: {
-                response: qResult.value.output,
+                response: (qResult.value as { output: string }).output,
                 model: 'quantum-superposition',
-                latency: Date.now() - context.startTime
+                latency: Date.now() - context.startTime,
+                cognitivePulse: YaoState.OldYang // Quantum is high-energy Yang
               }
             };
           }
@@ -1239,10 +1711,10 @@ Perform the current step and output results. If verifying, ensure you run the ne
     }
 
     if (!callResult.ok) {
-      this.logger.error({ error: callResult.error.message, model: selectedModel }, 'Primary model call failed - checking for Sovereign Shell fallback');
+      const error = (callResult as { ok: false; error: Error }).error;
+      this.logger.error({ error: error.message, model: selectedModel }, 'Primary model call failed - checking for Sovereign Shell fallback');
 
       this.router.recordFailure(selectedModel);
-      const error = (callResult as { error: Error }).error;
       this.recordFailureMetadata(selectedModel, augmentedPrompt, error.message, (context as { filePath: string }).filePath);
 
       // Sovereign Shell Fallback Logic
@@ -1251,9 +1723,9 @@ Perform the current step and output results. If verifying, ensure you run the ne
         const shellResult = await this.executeSovereignFallback('gemini_cli_exec', augmentedPrompt);
         if (shellResult.ok) {
           return {
-            status: 'stop', // CLI usually handles the full task or specific edit
+            status: 'stop',
             terminateReason: AgentTerminateMode.GOAL,
-            finalResult: shellResult.value.output,
+            finalResult: (shellResult.value as { output: string }).output,
             model: 'sovereign-shell-gemini'
           };
         }
@@ -1267,13 +1739,13 @@ Perform the current step and output results. If verifying, ensure you run the ne
           return {
             status: 'stop',
             terminateReason: AgentTerminateMode.GOAL,
-            finalResult: shellResult.value.output,
+            finalResult: (shellResult.value as { output: string }).output,
             model: 'sovereign-shell-wrangler'
           };
         }
       }
 
-      this.emit('executionError', { error: (callResult as { error: Error }).error, context });
+      this.emit('executionError', { error, context });
       return {
         status: 'stop',
         terminateReason: AgentTerminateMode.ERROR,
@@ -1287,22 +1759,13 @@ Perform the current step and output results. If verifying, ensure you run the ne
     // 3. Process Logic (Handle Formal Function Calls and Sandbox Commands)
     const processResult = await this.processFunctionCalls(callResult.value, context.plan);
     return { ...processResult, model: selectedModel };
-  } catch(error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    this.logger.error({ error: message }, 'Turn execution failed');
-    return {
-      status: 'stop',
-      terminateReason: AgentTerminateMode.ERROR,
-      finalResult: message,
-      model: 'unknown'
-    };
   }
 
   /**
    * Executes a terminal-based fallback using the SovereignShellLimb.
    */
   private async executeSovereignFallback(toolName: string, prompt: string): Promise<Result<Execution>> {
-    const res = await this.sovereignShellLimb.handleToolCall(toolName, { args: prompt });
+    const res = await this.cliLimb.handleToolCall(toolName, { args: prompt });
     return res as unknown as Result<Execution>;
   }
 
@@ -1330,6 +1793,9 @@ Perform the current step and output results. If verifying, ensure you run the ne
     if (functionCalls && functionCalls.length > 0) {
       this.logger.info({ count: functionCalls.length }, 'Formal Tool Calls Detected');
       for (const call of functionCalls) {
+        // Narrate to CLI
+        this.logger.info(`⚡ [SOVEREIGN ACT] Executing Tool: ${call.name}`);
+
         // Interference Check (Phase 22: Proactive Health)
         const interference = await this.checkMonitorInterference(plan);
         if (interference) return interference;
@@ -1355,7 +1821,8 @@ Perform the current step and output results. If verifying, ensure you run the ne
           this.logger.warn({ tool: call.name }, 'Tool call not handled by any registered limb');
         }
 
-        executionResults += `\nTool: ${call.name}\nResult: ${result.ok ? JSON.stringify(result.value) : result.error.message}\n`;
+        const output = result.ok ? JSON.stringify(result.value) : (result as { ok: false; error: Error }).error.message;
+        executionResults += `\nTool: ${call.name}\nResult: ${output}\n`;
       }
     }
 
@@ -1370,8 +1837,9 @@ Perform the current step and output results. If verifying, ensure you run the ne
         const execResult = await this.sandbox.execute(cmd);
 
         if (!execResult.ok) {
-          this.logger.error({ cmd, error: execResult.error }, 'Tool Execution Failed');
-          executionResults += `\nCommand: ${cmd}\nError: ${execResult.error.message}\n`;
+          const error = (execResult as { ok: false; error: Error }).error;
+          this.logger.error({ cmd, error }, 'Tool Execution Failed');
+          executionResults += `\nCommand: ${cmd}\nError: ${error.message}\n`;
           break; // Stop on first error
         }
 
@@ -1460,7 +1928,7 @@ Perform the current step and output results. If verifying, ensure you run the ne
     const performance: ModelPerformance = {
       model,
       taskType,
-      extension: filePath?.split('.').pop() ?? '',
+      extension: (filePath?.split('.') || []).pop() || '',
       latency,
       success: SuccessRating.Success,
       timestamp: Date.now(),
@@ -1561,33 +2029,83 @@ Perform the current step and output results. If verifying, ensure you run the ne
   }
 
   getCurrentState(): Record<string, unknown> {
+    if (!this) {
+      return { status: 'error', reason: 'Lost context' };
+    }
+
     return {
-      sessionId: this.sessionId,
-      intentCount: this.intentHistory.length,
-      recentIntents: this.intentHistory.slice(-10),
+      sessionId: this.sessionId || 'unknown',
+      uptime: Date.now() - (this.startTimestamp || Date.now()),
+      intentCount: (this.intentHistory || []).length,
+      recentIntents: (this.intentHistory || []).slice(-10),
       neuralLatency: this.neuralLatency || 0,
-      enabledServices: this.config.enabledServices,
-      limbs: this.limbs.map(l => {
+      enabledServices: this.config?.enabledServices || [],
+      limbs: (this.limbs || []).map(l => {
+        if (!l) return { id: 'unknown', type: 'unknown' };
         const status = typeof l.getStatus === 'function' ? l.getStatus() : { id: l.id, type: l.type, capabilities: l.capabilities };
         return status;
       }),
-      workspaces: this.config.workspaces || [],
-      activeWorkspace: this.config.projectRoot,
-      pinnedFiles: this.contextBuilder.getPinnedFiles(),
+      workspaces: this.config?.workspaces || [],
+      activeWorkspace: this.config?.projectRoot || '',
+      pinnedFiles: this.contextBuilder?.getPinnedFiles() || [],
       modelInventory: ModelInventory.getAvailableModels(),
       terminalTelemetry: {
         lastProcess: 'PowerShell Extension (14528)',
         status: 'Active',
         lastOutput: '... BAAI general embedding ... Aura-2 Text-to-Speech ...'
       },
-      envStatus: this.envStatus,
-      systemHealth: this.getSystemHealth(),
-      activeHexagram: this.hexagramManager.getInterpretation(),
-      hexagramLines: (this.hexagramManager as any).lines || [],
-      activeMemories: this.activeMemories.map(m => ({ text: m['text'], projectId: m.projectId, type: m.metadata?.['type'] })),
-      sovereignVoice: this.currentNarrative,
-      neuralHeatmap: this.toolUsageHeatmap
+      envStatus: this.envStatus || [],
+      systemHealth: this.getSystemHealth ? this.getSystemHealth() : { cpu: 0, mem: 0, disk: 0 },
+      memoryMetrics: {
+        totalGB: (os.totalmem() / 1024 / 1024 / 1024).toFixed(2),
+        freeGB: (os.freemem() / 1024 / 1024 / 1024).toFixed(2),
+        activeSubstrate: '1.3TB Virtual Mesh' // Acknowledgement of user's substrate context
+      },
+      activeHexagram: this.hexagramManager?.getInterpretation() || { strategy: 'STASIS' },
+      hexagramLines: (this.hexagramManager as any)?.lines || [],
+      emotion: this.hexagramManager?.getInterpretation()?.emotion || 'STEADY',
+      activeMemories: (this.activeMemories || []).map(m => m ? ({ text: m['text'], projectId: m.projectId, type: m.metadata?.['type'] }) : null).filter(Boolean),
+      sovereignVoice: this.currentNarrative || '',
+      neuralHeatmap: this.toolUsageHeatmap || {},
+      circuitBreakerState: this.circuitBreaker?.getStatusSnapshot() || {},
+      globalMetrics: this.stateManager?.getState() || {},
+      intentPathways: Object.keys(IntentMap || {})
     };
+  }
+
+  /**
+   * Narrates cognitive state changes to the CLI with high visibility.
+   */
+  private narrateCognition(card: import('./HexagramManager.js').ContextCard): void {
+    const iconMap: Record<string, string> = {
+      'THINK': '🧠',
+      'ACT': '⚡',
+      'REFLECT': '🔍',
+      'SENSE': '👁️',
+      'MEMORY': '💾'
+    };
+
+    const rawTitle = card.title.replace('[COGNITION] ', '');
+    const iconKey = rawTitle.split(' ')[0] ?? '';
+    const icon = iconMap[iconKey] || '✨';
+
+    // Structured log for CLI consumption, but also readable for humans
+    this.logger.info({
+      cognitiveAxis: card.lineIndex,
+      state: YaoState[card.state],
+      emotion: card.emotion
+    }, `[SOVEREIGN THOUGHT] ${icon} ${card.title}: ${card.content} (Emotion: ${card.emotion})`);
+
+    // Broadcast to Dashboard (Real-time Cognition Feed)
+    this.broadcastToDashboard('cognitive_state', {
+      axis: card.lineIndex,
+      title: card.title,
+      content: card.content,
+      icon,
+      state: YaoState[card.state],
+      emotion: card.emotion,
+      timestamp: Date.now()
+    });
   }
 
   private async broadcastPulse(): Promise<void> {
@@ -1653,9 +2171,11 @@ Perform the current step and output results. If verifying, ensure you run the ne
       const cpuUsage = 100 - (100 * totalIdle / totalTick);
 
       // Real Disk Usage (Windows specific as per OS metadata)
-      const diskUsage = await new Promise<number>((resolve) => {
-        const cmd = `powershell -Command "Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DeviceID -eq 'C:' } | Select-Object @{Name='Pct';Expression={($_.FreeSpace / $_.Size) * 100}}"`;
-        const { exec } = require('child_process');
+      const diskUsage = await new Promise<number>(async (resolve) => {
+        const root = getSovereignRoot();
+        const driveLetter = root.startsWith('/') ? '/' : root.split(':')[0] || 'C';
+        const cmd = `powershell -Command "Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DeviceID -like '${driveLetter}*' } | Select-Object @{Name='Pct';Expression={($_.FreeSpace / $_.Size) * 100}}"`;
+        const { exec } = await import('child_process');
         exec(cmd, (error: any, stdout: string) => {
           if (error) return resolve(0);
           const dmatch = stdout.match(/(\d+\.?\d*)/);
@@ -1724,10 +2244,19 @@ Perform the current step and output results. If verifying, ensure you run the ne
   // Consolidated into the previous broadcastPulse
 
   private broadcastToDashboard(type: string, data: any): void {
-    if (!this.wsServer) return;
+    if (!this.wsServer || !this.wsServer.clients) return;
     const msg = JSON.stringify({ type, data });
-    this.wsServer.clients.forEach(client => {
-      if (client.readyState === 1) client.send(msg);
+
+    // Convert Set to Array to ensure stable iteration and prevent "not a function" errors
+    const clients = Array.from(this.wsServer.clients);
+    clients.forEach(client => {
+      try {
+        if (client && client.readyState === 1) { // 1 = OPEN
+          client.send(msg);
+        }
+      } catch (err) {
+        // Silent failure for individual client send errors
+      }
     });
   }
 
@@ -1748,11 +2277,12 @@ Perform the current step and output results. If verifying, ensure you run the ne
       'readBook': { limbId: 'gutenberg_knowledge', toolName: 'read_book' },
       'narrateBook': { limbId: 'gutenberg_knowledge', toolName: 'narrate_book' },
       'transcribeAudiobook': { limbId: 'gutenberg_knowledge', toolName: 'audiobook_transcribe' },
-      'forge_storyboard': { limbId: 'gutenberg_knowledge', toolName: 'generate_storyboard' },
+      'forge_storyboard': { limbId: 'storyboard_forge', toolName: 'generate_storyboard' },
       'invoke_limb_tool': {
         limbId: (data)['limbId'] || 'unknown',
         toolName: (data)['toolName'] || 'unknown'
-      }
+      },
+      'rsc_capture_screen': { limbId: 'dashboard', toolName: 'rsc_capture_screen' }
     };
 
     const mapped = commandMap[command];
@@ -1782,12 +2312,13 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
     // CASE: requestState is a special internal state request (Shortcut)
     if (command === 'requestState') {
-      ws.send(JSON.stringify({ type: 'state', data: this.getCurrentState() }));
+      const state = this.getCurrentState();
+      ws.send(JSON.stringify({ type: 'state', data: state }));
       return;
     }
 
     if (mapped) {
-      const targetLimb = this.limbs.find(l => l.id === mapped.limbId);
+      const targetLimb = (this.limbs || []).find(l => l && l.id === mapped.limbId);
       if (targetLimb && targetLimb.handleToolCall) {
         void targetLimb.handleToolCall(mapped.toolName, data || {}).then(res => {
           // Secondary Side Effects based on tool result
@@ -1803,18 +2334,22 @@ Perform the current step and output results. If verifying, ensure you run the ne
 
           // If it was a forge or complex task, send back as intent execution
           if (['media_forge_request', 'narrateBook', 'transcribeAudiobook', 'invoke_limb_tool'].includes(command)) {
+            const error = !res.ok ? (res as { ok: false; error: Error }).error : null;
             const intentData = {
               query: `Dashboard Command: ${command}`,
               selectedModel: `Limb:${mapped.limbId}`,
               success: res.ok,
-              output: res.ok ? (res.value.output || 'Action completed') : `Error: ${res.error.message}`,
+              output: res.ok ? (res.value.output || 'Action completed') : `Error: ${error?.message}`,
               data: res.ok ? res.value.data : null
             };
             ws.send(JSON.stringify({ type: 'intentExecuted', data: intentData }));
+          } else if (command === 'rsc_capture_screen' && res.ok) {
+            ws.send(JSON.stringify({ type: 'capture_completed', data: res.value.data }));
           } else if (command === 'readBook' && res.ok) {
             ws.send(JSON.stringify({ type: 'bookContent', data: res.value.data }));
           } else if (command === 'requestBooks' && res.ok) {
-            ws.send(JSON.stringify({ type: 'books', data: (res.value.data as any).books }));
+            const booksData = res.value.data as Record<string, unknown>;
+            ws.send(JSON.stringify({ type: 'books', data: booksData?.['books'] || [] }));
           }
         });
       } else {
@@ -1962,23 +2497,11 @@ Perform the current step and output results. If verifying, ensure you run the ne
           void this.executeIntent(text);
         }
       } else {
-        this.logger.error({ error: result.error }, 'Audio transcription failed');
+        const error = (result as { ok: false; error: Error }).error;
+        this.logger.error({ error }, 'Audio transcription failed');
       }
     } catch (e) {
       this.logger.error({ error: e }, 'Critical error in audio processing');
     }
-  }
-
-  async cleanup(reason = 'unknown'): Promise<void> {
-    this.logger.info({ reason }, 'Cleaning up orchestrator');
-    await this.previewServer.stopAll();
-    if (this.wsServer) {
-      this.wsServer.close();
-      this.wsServer = undefined;
-    }
-    if (this.monitorAgent) {
-      this.monitorAgent.removeAllListeners();
-    }
-    this.removeAllListeners();
   }
 }

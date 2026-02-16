@@ -2,7 +2,7 @@ import { BaseLimb } from '../core/BaseLimb.js';
 import { z } from 'zod';
 import type { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig } from '../../core/models.js';
-import { YaoState } from '../../core/HexagramManager.js';
+import { YaoState } from '../../core/models.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import * as fs from 'fs'; // For namespace access if needed
 import { join } from 'path';
@@ -229,6 +229,7 @@ export class GutenbergLimb extends BaseLimb {
             {
                 name: 'audiobook_transcribe',
                 description: 'Transcribe a local audio file and add it to the book library.',
+                isAI: true,
                 parameters: {
                     type: 'object',
                     properties: {
@@ -253,10 +254,19 @@ export class GutenbergLimb extends BaseLimb {
 
                         if (!transcription.ok) return transcription;
 
-                        // In a real scenario, we'd save this to a file and add to metadata
+                        // Save this to a file and add to metadata
                         const textFileName = args.fileName.replace(/\.[^/.]+$/, "") + ".txt";
                         const textPath = join(this.GUTENBERG_CACHE, textFileName);
                         writeFileSync(textPath, transcription.value);
+
+                        // Update metadata cache to make it reachable in the library
+                        this.updateMetadataCache({
+                            id: Date.now(), // Generate a unique ID
+                            title: `Transcribed: ${args.fileName}`,
+                            author: 'Sovereign Whisper Engine',
+                            domain: 'transcription',
+                            path: textPath
+                        });
 
                         return {
                             ok: true,
@@ -273,6 +283,7 @@ export class GutenbergLimb extends BaseLimb {
             {
                 name: 'narrate_book',
                 description: 'Generate professional audiobook narration for a specific book.',
+                isAI: true,
                 parameters: {
                     type: 'object',
                     properties: {
@@ -290,16 +301,31 @@ export class GutenbergLimb extends BaseLimb {
                     const book = books.find(b => b.id === args.bookId);
                     if (!book) return { ok: false, error: new Error(`Book ${args.bookId} not found in local library.`) };
 
+                    // Real Logic: Record the narration request in a local manifest for the audio worker to pick up
+                    const narrationPath = join(this.GUTENBERG_CACHE, 'narration_queue.json');
+                    let queue: any[] = [];
+                    if (fs.existsSync(narrationPath)) {
+                        queue = JSON.parse(fs.readFileSync(narrationPath, 'utf8'));
+                    }
+
+                    const entry = {
+                        bookId: book.id,
+                        title: book.title,
+                        style: args.style,
+                        status: 'QUEUED',
+                        timestamp: Date.now()
+                    };
+
+                    queue.push(entry);
+                    fs.writeFileSync(narrationPath, JSON.stringify(queue, null, 2));
+
+                    await this.pinPulse(YaoState.YoungYang, `Narration Pulse: ${book.title} queued for generation`);
+
                     return {
                         ok: true,
                         value: {
-                            output: `Switching to audiobook narration mode for "${book.title}". Narrating in ${args.style} style.`,
-                            data: {
-                                type: 'narration_start',
-                                bookId: book.id,
-                                title: book.title,
-                                style: args.style
-                            }
+                            output: `Successfully queued "${book.title}" for professional narration (${args.style} style).`,
+                            data: entry
                         }
                     };
                 }
@@ -307,6 +333,7 @@ export class GutenbergLimb extends BaseLimb {
             {
                 name: 'gutenberg_analyze_style',
                 description: 'Analyze the literary style of a locally cached book.',
+                isAI: true,
                 parameters: {
                     type: 'object',
                     properties: {
@@ -340,6 +367,7 @@ export class GutenbergLimb extends BaseLimb {
             {
                 name: 'rag_ingest_book',
                 description: 'Ingests a book into the RAG memory system (Chunk -> Embed -> Store).',
+                isAI: true,
                 parameters: {
                     type: 'object',
                     properties: {
@@ -357,6 +385,7 @@ export class GutenbergLimb extends BaseLimb {
             {
                 name: 'retrieve_context',
                 description: 'Semantic search for literary context based on a query.',
+                isAI: true,
                 parameters: {
                     type: 'object',
                     properties: {
@@ -371,6 +400,66 @@ export class GutenbergLimb extends BaseLimb {
                 }),
                 handler: async (args: any) => {
                     return this.retrieveLiteraryContext(args.query, args.limit);
+                }
+            },
+            {
+                name: 'gutenberg_master_style',
+                description: 'Analyze a book and adopt its literary style as the system persona.',
+                isAI: true,
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        bookId: { type: 'number', description: 'The ID of the book to master' }
+                    },
+                    required: ['bookId']
+                },
+                schema: z.object({
+                    bookId: z.number().describe('The ID of the book to master')
+                }),
+                handler: async (args: any) => {
+                    const books = this.loadMetadataCache();
+                    const book = books.find(b => b.id === args.bookId);
+                    if (!book) return { ok: false, error: new Error(`Book ${args.bookId} not found in local library.`) };
+
+                    const activeBook: any = book;
+
+                    try {
+                        const content = readFileSync(activeBook.path, 'utf8');
+                        const styleProfile = StyleAnalyzer.analyze(content);
+                        const profileWithMeta = {
+                            ...styleProfile,
+                            author: activeBook.authors && activeBook.authors[0] ? activeBook.authors[0].name : 'Unknown Author',
+                            title: activeBook.title
+                        };
+
+                        // Apply to config (in-memory update)
+                        (this.config as any).activeStyle = profileWithMeta;
+
+                        // Persistent Storyboard Creation (D:\ Drive via Lessons)
+                        // Trigger storyboardforge if it's enabled
+                        if (this.config.enabledServices.includes('storyboard_forge')) {
+                            this.logger.info(`Triggering Storyboard Forge for ${activeBook.title}`);
+                            await this.spine.handleCall('generate_storyboard', {
+                                bookId: activeBook.id,
+                                bookPath: activeBook.path,
+                                author: profileWithMeta.author,
+                                premise: `A discourse in the style of ${profileWithMeta.author}`,
+                                sceneCount: 2
+                            });
+                        }
+
+                        await this.pinPulse(YaoState.OldYang, `Style Mastery: Absorbed the essence of ${activeBook.title}. Substrate D:\\ updated.`);
+
+                        return {
+                            ok: true,
+                            value: {
+                                output: `Style Mastery complete. The system has absorbed the stylistic markers of "${activeBook.title}" by ${profileWithMeta.author}. This persona is now active across all conversational interfaces.`,
+                                data: { styleProfile: profileWithMeta }
+                            }
+                        };
+                    } catch (err) {
+                        return { ok: false, error: err as Error };
+                    }
                 }
             }
         ]);
@@ -388,6 +477,9 @@ export class GutenbergLimb extends BaseLimb {
     }
 
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
+        const base = await super.canHandle(intent);
+        if (base === 'Yin') return 'Yin';
+
         const userIntent = this.getUserIntent(intent).toLowerCase();
 
         // 'Yang': Explicit gutenberg/literature keywords = optimal
@@ -412,16 +504,19 @@ export class GutenbergLimb extends BaseLimb {
             const params = this.parseSearchParams(userIntent);
             const result = await this.spine.handleCall<Execution>('gutenberg_search', params as unknown as Record<string, unknown>);
             if (result.ok) return result;
-            return { ok: false, error: result.error };
+            const error = (result as { ok: false; error: Error }).error;
+            return { ok: false, error };
         } else if (userIntent.includes('ingest') || userIntent.includes('download')) {
             const params = this.parseSearchParams(userIntent);
             const result = await this.spine.handleCall<Execution>('gutenberg_ingest', params as unknown as Record<string, unknown>);
             if (result.ok) return result;
-            return { ok: false, error: result.error };
+            const error = (result as { ok: false; error: Error }).error;
+            return { ok: false, error };
         } else if (userIntent.includes('styles') || userIntent.includes('authors')) {
             const result = await this.spine.handleCall<Execution>('gutenberg_styles', {});
             if (result.ok) return result;
-            return { ok: false, error: result.error };
+            const error = (result as { ok: false; error: Error }).error;
+            return { ok: false, error };
         }
 
         // Fallback to Sovereign Cognitive Response instead of failing
@@ -742,7 +837,10 @@ export class GutenbergLimb extends BaseLimb {
             // 2. Vector Search
             const results = await this.vectorDB.searchGutenberg(new Float32Array(queryEmbedding.value), limit);
 
-            if (!results.ok) return { ok: false, error: results.error };
+            if (!results.ok) {
+                const error = (results as { ok: false; error: Error }).error;
+                return { ok: false, error };
+            }
 
             // 3. Format Output
             const context = results.value.map((r: any) =>

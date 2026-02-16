@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { VibeConfig, ModelAbility as MA } from '../../core/models.js';
 import { ModelExecutor } from '../../core/ModelExecutor.js';
 import { FreeModelRouter } from '../../core/Router.js';
-import { YaoState } from '../../core/HexagramManager.js';
+import { YaoState } from '../../core/models.js';
 
 /**
  * MediaForgeLimb - Generative Media Intelligence for Sovereign AI
@@ -28,6 +28,7 @@ export class MediaForgeLimb extends BaseLimb {
             {
                 name: 'media_forge_request',
                 description: 'Generate images, videos, or audio using specialized neural forges.',
+                isAI: true,
                 parameters: {
                     type: 'object',
                     properties: {
@@ -51,7 +52,9 @@ export class MediaForgeLimb extends BaseLimb {
 
                     this.logger.info({ ability, prompt: (args['prompt'] as string).substring(0, 50) + '...' }, 'Routing media task by ability');
                     const model = this.router.routeByAbility(ability);
-                    const result = await this.modelExecutor.callCloudflareAI(model, { prompt: args['prompt'] as string });
+
+                    // Unified callModel now handles Ollama + D:\ storage automatically
+                    const result = await this.modelExecutor.callModel(model, args['prompt'] as string);
 
                     if (!result.ok) {
                         await this.pinPulse(YaoState.OldYin, `Media Forge Fail: ${target}`);
@@ -62,7 +65,7 @@ export class MediaForgeLimb extends BaseLimb {
                     return {
                         ok: true,
                         value: {
-                            output: `Successfully forged ${target} media using professional ${ability} tools.`,
+                            output: result.value.response,
                             data: result.value
                         }
                     };
@@ -74,7 +77,8 @@ export class MediaForgeLimb extends BaseLimb {
 
     // Override canHandle for backward compatibility and broad detection
     override async canHandle(intent: import('../core/NeuralLimb.js').Intent): Promise<import('../core/NeuralLimb.js').TernaryDecision> {
-        if (!this.config.enabledServices.includes('MEDIA_FORGE')) return 'Yin';
+        const base = await super.canHandle(intent);
+        if (base === 'Yin') return 'Yin';
 
         const prompt = intent.prompt.toLowerCase();
 

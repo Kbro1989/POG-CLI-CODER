@@ -47,11 +47,244 @@ export enum CircuitState {
  * Sovereign Decision Taxonomy - Domain-aware decision types
  * Replacing industrial numbers with organic, semantic states.
  */
-export type CognitiveChoice = 'Yang' | 'Yin' | 'YinYang'; // Yes | No | Maybe
-export type Ternary = CognitiveChoice;
+import * as z from 'zod';
+
+/**
+ * Domain-Specific Semantic Enums for Stage-based Decisions
+ */
+export enum BuildStatus {
+  Failed = 'FAILED',
+  Warning = 'WARNING',
+  Passed = 'PASSED',
+  All = 'ALL'
+}
+
+export enum HealthStatus {
+  Critical = 'CRITICAL',
+  Degraded = 'DEGRADED',
+  Ready = 'READY',
+  Silence = 'SILENCE', // Receptive Yield
+  All = 'ALL'
+}
+
+export enum ResourcePressure {
+  Critical = 'CRITICAL',
+  High = 'HIGH',
+  Optimal = 'OPTIMAL',
+  All = 'ALL'
+}
+
+export enum UserEngagement {
+  Idle = 'IDLE',
+  Passive = 'PASSIVE',
+  Active = 'ACTIVE',
+  All = 'ALL'
+}
+
+export enum SuccessRating {
+  Failure = 'FAILURE',
+  Partial = 'PARTIAL',
+  Success = 'SUCCESS',
+  All = 'ALL'
+}
+
+export enum ExecutionEscalation {
+  Safe = 'SAFE',
+  Standby = 'STANDBY',
+  Aggressive = 'AGGRESSIVE',
+  All = 'ALL'
+}
+
+export enum CostTier {
+  Paid = 'PAID',
+  Credits = 'CREDITS',
+  Free = 'FREE',
+  All = 'ALL'
+}
+
+/**
+ * Sovereign Decision Taxonomy - Domain-aware decision types
+ * Replacing industrial numbers with organic, semantic states.
+ */
+export enum YaoState {
+  OldYang = 0,   // dec: "◯" | sym: "Expansion"   | emo: "Decisive"    | act: "Escalate/Transform"
+  YoungYin = 1,  // dec: "⚋" | sym: "Stillness"   | emo: "Quiet"       | act: "Observe/Receptive"
+  YoungYang = 2, // dec: "⚊" | sym: "Momentum"    | emo: "Steady"      | act: "Execute/Maintain"
+  OldYin = 3,    // dec: "✕" | sym: "Contraction" | emo: "Melancholy" | act: "Withdraw/Archive"
+  Transition = 4, // dec: "░" | sym: "Chaos"       | emo: "Surprised"   | act: "Re-index/Pivot"
+
+  // RSC Gameplay States
+  RSC_Idle = 10,
+  RSC_Combat = 11,
+  RSC_Trading = 12,
+  RSC_Questing = 13,
+  RSC_Skilling = 14,
+  RSC_Exploring = 15,
+  RSC_Fleeing = 16,
+  RSC_Social = 17,
+  RSC_Dead = 18,
+  All = 99
+}
+
+/**
+ * YangState: The Qualities of Active Force
+ * Granular descriptors for when the system is in Yang (1) or Old Yang (0).
+ */
+export enum YangState {
+  Creative = 'CREATIVE (☀️) [Pinnacle of Force]',   // Pure generative power (Hex 1)
+  Decisive = 'DECISIVE (🗡️) [The Sword of Insight]',   // Cutting through obstacles (Old Yang)
+  Steady = 'STEADY (⚓) [The Anchor of Execution]',       // Solid execution (Young Yang)
+  Arousing = 'AROUSING (⚡) [The Spark of Innovation]',   // Sudden change/action (Hex 51)
+  Maximal = 'MAXIMAL (💎) [Overflowing Abundance]',     // Reaching peak potential (Hex 14)
+}
+
+/**
+ * YinState: The Qualities of Receptive Force
+ * Granular descriptors for when the system is in Yin (0) or Old Yin (3).
+ */
+export enum YinState {
+  Receptive = 'RECEPTIVE (🌙) [The Womb of Creation]', // Pure support/refactor (Hex 2)
+  Quiet = 'QUIET (🌑) [The Midnight Pool]',        // Passive observation (Young Yin)
+  Melancholy = 'MELANCHOLY (🌊) [The Ebbing Tide]', // Contraction/Archival (Old Yin)
+  Modest = 'MODEST (🌱) [The Gentle Valley]',      // Reducing excess (Hex 15)
+  Stopping = 'STOPPING (🏔️) [The Timeless Mountain]',   // Stillness/Freeze (Hex 52)
+}
+
+/**
+ * Emotional States for Sovereign Cognition
+ * Maps cognitive results to a spectrum of AI "feelings" or operational temperaments.
+ */
+export enum EmotionalState {
+  Inspired = 'INSPIRED (⚡)',    // Creative Yang flow
+  Steady = 'STEADY (⚓)',      // Stable Yang execution
+  Curious = 'CURIOUS (🔍)',     // Exploratory YinYang
+  Agitated = 'AGITATED (🔥)',   // Conflicted/Error state
+  Quiet = 'QUIET (🌑)',       // Sovereign Silence / Receptive Yin
+  Decisive = 'DECISIVE (🗡️)',  // Old Yang escalation
+  Melancholy = 'MELANCHOLY (🌊)', // Old Yin retreat/withdrawal
+  Zen = 'ZEN (🌀)',           // Balanced All state
+  Surprised = 'SURPRISED (❗)'   // High transition change
+}
+
+/**
+ * Binary State for absolute controls (Toggles, Success/Failure)
+ */
+export enum BinaryState {
+  Yang = 1, // dec: "⚊" | sym: "Light"   | emo: "Enabled"
+  Yin = 0,  // dec: "⚋" | sym: "Shadow" | emo: "Disabled"
+  All = 2   // dec: "☯" | sym: "Unity"  | emo: "Whole"
+}
+
+/**
+ * Sovereign Taxonomy: The Unified Source of Truth for State Meanings
+ * Maps every operational signal to its symbolic, emotional, and operational core.
+ */
+export const SovereignTaxonomy = {
+  BuildStatus: {
+    [BuildStatus.Passed]: { state: YaoState.YoungYang, emotion: EmotionalState.Steady, symbol: '✅', meaning: 'Foundation Secure' },
+    [BuildStatus.Failed]: { state: YaoState.YoungYin, emotion: EmotionalState.Agitated, symbol: '❌', meaning: 'Structural Collapse' },
+    [BuildStatus.Warning]: { state: YaoState.OldYang, emotion: EmotionalState.Surprised, symbol: '⚠️', meaning: 'Foundation Shifting' }
+  },
+  HealthStatus: {
+    [HealthStatus.Ready]: { state: YaoState.YoungYang, emotion: EmotionalState.Steady, symbol: '❇️', meaning: 'Metabolic Flow' },
+    [HealthStatus.Critical]: { state: YaoState.YoungYin, emotion: EmotionalState.Agitated, symbol: '💔', meaning: 'Organ Failure' },
+    [HealthStatus.Degraded]: { state: YaoState.OldYin, emotion: EmotionalState.Melancholy, symbol: '📉', meaning: 'Vitality Leaking' },
+    [HealthStatus.Silence]: { state: YaoState.YoungYin, emotion: EmotionalState.Quiet, symbol: '🤫', meaning: 'Receptive Stasis' }
+  },
+  ResourcePressure: {
+    [ResourcePressure.Optimal]: { state: YaoState.YoungYang, emotion: EmotionalState.Inspired, symbol: '🍃', meaning: 'Breathable Substrate' },
+    [ResourcePressure.High]: { state: YaoState.OldYin, emotion: EmotionalState.Agitated, symbol: '🌪️', meaning: 'Atmospheric Weight' },
+    [ResourcePressure.Critical]: { state: YaoState.OldYin, emotion: EmotionalState.Melancholy, symbol: '🌋', meaning: 'Magmatic Compression' }
+  },
+  UserEngagement: {
+    [UserEngagement.Active]: { state: YaoState.YoungYang, emotion: EmotionalState.Inspired, symbol: '🤝', meaning: 'Sovereign Alignment' },
+    [UserEngagement.Passive]: { state: YaoState.YoungYin, emotion: EmotionalState.Curious, symbol: '👀', meaning: 'Sovereign Observation' },
+    [UserEngagement.Idle]: { state: YaoState.YoungYin, emotion: EmotionalState.Quiet, symbol: '💤', meaning: 'Sovereign Slumber' }
+  },
+  SuccessRating: {
+    [SuccessRating.Success]: { state: YaoState.YoungYang, emotion: EmotionalState.Steady, symbol: '🌟', meaning: 'Triumph of Logic' },
+    [SuccessRating.Partial]: { state: YaoState.OldYang, emotion: EmotionalState.Surprised, symbol: '🌗', meaning: 'Fragmented Victory' },
+    [SuccessRating.Failure]: { state: YaoState.YoungYin, emotion: EmotionalState.Agitated, symbol: '🌑', meaning: 'Shadow Descent' }
+  },
+  CostTier: {
+    [CostTier.Free]: { state: YaoState.YoungYang, emotion: EmotionalState.Inspired, symbol: '💸', meaning: 'Abundant Charity' },
+    [CostTier.Credits]: { state: YaoState.OldYin, emotion: EmotionalState.Curious, symbol: '🪙', meaning: 'Weighted Exchange' },
+    [CostTier.Paid]: { state: YaoState.YoungYin, emotion: EmotionalState.Melancholy, symbol: '💳', meaning: 'Sovereign Debt' }
+  }
+} as const;
+
+export type CognitiveChoice = 'Yang' | 'Yin' | 'YinYang' | 'All' | YaoState | BinaryState; // Yes | No | Maybe | All | Organic State
+export type Ternary = 'Yang' | 'Yin' | 'YinYang' | 'All';
 export type TernaryDecision = CognitiveChoice;
+
+export interface TriAxis {
+  axis: 'X' | 'Y' | 'Z' | 'Time' | 'Space' | 'Moral' | 'Action' | 'Survival' | 'Social';
+  positive: string; // e.g. "Should", "Forward", "Yes", "Attack", "Engage"
+  negative: string; // e.g. "Shouldn't", "Back", "No", "Flee", "Ignore"
+  neutral: string;  // e.g. "Maybe", "Stasis", "Possible", "Observe", "Idle"
+}
+
+export interface OracleQuery {
+  intent: string;
+  axes: [TriAxis, TriAxis, TriAxis]; // The 3 Questions
+  candidates?: string[]; // Optional pre-defined options, otherwise generated
+}
 export type StrategicDirection = 'Forward' | 'Back' | 'Reflect'; // Escalate | Revert | Audit
 export type MetabolicState = 'Hyper' | 'Steady' | 'Dormant'; // High | Normal | Low
+
+/**
+ * Script Language Support - Multi-engine awareness for game modding & automation
+ * Bridges RSC gameplay, Morrowind modding, and general scripting needs.
+ */
+export enum ScriptLanguage {
+  TypeScript = 'typescript',
+  JavaScript = 'javascript',
+  Lua = 'lua',               // Morrowind MWSE, Roblox, WoW addons
+  MWSE = 'mwse',             // Morrowind Script Extender (Lua-based)
+  TESScript = 'tes-script',  // Morrowind vanilla scripting
+  RuneScript = 'runescript',  // RuneScape Classic server scripts
+  Python = 'python',
+  Bash = 'bash',
+  PowerShell = 'powershell',
+  SQL = 'sql',               // Database queries (preservation.db, etc)
+  JSON = 'json',             // Config/data definitions
+  YAML = 'yaml',             // Config files
+  GLSL = 'glsl',             // Shader language for model viewers
+  WGSL = 'wgsl'              // WebGPU shading language
+}
+
+/**
+ * Maps RSC gameplay states to their Yao (Old/New) logic equivalents.
+ * Old states = transforming/changing. New (Young) states = stable/holding.
+ */
+export interface RSCYaoMapping {
+  readonly gameState: YaoState;
+  readonly yaoClassification: 'OldYang' | 'YoungYin' | 'YoungYang' | 'OldYin' | 'Transition';
+  readonly description: string;
+  readonly energy: MetabolicState;  // How much metabolic energy this state burns
+  readonly scriptContext?: ScriptLanguage; // What language governs this state
+}
+
+/**
+ * Universal Viewer Target — What the Sovereign Eye is perceiving.
+ * Supports any visual/textual source: localhost, wrangler dev, HTML, RSC, windows.
+ */
+export interface ViewerTarget {
+  readonly sourceType: 'url' | 'html' | 'rsc' | 'window' | 'file';
+  readonly target: string;
+  readonly viewport?: { width: number; height: number };
+  readonly capturedAt?: number;
+  readonly scriptContext?: ScriptLanguage;
+}
+
+export interface StyleProfile {
+  readonly readabilityScore: number;
+  readonly avgSentenceLength: number;
+  readonly uniqueWordRatio: number;
+  readonly tone: 'simple' | 'complex' | 'academic' | 'unknown';
+  readonly author?: string;
+  readonly title?: string;
+}
 
 
 export interface ModelPerformance {
@@ -100,7 +333,7 @@ export interface CircuitBreakerState {
   readonly cooldownMs: number;
 }
 
-export type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE';
+export type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE' | 'CIRCUIT_OPEN' | 'OFF_GRID' | 'SOVEREIGN_SILENCE';
 
 export interface HealthReport {
   readonly state: ServiceHealthState;
@@ -128,47 +361,6 @@ export interface FreeModelConfig {
 /**
  * Domain-Specific Semantic Enums for Stage-based Decisions
  */
-export enum BuildStatus {
-  Failed = 'Yin',
-  Warning = 'YinYang',
-  Passed = 'Yang'
-}
-
-export enum HealthStatus {
-  Critical = 'Yin',
-  Degraded = 'YinYang',
-  Ready = 'Yang'
-}
-
-export enum ResourcePressure {
-  Critical = 'Yin',
-  High = 'YinYang',
-  Optimal = 'Yang'
-}
-
-export enum UserEngagement {
-  Idle = 'Yin',
-  Passive = 'YinYang',
-  Active = 'Yang'
-}
-
-export enum SuccessRating {
-  Failure = 'Yin',
-  Partial = 'YinYang',
-  Success = 'Yang'
-}
-
-export enum ExecutionEscalation {
-  Safe = 'Yin',
-  Standby = 'YinYang',
-  Aggressive = 'Yang'
-}
-
-export enum CostTier {
-  Paid = 'Yin',
-  Credits = 'YinYang',
-  Free = 'Yang'
-}
 
 /**
  * Ternary decision tree node for routing (Discriminated Union)
@@ -226,6 +418,19 @@ export type RoutingContext = RawRoutingContext;
 export type Result<T, E = Error> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly error: E };
+
+export interface LimbTool {
+  readonly name: string;
+  readonly description: string;
+  readonly isAI?: boolean;
+  readonly parameters: {
+    readonly type: 'object';
+    readonly properties: Record<string, unknown>;
+    readonly required?: ReadonlyArray<string>;
+  };
+  readonly schema?: z.ZodObject<Record<string, z.ZodTypeAny>>;
+  readonly handler: (args: Record<string, unknown>) => Promise<Result<unknown>>;
+}
 
 /**
  * Type guard for Result success
@@ -293,6 +498,7 @@ export interface LogContext {
 export interface VibeConfig {
   readonly pogDir: string;
   readonly projectRoot: string;
+  readonly environment: 'offline' | 'online' | 'local' | 'unknown';
   readonly agentName: string;
   readonly wsPort: number;
   readonly maxSnapshotAge: number;
@@ -311,6 +517,8 @@ export interface VibeConfig {
   readonly cloudflareApiToken?: string | undefined;
   readonly monitorModel?: string | undefined;
   readonly snapshotModel?: string | undefined;
+  readonly thinkingAdminModel?: string | undefined;
+  readonly proCoderModel?: string | undefined;
   readonly criticModel?: string | undefined;
   readonly planningModel?: string | undefined;
   readonly codingModel?: string | undefined;
@@ -318,6 +526,13 @@ export interface VibeConfig {
   readonly sovereignRoot?: string | undefined;
   readonly pogApiUrl?: string | undefined;
   readonly aiContextPath?: string | undefined;
+  readonly rootStack: string[];
+  readonly identity?: {
+    readonly email: string;
+    readonly name: string;
+    readonly source: 'env' | 'gcloud' | 'discovery';
+  };
+  readonly activeStyle?: StyleProfile | undefined;
   readonly sovereignBoundaries?: {
     readonly maxLatencyMs?: number;
     readonly dailyBudgetUsd?: number;
@@ -400,6 +615,7 @@ export interface ExecutionPlan {
 
 export interface ExecutionContext {
   readonly prompt: string;
+  readonly rawPrompt?: string; // Stored for intentional stacking
   readonly filePath?: string;
   readonly sessionId: string;
   readonly startTime: number;
@@ -422,6 +638,7 @@ export interface CascadeTracking {
   readonly latency: number;
   readonly generationMode: 'AI' | 'CLI-Fallback' | 'Ghost-Limb';
   readonly failureCount: number;
+  readonly cognitivePulse: YaoState;
 }
 
 export interface ModelResponse {
@@ -430,4 +647,5 @@ export interface ModelResponse {
   readonly latency: number;
   readonly functionCalls?: FunctionCall[];
   readonly provenance?: CascadeTracking;
+  readonly cognitivePulse: YaoState;
 }

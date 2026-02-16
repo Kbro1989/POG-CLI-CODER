@@ -1,4 +1,6 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import * as path from 'path';
+import { ModelExecutor } from './ModelExecutor.js';
 import { join } from 'path';
 import pino from 'pino';
 import { execSync } from 'child_process';
@@ -22,6 +24,8 @@ import { GeminiService } from './GeminiService.js';
 import { VectorDB } from '../learning/VectorDB.js';
 import { TaskClassifier } from './TaskClassifier.js';
 import { ArchitectureDigest } from './ArchitectureDigest.js';
+import { HexagramManager } from './HexagramManager.js';
+import { CognitiveTranslator } from '../utils/CognitiveTranslator.js';
 
 const MT = ModelType;
 const MA = ModelAbility;
@@ -52,6 +56,7 @@ export class FreeModelRouter {
   public contextBuilder: ContextBuilder;
   private readonly dynamicModels: FreeModelConfig[];
   private readonly gemini: GeminiService | undefined;
+  private readonly hexagramManager: HexagramManager;
 
   constructor(private readonly config: VibeConfig, _gemini?: GeminiService) {
     this.gemini = _gemini;
@@ -59,9 +64,12 @@ export class FreeModelRouter {
     this.initializeDB();
 
     const vectorDB = new VectorDB(config);
-    this.contextBuilder = new ContextBuilder(vectorDB, config.projectRoot, config.projectId, _gemini);
+    this.hexagramManager = new HexagramManager(vectorDB, config.projectId);
+    this.hexagramManager.initialize().catch(err => logger.error({ err }, 'Failed to initialize HexagramManager'));
 
-    this.dynamicModels = ModelInventory.getAvailableModels();
+    this.contextBuilder = new ContextBuilder(vectorDB, config.projectRoot, config.projectId, new ModelExecutor(config, _gemini, this.hexagramManager));
+
+    this.dynamicModels = ModelInventory.getAvailableModels(config);
     vectorDB.indexModelRegistry(ModelInventory.getRegistry()).catch(err => logger.error({ err }, 'Failed to index models'));
 
     // Modularized Composite Chain
@@ -82,6 +90,10 @@ export class FreeModelRouter {
 
   private initializeDB(): void {
     if (!existsSync(this.performanceDB)) {
+      const dir = path.dirname(this.performanceDB);
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
+      }
       writeFileSync(this.performanceDB, JSON.stringify({ history: [], version: '1.2.0' }, null, 2));
     }
   }
@@ -99,7 +111,6 @@ export class FreeModelRouter {
         : input;
 
       const prompt = routingContext.prompt;
-      const filePath = routingContext.metadata?.['filePath'] as string | undefined;
 
       // Sovereign SENSE: Layer 1 intelligence
       const weightedTasks = TaskClassifier.analyzeProbabilities(prompt);
@@ -119,38 +130,36 @@ export class FreeModelRouter {
       const architectureAlignment = this.contextBuilder.getArchitectureAlignment(prompt, architectureDigest.getManifest());
       const goldenTemplates = await this.contextBuilder.getGoldenTemplates(prompt);
 
-      // Sovereign Signals (Ternary Tree Inputs)
-      const localAvailability = this.checkLocalAvailability();
+      const hexagram = this.hexagramManager.getInterpretation();
+
+      // Sovereign Signals (Ternary Tree Inputs) via Cognitive Translator
+      const localAvailability = CognitiveTranslator.translate(this.checkLocalAvailability());
 
       // Populate rich context for modular strategies (Ultimate Cognitive Upgrade)
       routingContext.weightedTasks = weightedTasks;
-      routingContext.extension = filePath?.split('.').pop() ?? '';
       routingContext.fileSize = 0; // Default if not provided
-      if (filePath && existsSync(filePath)) {
-        // In a real implementation we would stat the file here, 
-        // but for now we trust the metadata or default to 0 to satisfy strict safe access
-        // routingContext.fileSize = statSync(filePath).size; 
-      }
-
-      routingContext.complexity = complexity;
-      routingContext.availableModels = [...availableModels];
-      routingContext.architectureAlignment = architectureAlignment;
+      routingContext.architectureAlignment = architectureAlignment; // Maintain raw for strategies that need it
       routingContext.goldenTemplates = goldenTemplates;
       routingContext.historicalPerformance = [...this.loadPerformanceHistory()];
       routingContext.lessons = lessons;
+      routingContext.hexagram = hexagram;
 
       // Calculate and inject signals
-      const historySignal = this.checkPerformanceHistory(routingContext);
-      const supervisorSignal = this.checkSupervisorNeeds(routingContext);
+      const historySignal = CognitiveTranslator.translate(this.checkPerformanceHistory(routingContext));
+      const supervisorSignal = CognitiveTranslator.translate(this.checkSupervisorNeeds(routingContext));
+      const architectureAlignmentState = CognitiveTranslator.translate(architectureAlignment);
 
       // Inject signals into metadata for strategies to use
       routingContext.metadata = {
         ...routingContext.metadata,
         ternarySignals: {
-          localAvailability,
-          historySignal,
-          supervisorSignal
-        }
+          localAvailability, // Now YaoState
+          historySignal,     // Now YaoState
+          supervisorSignal,  // Now YaoState
+          architectureAlignmentState // Now YaoState
+        },
+        // Legacy support if strategies expect boolean - double check strategy implementation
+        // For now, we keep raw values if needed, but the goal is to move to YaoState
       };
 
       // Phase 2 - Modular Routing Chain (Parallel THINK/Synthesis happens inside)
@@ -168,7 +177,8 @@ export class FreeModelRouter {
         selected: finalModel,
         reasoning: decision.metadata.reasoning,
         source: decision.metadata.source,
-        complexity
+        complexity,
+        hexagram: routingContext.hexagram?.name || 'Unknown' // Sovereign Context
       }, 'Sovereign Routing complete');
 
       return { ok: true, value: finalModel };
@@ -193,7 +203,7 @@ export class FreeModelRouter {
 
       const grid = this.getAllModels().map(m => {
         const isPresent = m.type === MT.CloudFree || m.type === MT.Cloudflare
-          ? !!process.env['GOOGLE_API_KEY'] || !!process.env['CLOUDFLARE_API_KEY']
+          ? !!process.env['GOOGLE_API_KEY'] || !!process.env['CLOUDFLARE_API_KEY'] || !!process.env['HUGGINGFACE_API_KEY']
           : output.includes(m.name);
 
         const state = this.circuitBreakers.get(m.name);
@@ -248,10 +258,13 @@ export class FreeModelRouter {
         if (best) return best.name;
       }
 
-      if (candidates.length > 0) {
-        candidates.sort((a, b) => b.priority - a.priority);
-        const bestCandidate = candidates[0];
-        if (bestCandidate) return bestCandidate.name;
+
+      // Sovereign Survival: Bunker Mode Fallback
+      // If we are here, the primary model failed. We MUST find a local survivor.
+      const localSurvivor = available.find(m => m.type === MT.Local && m.health?.isAvailable);
+      if (localSurvivor) {
+        logger.warn({ output: 'Cloud failed. Switching to Bunker Mode.', survivor: localSurvivor.name }, 'Sovereign Survival Protocol Activated');
+        return localSurvivor.name;
       }
 
       const staticFallback = this.getAllModels().find(m => m.name === model)?.fallback ?? 'gemini-2.0-flash';

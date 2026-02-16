@@ -41,9 +41,11 @@ async function main() {
     }
 
     console.log('\n✅ Verification Script Complete');
+    await orchestrator.cleanup();
 }
 
 main().catch(err => {
     console.error(err);
     process.exit(1);
 });
+

@@ -6,10 +6,13 @@
  * to gain context awareness during monitoring.
  */
 
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
+import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'fs';
 import { join, relative, basename } from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import pino from 'pino';
 
+const execAsync = promisify(exec);
 const logger = pino({
     name: 'ProjectSnapshot',
     base: { hostname: 'POG-VIBE' }
@@ -171,5 +174,48 @@ export class ProjectSnapshot {
         }
 
         return `[ERROR] Could not decode file: ${basename(filePath)}`;
+    }
+
+    /**
+     * Create Git Snapshot — Biological Pulse Checkpoint
+     * 
+     * Uses real git commands to create a restorable snapshot
+     * for rollback tracking. Falls back to file-based snapshot
+     * if git is unavailable.
+     * 
+     * Mapped to Hexagram Line 2 (Biological Pulse / System Vitality):
+     *  - Git snapshot taken: YoungYang (⚊ Stable vitality)
+     *  - Git unavailable:    YoungYin  (⚋ Receptive — file fallback)
+     */
+    async createGitSnapshot(reason: string): Promise<{ hash: string | null; method: 'git' | 'file' }> {
+        const { projectRoot } = this.options;
+        const isGit = existsSync(join(projectRoot, '.git'));
+
+        if (!isGit) {
+            logger.info('No .git directory — using file-based snapshot');
+            return { hash: null, method: 'file' };
+        }
+
+        try {
+            // Stage all changes
+            await execAsync('git add -A', { cwd: projectRoot });
+
+            // Create named stash for rollback
+            const sanitizedReason = reason.replace(/"/g, '\\"').substring(0, 100);
+            await execAsync(`git stash push -m "pog-snapshot: ${sanitizedReason}"`, {
+                cwd: projectRoot
+            });
+
+            // Capture current HEAD for tracking
+            const { stdout } = await execAsync('git rev-parse HEAD', { cwd: projectRoot });
+            const hash = stdout.trim();
+
+            logger.info({ hash, reason: sanitizedReason }, 'Git snapshot created (Biological Pulse checkpoint)');
+            return { hash, method: 'git' };
+        } catch (error: unknown) {
+            const err = error as { message?: string };
+            logger.warn({ error: err.message }, 'Git snapshot failed, falling back to file-based');
+            return { hash: null, method: 'file' };
+        }
     }
 }

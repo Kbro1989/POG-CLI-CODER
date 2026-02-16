@@ -5,7 +5,7 @@ import chalk from 'chalk';
 const mockConfig: VibeConfig = {
     projectId: 'pog-vibe-test',
     enabledServices: [],
-    projectRoot: process.cwd(),
+    rootStack: [], projectRoot: process.cwd(),
     pogDir: process.cwd(),
     agentName: 'pog-test'
 } as any;
@@ -60,3 +60,4 @@ async function runTest() {
 }
 
 runTest().catch(console.error);
+

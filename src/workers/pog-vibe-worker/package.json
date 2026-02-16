@@ -10,7 +10,11 @@
         "build": "wrangler deploy --dry-run"
     },
     "devDependencies": {
+        "@cloudflare/workers-shared": "^0.17.5",
         "@cloudflare/workers-types": "^4.20260206.0",
+        "@cloudflare/workers-utils": "^0.10.0",
+        "cloudflare": "^5.2.0",
+        "devtools-protocol": "^0.0.1585077",
         "typescript": "^5.9.3",
         "wrangler": "^4.63.0"
     }

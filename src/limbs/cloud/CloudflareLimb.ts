@@ -1,9 +1,10 @@
-import { join } from 'path';
 import { BaseLimb } from '../core/BaseLimb.js';
 import { z } from 'zod';
 import type { Intent, Execution, TernaryDecision } from '../core/NeuralLimb.js';
 import type { Result, VibeConfig, ModelResponse } from '../../core/models.js';
+import { YaoState } from '../../core/models.js';
 import { CloudflareServices } from '../../services/CloudflareServices.js';
+import { CircuitBreaker } from '../../core/CircuitBreaker.js';
 
 // Cloudflare AI model IDs (from official templates)
 const MODELS = {
@@ -17,12 +18,17 @@ const MODELS = {
     LIGHT: '@cf/meta/llama-3.2-3b-instruct'
 } as const;
 
+const PROVIDER_KEY = 'cloudflare';
+
 /**
  * CloudflareLimb - Unified Cloudflare Workers AI Capabilities
  * 
- * Migrated to ToolingSpine for standardized orchestration.
+ * SOVEREIGN METABOLISM: This limb is an OPTIONAL cloud addition.
+ * All operations are gated behind CircuitBreaker (3-strike rule).
+ * If the circuit is OPEN or the system is OFF GRID, the limb
+ * yields (Yin) and lets local limbs handle the request.
  */
-export type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE';
+export type ServiceHealthState = 'READY' | 'RATE_LIMITED' | 'CRITICAL_FAILURE' | 'CIRCUIT_OPEN' | 'OFF_GRID';
 
 export class CloudflareLimb extends BaseLimb {
     readonly id = 'cloudflare_ai';
@@ -32,9 +38,13 @@ export class CloudflareLimb extends BaseLimb {
     private readonly healthInterval: NodeJS.Timeout | undefined;
     private healthState: ServiceHealthState = 'READY';
     private lastBackoffUntil: number = 0;
+    private readonly circuitBreaker: CircuitBreaker;
+    private consecutiveFailures = 0;
 
-    constructor(config: VibeConfig) {
+    constructor(config: VibeConfig, circuitBreaker?: CircuitBreaker) {
         super(config);
+        this.circuitBreaker = circuitBreaker || new CircuitBreaker();
+
         const cfConfig: { accountId: string; apiToken: string; gatewayUrl?: string } = {
             accountId: (process.env['CLOUDFLARE_ACCOUNT_ID'] || config.cloudflareAccountId || ''),
             apiToken: (process.env['CLOUDFLARE_API_TOKEN'] || config.cloudflareApiToken || '')
@@ -44,6 +54,21 @@ export class CloudflareLimb extends BaseLimb {
         }
         this.services = new CloudflareServices(cfConfig);
 
+        // Wire circuit breaker events
+        this.circuitBreaker.on('circuit_open', (data) => {
+            if (data.provider === PROVIDER_KEY) {
+                this.healthState = 'CIRCUIT_OPEN';
+                this.logger.warn({ failures: data.failures }, '🔴 CloudflareLimb: Circuit OPEN — yielding all requests');
+            }
+        });
+        this.circuitBreaker.on('circuit_closed', (data) => {
+            if (data.provider === PROVIDER_KEY) {
+                this.healthState = 'READY';
+                this.consecutiveFailures = 0;
+                this.logger.info('🟢 CloudflareLimb: Circuit RECOVERED');
+            }
+        });
+
         // Register health provider
         import('../../core/HealthRegistry.js').then(m => {
             m.HealthRegistry.getInstance().registerProvider('cloudflare', () => this.getHealth());
@@ -51,8 +76,8 @@ export class CloudflareLimb extends BaseLimb {
 
         this.registerCloudflareTools();
 
-        // Phase 23: Periodic Spatial Telemetry
-        this.healthInterval = setInterval(() => this.updateSpatialHealth(), 30000); // Pulse every 30s
+        // Periodic Spatial Telemetry
+        this.healthInterval = setInterval(() => this.updateSpatialHealth(), 30000);
     }
 
     /**
@@ -68,17 +93,24 @@ export class CloudflareLimb extends BaseLimb {
     /**
      * Report current service health and availability
      */
-    public getHealth(): { state: ServiceHealthState; cooldownSeconds: number } {
+    public getHealth(): { state: ServiceHealthState; cooldownSeconds: number; circuitOpen: boolean } {
         const now = Date.now();
+
+        // Check circuit breaker first
+        if (this.circuitBreaker.isOpen(PROVIDER_KEY)) {
+            this.healthState = 'CIRCUIT_OPEN';
+            return { state: 'CIRCUIT_OPEN', cooldownSeconds: 0, circuitOpen: true };
+        }
+
         if (this.healthState === 'RATE_LIMITED' && now < this.lastBackoffUntil) {
-            return { state: 'RATE_LIMITED', cooldownSeconds: Math.ceil((this.lastBackoffUntil - now) / 1000) };
+            return { state: 'RATE_LIMITED', cooldownSeconds: Math.ceil((this.lastBackoffUntil - now) / 1000), circuitOpen: false };
         }
 
         if (this.healthState === 'RATE_LIMITED' && now >= this.lastBackoffUntil) {
             this.healthState = 'READY';
         }
 
-        return { state: this.healthState, cooldownSeconds: 0 };
+        return { state: this.healthState, cooldownSeconds: 0, circuitOpen: false };
     }
 
     /**
@@ -91,8 +123,10 @@ export class CloudflareLimb extends BaseLimb {
             ...base,
             health: health.state,
             cooldown: health.cooldownSeconds,
+            circuitOpen: health.circuitOpen,
+            consecutiveFailures: this.consecutiveFailures,
             backoffUntil: this.lastBackoffUntil > 0 ? new Date(this.lastBackoffUntil).toISOString() : 'None',
-            provider: 'Cloudflare Workers AI'
+            provider: 'Cloudflare Workers AI (OPTIONAL)'
         };
     }
 
@@ -314,9 +348,17 @@ export class CloudflareLimb extends BaseLimb {
     }
 
     override async canHandle(intent: Intent): Promise<TernaryDecision> {
-        // Ternary Availability Check
+        // ═══════════════════════════════════════════════════
+        // SOVEREIGN GATE: Circuit Breaker + Health Check
+        // If circuit is OPEN or service is degraded, YIELD.
+        // ═══════════════════════════════════════════════════
         const health = this.getHealth();
-        if (health.state === 'CRITICAL_FAILURE' || !this.services.getAccountId()) return 'Yin';
+        if (health.circuitOpen) {
+            this.logger.debug('canHandle: Circuit OPEN — yielding (Yin)');
+            return 'Yin';
+        }
+        if (health.state === 'CRITICAL_FAILURE' || health.state === 'OFF_GRID') return 'Yin';
+        if (!this.services.getAccountId()) return 'Yin';
 
         const p = this.getUserIntent(intent).toLowerCase();
 
@@ -363,8 +405,9 @@ export class CloudflareLimb extends BaseLimb {
         });
 
         if (!result.ok) {
-            this.handleApiError(result.error);
-            return result;
+            const error = (result as { ok: false; error: Error }).error;
+            this.handleApiError(error);
+            return { ok: false, error };
         }
         return { ok: true, value: (result.value as Record<string, unknown>)['data'] as number[][] };
     }
@@ -393,8 +436,8 @@ export class CloudflareLimb extends BaseLimb {
             this.logger.info({ model, prompt: prompt.substring(0, 50), width, height }, 'Generating image via Cloudflare AI Hub');
 
             const health = this.getHealth();
-            if (health.state === 'RATE_LIMITED') {
-                return { ok: false, error: new Error(`Cloudflare AI is rate limited. Cooldown: ${health.cooldownSeconds}s`) };
+            if (health.circuitOpen || health.state === 'RATE_LIMITED') {
+                return { ok: false, error: new Error(`Cloudflare AI unavailable (${health.state}). Cooldown: ${health.cooldownSeconds}s`) };
             }
 
             const result = await this.services.runAi<Buffer>(model, {
@@ -405,18 +448,15 @@ export class CloudflareLimb extends BaseLimb {
             });
 
             if (!result.ok) {
-                this.handleApiError(result.error);
-                // Last ditch: Ghost Limb fallback for 3D/Image scaffold
-                const ghostResult = await this.services.runGhostLimb<any>('3d-scaffold', { prompt });
-                if (ghostResult.ok) {
-                    this.logger.info('Using Ghost Limb deterministic 3D scaffold fallback');
-                    // Mock binary response from ghost result if possible, or return error
-                }
-                return { ok: false, error: result.error };
+                const error = (result as { ok: false; error: Error }).error;
+                this.handleApiError(error);
+                return { ok: false, error };
             }
 
+            this.circuitBreaker.reportSuccess(PROVIDER_KEY);
             return { ok: true, value: new Uint8Array(result.value) };
         } catch (error) {
+            this.circuitBreaker.reportFailure(PROVIDER_KEY);
             return { ok: false, error: error as Error };
         }
     }
@@ -424,11 +464,12 @@ export class CloudflareLimb extends BaseLimb {
     async chatCompletion(messages: unknown[], maxTokens: number = 1024): Promise<Result<ModelResponse>> {
         try {
             const health = this.getHealth();
-            if (health.state === 'RATE_LIMITED') {
-                return { ok: false, error: new Error(`Cloudflare AI is rate limited. Cooldown: ${health.cooldownSeconds}s`) };
+            if (health.circuitOpen || health.state === 'RATE_LIMITED') {
+                return { ok: false, error: new Error(`Cloudflare AI unavailable (${health.state}). Cooldown: ${health.cooldownSeconds}s`) };
             }
 
-            const lastMessage = (messages as any[])[messages.length - 1]?.content || '';
+            const typedMessages = messages as Array<{ role: string; content: string }>;
+            const lastMessage = typedMessages[typedMessages.length - 1]?.content || '';
             const model = this.selectOptimalModel('chat', lastMessage);
 
             this.logger.info({ model, messageCount: messages.length }, 'Chat completion via Cloudflare AI Hub');
@@ -440,75 +481,68 @@ export class CloudflareLimb extends BaseLimb {
             });
 
             if (!result.ok) {
-                this.handleApiError(result.error);
-                // Last ditch: Ghost Limb fallback
-                // Special case for WebAppForge preview events
-                // The provided snippet for WebAppForge is not applicable here as 'limb', 'previewServer', 'emit' are not defined in CloudflareLimb.
-                // Also, 'result.value.data' is not accessible here as 'result' is not 'ok'.
-                // This section of the instruction seems to be for a different file (e.g., Orchestrator).
-                const ghostTask = model === MODELS.CODER ? 'code-scaffold' : 'text-template';
-                const ghostResult = await this.services.runGhostLimb(ghostTask, { prompt: lastMessage });
-
-                if (ghostResult.ok) {
-                    return {
-                        ok: true,
-                        value: {
-                            model: `ghost:${ghostTask}`,
-                            response: (ghostResult.value as Record<string, unknown>)['result'] as string || JSON.stringify(ghostResult.value),
-                            latency: Date.now() - startTime
-                        }
-                    };
-                }
-                return result;
+                const error = (result as { ok: false; error: Error }).error;
+                this.handleApiError(error);
+                this.circuitBreaker.reportFailure(PROVIDER_KEY);
+                return { ok: false, error };
             }
 
+            this.circuitBreaker.reportSuccess(PROVIDER_KEY);
             return {
                 ok: true,
                 value: {
                     model: model,
                     response: result.value.response,
-                    latency: Date.now() - startTime
+                    latency: Date.now() - startTime,
+                    cognitivePulse: YaoState.OldYin
                 }
             };
         } catch (error) {
+            this.circuitBreaker.reportFailure(PROVIDER_KEY);
             return { ok: false, error: error as Error };
         }
     }
 
     private handleApiError(error: Error): void {
+        this.consecutiveFailures++;
         const msg = error.message.toLowerCase();
+
         if (msg.includes('429') || msg.includes('too many requests') || msg.includes('rate limit')) {
             this.healthState = 'RATE_LIMITED';
 
-            // Extract precise retry-after if available via bracket pattern
             const match = error.message.match(/\[RETRY_AFTER:(\d+)\]/);
             const retryAfterSec = (match && match[1]) ? parseInt(match[1], 10) : 30;
 
             this.lastBackoffUntil = Date.now() + (retryAfterSec * 1000);
-            this.logger.warn({ cooldown: retryAfterSec, source: 'header' }, 'Cloudflare AI rate limit detected - entering precise backoff');
+            this.logger.warn({ cooldown: retryAfterSec, consecutiveFailures: this.consecutiveFailures }, 'Cloudflare rate limit — backoff');
         } else if (msg.includes('401') || msg.includes('403')) {
             this.healthState = 'CRITICAL_FAILURE';
-            this.logger.error('Cloudflare AI authentication failure - critical state');
+            this.logger.error('Cloudflare authentication failure — critical state');
         }
 
-        // Phase 23: Failover Tracer for the Constellation
+        // Report to circuit breaker
+        this.circuitBreaker.reportFailure(PROVIDER_KEY);
+
+        // Failover Tracer
         this.emit('failover_tracer', {
             from: 'cloudflare',
-            to: 'ghost:fallback',
+            to: 'local:ollama',
             reason: msg.includes('429') ? 'RATE_LIMITED' : 'FAILURE',
-            region: 'global-edge'
+            consecutiveFailures: this.consecutiveFailures
         });
     }
 
     private async handleVision(imageBase64: string, prompt: string): Promise<Result<unknown>> {
         try {
             const health = this.getHealth();
-            if (health.state === 'RATE_LIMITED') return { ok: false, error: new Error('Rate limited') };
+            if (health.circuitOpen || health.state === 'RATE_LIMITED') {
+                return { ok: false, error: new Error(`Vision unavailable (${health.state})`) };
+            }
 
-            const model = '@cf/meta/llama-3.2-11b-vision-instruct'; // Optimal vision model
-            this.logger.info({ model, prompt: prompt.substring(0, 50) }, 'Vision analysis via Cloudflare AI Hub');
+            const model = '@cf/meta/llama-3.2-11b-vision-instruct';
+            this.logger.info({ model, prompt: prompt.substring(0, 50) }, 'Vision analysis via Cloudflare AI');
 
-            return await this.services.runAi(model, {
+            const result = await this.services.runAi(model, {
                 messages: [
                     {
                         role: 'user',
@@ -519,7 +553,13 @@ export class CloudflareLimb extends BaseLimb {
                     }
                 ]
             });
+
+            if (result.ok) this.circuitBreaker.reportSuccess(PROVIDER_KEY);
+            else this.circuitBreaker.reportFailure(PROVIDER_KEY);
+
+            return result;
         } catch (error) {
+            this.circuitBreaker.reportFailure(PROVIDER_KEY);
             return { ok: false, error: error as Error };
         }
     }
@@ -527,29 +567,31 @@ export class CloudflareLimb extends BaseLimb {
     private async handleSpeechToText(audioBase64: string): Promise<Result<unknown>> {
         try {
             const health = this.getHealth();
-            if (health.state === 'RATE_LIMITED') return { ok: false, error: new Error('Rate limited') };
+            if (health.circuitOpen || health.state === 'RATE_LIMITED') {
+                return { ok: false, error: new Error(`STT unavailable (${health.state})`) };
+            }
 
             const model = MODELS.WHISPER;
-            this.logger.info({ model }, 'Speech transcription via Cloudflare AI Hub');
+            this.logger.info({ model }, 'Speech transcription via Cloudflare AI');
 
-            // Whisper accepts audio bytes
             const audioBytes = Buffer.from(audioBase64, 'base64');
-            return await this.services.runAi(model, audioBytes); // Whisper takes raw bytes usually
+            const result = await this.services.runAi(model, audioBytes);
+
+            if (result.ok) this.circuitBreaker.reportSuccess(PROVIDER_KEY);
+            else this.circuitBreaker.reportFailure(PROVIDER_KEY);
+
+            return result;
         } catch (error) {
+            this.circuitBreaker.reportFailure(PROVIDER_KEY);
             return { ok: false, error: error as Error };
         }
     }
 
     private async handleTextToSpeech(text: string): Promise<Result<Uint8Array>> {
-        // Cloudflare Workers AI doesn't have a native TTS model in the standard catalog usually,
-        // so we explicitly use the Ghost Limb fallback pattern described in docs.
-        this.logger.info({ text: text.substring(0, 50) }, 'TTS request - delegating to Ghost Limb');
-
-        const ghostResult = await this.services.runGhostLimb<Record<string, unknown>>('tts-generation', { text });
-        if (ghostResult.ok) {
-            return { ok: true, value: new Uint8Array(Buffer.from(ghostResult.value['audio'] as string, 'base64')) };
-        }
-        return { ok: false, error: new Error('TTS not available on this substrate') };
+        // TTS: Not natively supported by CF Workers AI.
+        // Return error — local Ollama TTS (VIBE_TTS_MODEL) handles this instead.
+        this.logger.info({ text: text.substring(0, 50) }, 'TTS not available on Cloudflare — use local VIBE_TTS_MODEL');
+        return { ok: false, error: new Error('TTS not available on Cloudflare. Use local Ollama model (VIBE_TTS_MODEL) instead.') };
     }
 
     private async handleRsmv(gameSource: string, category: string, id?: string): Promise<Result<unknown>> {
@@ -575,40 +617,50 @@ export class CloudflareLimb extends BaseLimb {
     }
 
     private async handleGlobeForge(targetDir: string): Promise<Result<unknown>> {
-        this.logger.info({ targetDir }, 'Initiating Globe Forge operation');
+        const GLOBE_REPO = 'https://github.com/pick-of-gods/multiplayer-globe-template.git';
+        this.logger.info({ targetDir, repo: GLOBE_REPO }, 'Initiating Globe Forge — cloning from sovereign template repo');
 
-        const { GlobeForge } = await import('../../apps/cloudflare/GlobeForge.js');
-        const forge = new GlobeForge(this.services);
+        try {
+            const { execSync } = await import('child_process');
+            execSync(`git clone ${GLOBE_REPO} "${targetDir}"`, { stdio: 'pipe' });
 
-        const templateDir = join(this.config.projectRoot, 'templates', 'multiplayer-globe-template');
-        const result = await forge.forge(targetDir, templateDir);
+            this.logger.info({ targetDir }, 'Globe template cloned successfully');
 
-        if (result.ok) {
             // Emit event for dashboard visibility
             this.emit('globe_forge_completed', {
-                path: result.value.path,
-                wranglerJson: result.value.wranglerJson,
+                path: targetDir,
+                repo: GLOBE_REPO,
+                liveUrl: 'multiplayer-globe-template.kristain33rs.workers.dev',
                 timestamp: new Date().toISOString()
             });
-        }
 
-        return result;
+            return {
+                ok: true,
+                value: {
+                    path: targetDir,
+                    repo: GLOBE_REPO,
+                    liveUrl: 'multiplayer-globe-template.kristain33rs.workers.dev',
+                    instructions: 'Run `npm install` then fill in wrangler.toml credentials and `wrangler dev` to start.'
+                }
+            };
+        } catch (error) {
+            return { ok: false, error: error instanceof Error ? error : new Error(String(error)) };
+        }
     }
 
     private async handleConstellationSync(nodeId: string, region: string): Promise<Result<unknown>> {
         this.logger.info({ nodeId, region }, 'Synchronizing with global constellation substrate');
 
-        // Simulate discovery of a neighbor node via Durable Object memory
-        const neighbors = [
-            { id: 'node-uk-1', region: 'en-gb', lat: 51.5074, lng: -0.1278, health: 'READY' },
-            { id: 'node-tk-1', region: 'ja-jp', lat: 35.6762, lng: 139.6503, health: 'READY' }
-        ];
-
-        for (const neighbor of neighbors) {
-            this.emit('node_discovered', {
-                ...neighbor,
-                discoverySource: 'durable_object:globe'
-            });
+        const health = this.getHealth();
+        if (health.circuitOpen) {
+            return {
+                ok: true,
+                value: {
+                    status: 'CONSTELLATION_OFFLINE',
+                    reason: 'Circuit breaker OPEN — cloud sync unavailable',
+                    origin: nodeId
+                }
+            };
         }
 
         this.updateSpatialHealth();
@@ -617,8 +669,10 @@ export class CloudflareLimb extends BaseLimb {
             ok: true,
             value: {
                 status: 'CONSTELLATION_SYNCED',
-                neighborCount: neighbors.length,
                 origin: nodeId,
+                region,
+                healthState: health.state,
+                consecutiveFailures: this.consecutiveFailures,
                 boundaries: this.config.sovereignBoundaries
             }
         };
@@ -627,12 +681,11 @@ export class CloudflareLimb extends BaseLimb {
     private updateSpatialHealth(): void {
         const health = this.getHealth();
         this.emit('spatial_health_update', {
-            region: 'global-edge',
             provider: 'cloudflare',
-            lat: 34.0522, // Static for now, could be dynamic from cf_get_gps
-            lng: -118.2437,
             health: health.state,
-            latency: Math.floor(Math.random() * 50) + 20 // Simulated real-world latency jitter
+            circuitOpen: health.circuitOpen,
+            consecutiveFailures: this.consecutiveFailures,
+            timestamp: Date.now()
         });
     }
 }

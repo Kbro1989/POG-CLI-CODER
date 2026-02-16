@@ -29,7 +29,7 @@ describe('FreeOrchestrator (Real Integration)', () => {
 
         const configManager = new ConfigManager(testDir, {
             pogDir: join(testDir, '.pog'),
-            projectRoot: testDir,
+            rootStack: [], projectRoot: testDir,
             projectId: 'TEST_ORCH',
             wsPort: 0
         });
@@ -82,3 +82,4 @@ describe('FreeOrchestrator (Real Integration)', () => {
 
     // We can add more tests as we verify this basic setup works
 });
+

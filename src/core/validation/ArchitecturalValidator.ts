@@ -62,16 +62,25 @@ export class ArchitecturalValidator implements Validator {
         if (!layerName) return false;
         const currentLayer = layerName.toLowerCase();
 
-        // Check if current layer has restrictions in manifest
-        const allowedDeps = this.manifest.dependencyRules[currentLayer] || [];
+        // Hardcoded architectural rules (fallback if manifest is empty)
+        const hardcodedRules: Record<string, string[]> = {
+            'core': ['utils', 'models'], // core can only import utils and models
+            'limbs': ['core', 'utils', 'models'],
+            'cli': ['core', 'limbs', 'utils', 'models'],
+            'services': ['core', 'limbs', 'utils', 'models']
+        };
 
-        // Check if import starts with a restricted layer that is NOT in the allowed list
-        for (const layer of Object.keys(this.manifest.dependencyRules)) {
-            if (imp.includes(`/src/${layer}/`) || imp.includes(`../${layer}/`)) {
-                if (!allowedDeps.includes(layer) && layer !== currentLayer) {
-                    return true;
-                }
-            }
+        // Merge manifest rules with hardcoded rules (manifest takes precedence)
+        const allowedDeps = this.manifest.dependencyRules[currentLayer] || hardcodedRules[currentLayer] || [];
+
+        // Detect import layer from path
+        const importLayerMatch = imp.match(/(?:\.\.\/|src\/)([^/]+)\//);
+        if (!importLayerMatch || !importLayerMatch[1]) return false;
+        const importLayer = importLayerMatch[1].toLowerCase();
+
+        // Check if importing from a layer that's not allowed
+        if (importLayer !== currentLayer && !allowedDeps.includes(importLayer)) {
+            return true;
         }
 
         return false;

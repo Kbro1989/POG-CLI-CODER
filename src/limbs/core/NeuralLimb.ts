@@ -1,9 +1,17 @@
 /**
  * NeuralLimb Interface - The contract for all specialized limbs
  */
-import { Result, Intent, Execution, TernaryDecision } from '../../core/models.js';
+
+// Actually, looking at the file, these are re-exported or used in types. 
+// The error said 'Result', 'Intent', 'Execution', 'TernaryDecision' are unused? 
+// But they are exported on line 6: export type { Result, Intent, Execution, TernaryDecision };
+// If they are only used in export type, they might need to be imported as types or the linter is being strict about 'import { ... }' vs 'import type { ... }'.
+// Let's try importing them as type to be safe, or if they are truly unused (maybe they are defined in models.ts and we are re-exporting them?).
+// Validating line 4: import { Result, Intent, Execution, TernaryDecision } from '../../core/models.js';
+// If I change to import type it should satisfy "unused value" errors if they are only used as types.
 import type { ModelExecutor } from '../../core/ModelExecutor.js';
 import type { ToolingSpine } from '../../core/ToolingSpine.js';
+import type { Result, Intent, Execution, TernaryDecision } from '../../core/models.js';
 
 export type { Result, Intent, Execution, TernaryDecision };
 
@@ -29,7 +37,7 @@ export interface NeuralLimb {
 
     /**
      * Check if this limb can handle the given intent.
-     * Returns CognitiveChoice: 'Yang' (optimal), 'Yin' (skip), 'YinYang' (maybe)
+     * Returns YaoState: OldYang (optimal), YoungYin (skip), YoungYang (maybe)
      */
     canHandle(intent: Intent): Promise<TernaryDecision>;
 

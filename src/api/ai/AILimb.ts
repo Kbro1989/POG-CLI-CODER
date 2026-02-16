@@ -1,3 +1,4 @@
+import { BaseLimb } from '../../limbs/core/BaseLimb.js';
 import { NeuralLimb, Intent, Execution, TernaryDecision } from '../../limbs/core/NeuralLimb.js';
 import { Result, VibeConfig } from '../../core/models.js';
 import { ModelExecutor } from '../../core/ModelExecutor.js';
@@ -6,13 +7,6 @@ import { CapabilityRegistry, CatalogMetadata } from './CapabilityRegistry.js';
 import { IntentMap } from './IntentMap.js';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import pino from 'pino';
-
-const logger = pino({
-    name: 'AILimb',
-    base: { hostname: 'POG-VIBE' },
-    level: process.env['VIBE_LOG_LEVEL'] || 'info'
-});
 
 interface MediaFile {
     mimeType: string;
@@ -27,10 +21,14 @@ interface MultiPathData {
     chainResults: StepData[];
 }
 
-export class AILimb implements NeuralLimb {
+export class AILimb extends BaseLimb implements NeuralLimb {
     id = 'ai_limb';
     type = 'analytical' as const;
-    capabilities = Object.keys(CapabilityRegistry);
+
+    // Override capabilities to use Registry keys (Legacy behavior preservation)
+    override get capabilities(): string[] {
+        return Object.keys(CapabilityRegistry);
+    }
 
     private readonly catalog = {
         models: CapabilityRegistry,
@@ -39,17 +37,18 @@ export class AILimb implements NeuralLimb {
     };
 
     constructor(
-        private readonly config: VibeConfig,
+        config: VibeConfig,
         private readonly modelExecutor: ModelExecutor,
         private readonly router: FreeModelRouter
     ) {
-        logger.debug('AILimb initialized with ternary routing integration');
+        super(config, modelExecutor);
+        this.logger.debug('AILimb initialized with ternary routing integration');
     }
 
-    async canHandle(intent: Intent): Promise<TernaryDecision> {
-        if (!this.config.enabledServices.includes('AI') && !this.config.enabledServices.includes('ai')) {
-            return 'Yin';
-        }
+    override async canHandle(intent: Intent): Promise<TernaryDecision> {
+        // Gating Check via BaseLimb logic
+        const baseDecision = await super.canHandle(intent);
+        if (baseDecision === 'Yin') return 'Yin';
 
         const p = intent.prompt.toLowerCase();
 
@@ -69,8 +68,8 @@ export class AILimb implements NeuralLimb {
     }
 
 
-    async execute(intent: Intent): Promise<Result<Execution>> {
-        logger.info({ prompt: intent.prompt }, 'Executing AI specialized task');
+    override async execute(intent: Intent): Promise<Result<Execution>> {
+        this.logger.info({ prompt: intent.prompt }, 'Executing AI specialized task');
         const p = intent.prompt.toLowerCase();
 
         // 1. Handle Meta-Queries First
@@ -90,7 +89,7 @@ export class AILimb implements NeuralLimb {
         // 2. Handle Multi-Path Intents (Composite Chains)
         if (p.includes(' and then ') || p.includes(' followed by ')) {
             const steps = p.split(/ and then | followed by /);
-            logger.info({ steps }, 'Detected Composite Intent Chain');
+            this.logger.info({ steps }, 'Detected Composite Intent Chain');
             const results: StepData[] = [];
             let cumulativeOutput = '';
 
@@ -146,7 +145,7 @@ export class AILimb implements NeuralLimb {
         if (capability.taskType === 'IMAGE' || capability.taskType === 'VIDEO') {
             const files = this.findMediaFiles(capability.taskType);
             if (files.length > 0) {
-                logger.info({ count: files.length, type: capability.taskType }, 'Attaching media files to AI task');
+                this.logger.info({ count: files.length, type: capability.taskType }, 'Attaching media files to AI task');
                 payload = [
                     { text: prompt },
                     ...files.map(f => ({
@@ -159,7 +158,7 @@ export class AILimb implements NeuralLimb {
             }
         }
 
-        logger.info({ capabilityId, serviceType: capability.serviceType }, 'Dispatching specialized AI task via ModelExecutor');
+        this.logger.info({ capabilityId, serviceType: capability.serviceType }, 'Dispatching specialized AI task via ModelExecutor');
 
         let result: Result<unknown>;
         if (capability.serviceType === 'GEMINI' || capability.serviceType === 'VERTEX_AI') {
@@ -175,7 +174,8 @@ export class AILimb implements NeuralLimb {
         }
 
         if (!result.ok) {
-            return { ok: false, error: result.error };
+            const error = (result as { ok: false; error: Error }).error;
+            return { ok: false, error };
         }
 
         const outputData = result.value;
@@ -210,12 +210,12 @@ export class AILimb implements NeuralLimb {
                         });
                         if (results.length >= 3) break;
                     } catch (err) {
-                        logger.debug({ path: fileAbsPath, err }, 'Failed to read media file');
+                        this.logger.debug({ path: fileAbsPath, err }, 'Failed to read media file');
                     }
                 }
             }
         } catch (e) {
-            logger.debug('Error scanning workspace for media files');
+            this.logger.debug('Error scanning workspace for media files');
         }
 
         return results;
@@ -228,7 +228,7 @@ export class AILimb implements NeuralLimb {
         for (const category of Object.values(IntentMap)) {
             for (const pathway of category) {
                 if (pathway.keywords.some(k => p.includes(k))) {
-                    logger.info({ pathway: pathway.id, reasoning: pathway.reasoning }, 'Semantic Intent Match found');
+                    this.logger.info({ pathway: pathway.id, reasoning: pathway.reasoning }, 'Semantic Intent Match found');
                     return pathway.targetCapabilityId;
                 }
             }

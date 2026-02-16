@@ -117,9 +117,10 @@ export class AdversarialOrchestrator {
             }, 'Adversarial verification REJECTED - iterating with best candidate feedback');
 
             // Categorize the rejection prompt with "Should Not Be" awareness
+            const validationError = winner.validation.ok ? null : (winner.validation as { ok: false; error: { reason: string } }).error;
             currentPrompt = this.buildPhilosophicalRejectionPrompt(
                 winner.cand.response || '',
-                winner.validation.ok ? [] : [winner.validation.error?.reason || 'Validation failed'],
+                validationError ? [validationError.reason] : [],
                 winner.critique.flaws,
                 winner.critique.shouldNotBe
             );
@@ -159,7 +160,8 @@ FLAWS:
         const result = await this.executor.callModel(criticModel, criticPromptAugmented);
 
         if (!result.ok) {
-            this.logger.warn({ error: result.error }, 'Critic failed, assuming baseline score');
+            const error = (result as { ok: false; error: Error }).error;
+            this.logger.warn({ error }, 'Critic failed, assuming baseline score');
             return { score: 95, flaws: [], shouldNotBe: [] };
         }
 

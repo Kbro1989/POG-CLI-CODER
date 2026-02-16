@@ -6,7 +6,7 @@ import { GeminiService } from '../../core/GeminiService.js';
 import { VectorDB } from '../../learning/VectorDB.js';
 import { StyleAnalyzer } from '../gutenberg/StyleAnalyzer.js';
 import { readFileSync, existsSync } from 'fs';
-import { YaoState } from '../../core/HexagramManager.js';
+import { YaoState } from '../../core/models.js';
 
 /**
  * StoryboardLimb - The "Storyboard Forge" service.
@@ -73,7 +73,8 @@ Generate exactly ${sceneCount} scenes. Format as JSON array of objects:
                         const response = await this.gemini.generateContent(prompt);
                         if (!response.ok) {
                             await this.pinPulse(YaoState.OldYin, 'Storyboard Forge: LLM failure');
-                            return { ok: false, error: response.error };
+                            const error = (response as { ok: false; error: Error }).error;
+                            return { ok: false, error };
                         }
 
                         const jsonStr = response.value.response.match(/\[[\s\S]*\]/)?.[0] || response.value.response;

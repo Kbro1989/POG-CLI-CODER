@@ -2,6 +2,7 @@ import { BaseLimb } from './BaseLimb.js';
 import type { Intent, Execution, TernaryDecision } from './NeuralLimb.js';
 import { HexagramManager } from '../../core/HexagramManager.js';
 import type { Result, VibeConfig } from '../../core/models.js';
+import { ModelExecutor } from '../../core/ModelExecutor.js';
 
 /**
  * HexagramLimb - Context-aware Memory Management
@@ -14,7 +15,8 @@ export class HexagramLimb extends BaseLimb {
 
     constructor(
         config: VibeConfig,
-        private readonly manager: HexagramManager
+        private readonly manager: HexagramManager,
+        private readonly modelExecutor: ModelExecutor
     ) {
         super(config);
         this.registerHexagramTools();
@@ -22,6 +24,37 @@ export class HexagramLimb extends BaseLimb {
 
     private registerHexagramTools(): void {
         this.registerTools([
+            {
+                name: 'consult_oracle',
+                description: 'Consult the Sovereign Oracle using the 3-Question Tri-Axis logic.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        intent: { type: 'string', description: 'The core intent or question to explore' },
+                        axisX: { type: 'string', description: 'Axis X label (e.g. Feasibility)' },
+                        axisY: { type: 'string', description: 'Axis Y label (e.g. Ethics)' },
+                        axisZ: { type: 'string', description: 'Axis Z label (e.g. Impact)' }
+                    },
+                    required: ['intent']
+                },
+                handler: async (args: Record<string, unknown>) => {
+                    // Default Axes if not provided
+                    const axes: [import('../../core/models.js').TriAxis, import('../../core/models.js').TriAxis, import('../../core/models.js').TriAxis] = [
+                        { axis: 'X', positive: 'Feasible', negative: 'Impossible', neutral: 'Unknown' },
+                        { axis: 'Y', positive: 'Beneficial', negative: 'Harmful', neutral: 'Neutral' },
+                        { axis: 'Z', positive: 'Strategic', negative: 'Tactical', neutral: 'Irrelevant' }
+                    ];
+
+                    if (args['axisX']) axes[0].positive = args['axisX'] as string;
+                    if (args['axisY']) axes[1].positive = args['axisY'] as string;
+                    if (args['axisZ']) axes[2].positive = args['axisZ'] as string;
+
+                    return this.manager.consultOracle({
+                        intent: args['intent'] as string,
+                        axes
+                    }, this.modelExecutor);
+                }
+            },
             {
                 name: 'pin_to_hexagram',
                 description: 'Pin a high-priority context card to a specific hexagram slot (Line 1-6).',

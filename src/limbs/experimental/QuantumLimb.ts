@@ -78,10 +78,11 @@ export class QuantumLimb extends BaseLimb {
             const rolePrompt = `Role: ${m.role}\nTask: ${intent.prompt}\n\nProvide your specialized contribution:`;
             try {
                 const result = await this.executor!.callModel(m.id, rolePrompt);
-                if (result.ok) {
-                    return { id: m.id, role: m.role, text: result.value.response, success: true };
+                if (!result.ok) {
+                    const error = (result as { ok: false; error: Error }).error;
+                    return { id: m.id, role: m.role, text: `Error: ${error.message}`, success: false };
                 }
-                return { id: m.id, role: m.role, text: `Error: ${result.error.message}`, success: false };
+                return { id: m.id, role: m.role, text: result.value.response, success: true };
             } catch (e: any) {
                 return { id: m.id, role: m.role, text: `Critical Failure: ${e.message}`, success: false };
             }
@@ -108,7 +109,8 @@ export class QuantumLimb extends BaseLimb {
         const finalSynthesis = await this.executor.callModel('gemini-2.0-flash', synthesisPrompt);
 
         if (!finalSynthesis.ok) {
-            return { ok: false, error: finalSynthesis.error };
+            const error = (finalSynthesis as { ok: false; error: Error }).error;
+            return { ok: false, error };
         }
 
         return {

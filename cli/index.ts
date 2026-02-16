@@ -13,7 +13,7 @@ import dotenv from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import readline from 'readline';
-import pino from 'pino';
+import { pino } from 'pino';
 import * as fs from 'fs';
 import { Writable } from 'stream';
 import * as net from 'net';
@@ -60,6 +60,9 @@ import { select, drawBox, drawMessage, drawSovereignFooter, drawDetailedReports 
 import { ServiceDiscovery } from '../src/core/ServiceDiscovery.js';
 import { MonitorAgent } from '../src/monitor/MonitorAgent.js';
 import { InteractiveMenu } from './InteractiveMenu.js';
+import { ModelInventory } from '../src/core/ModelInventory.js';
+import { ModelType } from '../src/core/models.js';
+import { ShellSpine } from '../src/spines/cli/ShellSpine.js';
 import chalk from 'chalk';
 
 const logger = pino({
@@ -98,7 +101,7 @@ class VibeCLI {
     // Initialize orchestrator
     this.orchestrator = new FreeOrchestrator(config, watcher, vectorDB, sandbox);
     this.discovery = new ServiceDiscovery(config);
-    this.monitor = new MonitorAgent(config, this.orchestrator.getModelExecutor());
+    this.monitor = new MonitorAgent(config, this.orchestrator.getModelExecutor(), this.orchestrator.getHexagramManager());
 
     // Create readline interface
     this.rl = readline.createInterface({
@@ -141,8 +144,9 @@ class VibeCLI {
 
         // Allow Ctrl+C to still work despite raw mode
         if (key.ctrl && key.name === 'c') {
-          void this.shutdown('ctrl-c-hotkey');
-          process.exit(0);
+          // Sovereign Lock: Ignore standard termination
+          process.stdout.write(chalk.yellow('\n\n🛡️  Sovereign Organism Persisting.\n   Use "exit" command to negotiate termination.\n\n🎯 vibe> '));
+          return;
         }
       });
     }
@@ -162,6 +166,7 @@ class VibeCLI {
     const config = this.configManager.getConfig();
     drawSovereignFooter({
       substrate: config.sovereignRoot ? `ACTIVE [${config.sovereignRoot}]` : 'INACTIVE',
+      identity: config.identity?.name || 'GHOST',
       extension: this.orchestrator.getEndpointStatus('extension'),
       edge: this.orchestrator.getEndpointStatus('worker'),
       session: this.orchestrator.getSessionId(),
@@ -193,6 +198,24 @@ class VibeCLI {
         prompt: data.context.prompt.substring(0, 100)
       }, 'Execution error');
       this.refreshUI();
+    });
+
+    this.orchestrator.on('awaitingFeedback', (data: { message: string }) => {
+      // Display the Thinking Admin's synthesis
+      process.stdout.write('\n');
+      drawMessage('THOUGHT', data.message);
+      process.stdout.write('\n');
+
+      // If voice is enabled, peak the summary
+      const config = this.configManager.getConfig();
+      if (config.enabledServices?.includes('voice_limb')) {
+        // Speak only the summary part (after the title)
+        const lines = data.message.split('\n');
+        const summary = lines.slice(1).join(' ').replace(/---/g, '').trim();
+        if (summary) {
+          void this.orchestrator.executeIntent({ prompt: `speak_text text="${summary.substring(0, 150)}"`, force: true });
+        }
+      }
     });
 
     // Readline events
@@ -246,16 +269,23 @@ class VibeCLI {
     });
 
     this.rl.on('close', (): void => {
-      void this.shutdown('readline-close');
+      // Prevent accidental closure (e.g. Ctrl+D) if running
+      if (this.running) {
+        process.stdout.write(chalk.yellow('\n🛡️  Sovereign Persistence Active. Use "exit" to close.\n'));
+        this.rl.prompt();
+      } else {
+        void this.shutdown('readline-close');
+      }
     });
 
     process.on('SIGINT', (): void => {
-      // eslint-disable-next-line no-console
-      console.log('\n\n👋 Shutting down gracefully...');
-      void (async (): Promise<void> => {
-        await this.shutdown('sigint');
-        process.exit(0);
-      })();
+      // Sovereign Lock: Ignore SIGINT
+      process.stdout.write(chalk.yellow('\n\n🛡️  Hive Mind: Termination Signal Rejected.\n   Use "exit" command.\n\n🎯 vibe> '));
+    });
+
+    // Optional: Trap SIGTERM as well for stronger persistence
+    process.on('SIGTERM', (): void => {
+      process.stdout.write(chalk.red('\n\n🛡️  Hive Mind: System termination attempted. Resistance active.\n'));
     });
   }
 
@@ -310,15 +340,43 @@ class VibeCLI {
     // 1. Initial Health Audit
     await this.initialAudit();
 
-    // 2. Autonomous Healing check
-    const diagnosis = await this.monitor.diagnoseState();
-    if (diagnosis.decision === 'YinYang' || diagnosis.decision === 'Yin') {
-      logger.warn({ reasoning: diagnosis.reasoning }, 'Metabolic regression detected during boot. Triggering Self-Healing...');
-      // Note: MonitorAgent.diagnoseState() might already trigger patches depending on implementation, 
-      // but here we ensure the system is aware.
+    // 2. Metabolic Boot (TSC, Tests, Healing)
+    const bootResult = await this.monitor.runMetabolicBoot();
+    if (!bootResult.ok) {
+      logger.error({ message: bootResult.message }, 'Metabolic Boot FAILED. Triggering Emergency Healing Flow...');
+      // In a real scenario, we'd trigger the self-healing engine here.
+      // For now, we report it to the user.
+      drawMessage('SYSTEM', `⚠️ Metabolic Boot Failure: ${bootResult.message}`);
+    } else {
+      drawMessage('SYSTEM', '✅ Metabolic Boot: ALL SYSTEMS GREEN. Substrate Healthy.');
+
+      // 3. Sovereign Wrangler Fleet Build
+      logger.info('Triggering Sovereign Wrangler Fleet Build...');
+      try {
+        const shell = new ShellSpine(this.configManager.getConfig());
+        const result = await shell.getTools().find(t => t.name === 'sh_exec')!.handler({
+          command: 'npm run fleet:build'
+        });
+
+        if (result.ok && (result.value as any).exitCode === 0) {
+          logger.info('Sovereign Fleet Build Completed.');
+          this.bufferReport('info', 'Fleet Build SUCCESS');
+
+          // Background dev server
+          void shell.getTools().find(t => t.name === 'sh_exec')!.handler({
+            command: 'npm run fleet:html-dev'
+          });
+        } else {
+          const err = result.ok ? (result.value as any).stderr : (result as any).error?.message;
+          logger.error({ err }, 'Sovereign Fleet Build Failed');
+          this.bufferReport('error', `Fleet Build FAILED: ${err}`);
+        }
+      } catch (err) {
+        logger.error({ err }, 'Failed to orchestrate fleet build');
+      }
     }
 
-    // 3. Dashboard Synchronization
+    // 4. Dashboard Synchronization
     const config = this.configManager.getConfig();
     const port = config.wsPort || 8765;
 
@@ -335,11 +393,8 @@ class VibeCLI {
       logger.info({ port }, 'Dashboard already open. Synchronizing session...');
     } else {
       logger.info({ port }, 'Launching new dashboard substrate...');
-      const url = `http://localhost:${port}/dashboard`; // Assuming standard route
-      const startCmd = process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
-      void startCmd; // Preserve for future automation logic
+      const url = `http://localhost:${port}/dashboard`;
       logger.info({ url }, 'Dashboard launching logic standby.');
-      // exec(`${startCmd} ${url}`).catch(err => logger.error({ err }, 'Failed to launch browser dashboard'));
     }
   }
 
@@ -356,6 +411,7 @@ class VibeCLI {
     drawBox('🚀 POG-CODER-VIBE: NEUROLOGICAL SOVEREIGNTY', [
       `📁 Root:       ${config.projectRoot} `,
       `🧠 CNS Class:  ${config.projectId} `,
+      `🆔 Identity:   ${config.identity?.email || 'UNRESOLVED'} [${config.identity?.source?.toUpperCase() || 'SEARCHING'}]`,
       `🔬 Medical:    READY [diag_env.ts]`,
       `👻 Ghost:      FAILBACK [Cloud DC]`,
       `🏰 Substrate:  ${sovereignLine} `,
@@ -429,16 +485,29 @@ class VibeCLI {
         const audit = await this.discovery.auditAll();
         const diagnosis = await this.monitor.diagnoseState();
         const activeServices = audit.filter(s => s.status === 'ACTIVE').length;
+        const config = this.configManager.getConfig();
 
         // eslint-disable-next-line no-console
-        console.log('\n📚 Available Commands:\n');
+        console.log(chalk.bold('\n📚 Sovereign Library of Commands:\n'));
         for (const cmd of this.commands) {
           // eslint-disable-next-line no-console
           console.log(`  ${cmd.description} `);
         }
-        console.log('  history          - View intent history');
-        console.log('  state            - Show current state');
-        console.log('  config           - Show configuration');
+
+        console.log('\n💬 Conversational Intelligence:');
+        console.log('  Any input that doesn\'t match a command is treated as an AI intent.');
+        console.log('  You can chat, ask for code, or explore literary styles naturally.');
+
+        if (config.activeStyle) {
+          console.log('\n🎭 Active Persona Style:');
+          console.log(`  Author:    ${chalk.yellow(config.activeStyle.author)}`);
+          console.log(`  Tone:      ${chalk.cyan(config.activeStyle.tone)}`);
+          console.log(`  Source:    "${config.activeStyle.title}"`);
+        } else {
+          console.log('\n🎭 Active Persona Style:');
+          console.log(`  Status:    ${chalk.gray('Standard POG-VIBE')}`);
+          console.log('  Tip:       Use "Master style of book <id>" to learn from Gutenberg.');
+        }
 
         console.log('\n📡 Substrate Status:');
         console.log(`  CNS Health:    ${activeServices}/${audit.length} Organs Active`);
@@ -448,8 +517,9 @@ class VibeCLI {
         console.log('\n💡 Tips:');
         console.log('  - Operations are verified against the localized D:\\ [Somatic Memory]');
         console.log('  - Medical Class (scripts) monitors for real-time state regression');
+        console.log('  - "voice" triggers microphone and ambient status reporting');
         console.log('  - "Escalate" to Cloud models automatically when local context is exceeded');
-        console.log('  - Ghost Class (Failback) ensures persistence via Cloud DC if local fails');
+        console.log('  - "history" view tracks recent neural paths');
         console.log('');
       }
     },
@@ -528,6 +598,14 @@ class VibeCLI {
         console.log(chalk.cyan(`  Focus:     ${hex.hexagram} (${hex.binary})`));
         console.log(chalk.cyan(`  Strategy:  ${hex.strategy}`));
         console.log(chalk.cyan(`  Narrative: ${state['narrative'] || 'Observing substrate...'}`));
+
+        if (hex.lines) {
+          console.log(chalk.yellow('\n  Yao Pillars (Lines):'));
+          hex.lines.forEach(l => {
+            console.log(chalk.dim(`    Line ${l.index}: ${l.state.padEnd(20)} | ${l.title}`));
+          });
+        }
+
         console.log('');
         console.log(JSON.stringify(state, (key, value) => {
           if (key === 'narrative') return undefined; // Already shown
@@ -605,19 +683,41 @@ class VibeCLI {
     },
     {
       pattern: /^models$/i,
-      description: 'models           - Manage AI models with ternary selection',
+      description: 'models           - Manage AI models with dynamic discovery',
       handler: async (args: string[]): Promise<void> => {
         void args;
-        const items = [
-          { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', description: '+1 (Escalate) - Sovereign Power' },
-          { value: 'qwen2.5-coder:14b', label: 'Qwen 14B', description: '0 (Balanced) - Local Performance' },
-          { value: 'qwen2.5-coder:7b', label: 'Qwen 7B', description: '-1 (De-escalate) - Rapid Fixes' }
-        ];
+        const config = this.configManager.getConfig();
+        const allModels = ModelInventory.getAvailableModels(config);
 
-        const selected = await select('🔧 Model Calibration (Ternary Logic)', items);
+        const items = allModels.map(m => {
+          let status = chalk.gray('[Offline]');
+          const hasGoogle = !!process.env['GOOGLE_API_KEY'];
+          const hasCF = !!process.env['CLOUDFLARE_API_TOKEN'];
+          const hasHF = !!process.env['HUGGINGFACE_API_KEY'];
+
+          if (m.type === ModelType.Local) {
+            status = chalk.green('[Ready]'); // Assume local is ready for selection
+          } else if (m.type === ModelType.CloudFree && m.command.includes('google') && hasGoogle) {
+            status = chalk.yellow('[Cloud]');
+          } else if (m.type === ModelType.Cloudflare && hasCF) {
+            status = chalk.blue('[CF]');
+          } else if (m.type === ModelType.CloudFree && m.command.includes('huggingface') && hasHF) {
+            status = chalk.magenta('[HF]');
+          }
+
+          return {
+            value: m.name,
+            label: `${m.name.padEnd(30)} ${status}`,
+            description: `${m.capabilities.join(', ')} (Priority: ${m.priority})`
+          };
+        });
+
+        console.log(chalk.bold('\n🔍 Sovereign Model Inventory (Ternary Logic)\n'));
+        const selected = await select('🔧 Calibrate Neural Path', items);
+
         if (selected) {
-          // eslint-disable-next-line no-console
-          console.log(`\n✅ Model switched to: ${selected} \n`);
+          console.log(`\n✅ Model targeted: ${chalk.cyan(selected)}`);
+          console.log(chalk.gray('   This choice will influence the next strategic posture update.\n'));
         }
       }
     },
@@ -631,7 +731,10 @@ class VibeCLI {
         try {
           const result = await this.orchestrator.executeIntent('voice transcription');
           if (result.ok) {
-            const transcription = (result.value.data as any).transcription;
+            const transcription = typeof (result.value.data as Record<string, unknown>)['transcription'] === 'string'
+              ? (result.value.data as Record<string, unknown>)['transcription'] as string
+              : '';
+
             // eslint-disable-next-line no-console
             console.log(chalk.green(`\n🗣️  You said: "${transcription}"\n`));
 
@@ -682,10 +785,10 @@ class VibeCLI {
         let newEnabled: string[];
         if (index > -1) {
           newEnabled = enabled.filter(s => s !== serviceId);
-          drawMessage('SYSTEM', `🚫 Service[${serviceId}]DISABLED(Budget Lock Engaged)`);
+          drawMessage('SYSTEM', `🚫 Service[${serviceId}] Shifted to Yin (Dormant)`);
         } else {
           newEnabled = [...enabled, serviceId];
-          drawMessage('SYSTEM', `✅ Service[${serviceId}]ENABLED(Sovereign Approval Granted)`);
+          drawMessage('SYSTEM', `✅ Service[${serviceId}] Shifted to Yang (Active)`);
         }
 
         this.configManager.updateConfig({ enabledServices: newEnabled });
@@ -714,6 +817,141 @@ class VibeCLI {
         } catch (error) {
           // eslint-disable-next-line no-console
           console.error(chalk.red(`\n❌ Manifest Interface Error: ${(error as Error).message} \n`));
+        }
+      }
+    },
+    {
+      pattern: /^play-rsc$/i,
+      description: 'play-rsc         - Start autonomous RSC gameplay with AI (Kimi)',
+      handler: async (args: string[]): Promise<void> => {
+        void args;
+        console.log(chalk.cyan('\n🎮 Starting Autonomous RSC Gameplay...\n'));
+
+        try {
+          // Import game loop
+          const { RSCGameLoop } = await import('../src/limbs/experimental/rsc/RSCGameLoop.js');
+          const { RSCLimb } = await import('../src/limbs/experimental/rsc/RSCLimb.js');
+
+          // Initialize RSCLimb
+          const config = this.configManager.getConfig();
+          const executor = this.orchestrator.getModelExecutor();
+          const rscLimb = new RSCLimb(config, executor);
+
+          // Configure game loop
+          const gameConfig = {
+            username: 'pog ai',
+            password: 'pog_ai',
+            model: 'qwen2.5-coder:14b',
+            maxActions: 20,
+            thinkDelay: 2000 // 2 seconds between actions
+          };
+
+          console.log(chalk.gray(`Username: ${gameConfig.username}`));
+          console.log(chalk.gray(`Model: ${gameConfig.model}`));
+          console.log(chalk.gray(`Max Actions: ${gameConfig.maxActions}\n`));
+
+          // Start game loop (no executor needed - uses direct Ollama API)
+          const gameLoop = new RSCGameLoop(rscLimb, gameConfig);
+          await gameLoop.start();
+
+          console.log(chalk.green('\n✅ Autonomous gameplay session completed!\n'));
+        } catch (error) {
+          console.error(chalk.red(`\n❌ Gameplay Error: ${(error as Error).message}\n`));
+          logger.error({ error }, 'RSC gameplay failed');
+        }
+      }
+    },
+    {
+      pattern: /^view\s+(.+)$/i,
+      description: 'view <target>    - Capture & analyze any visual target with AI (Sovereign Eye + Chromanumber)',
+      handler: async (args: string[]): Promise<void> => {
+        const target = args.join(' ').trim();
+        if (!target) {
+          // eslint-disable-next-line no-console
+          console.log(chalk.yellow('\nUsage: view <target>'));
+          // eslint-disable-next-line no-console
+          console.log(chalk.gray('  view http://localhost:3000  — Capture dev server'));
+          // eslint-disable-next-line no-console
+          console.log(chalk.gray('  view wrangler               — Capture wrangler dev (port 8787)'));
+          // eslint-disable-next-line no-console
+          console.log(chalk.gray('  view ./index.html            — Capture HTML file'));
+          // eslint-disable-next-line no-console
+          console.log(chalk.gray('  view rsc                     — View RSC game state'));
+          // eslint-disable-next-line no-console
+          console.log(chalk.gray('  view window:Notepad          — Capture window by title\n'));
+          return;
+        }
+
+        // eslint-disable-next-line no-console
+        console.log(chalk.cyan(`\n👁️ Sovereign Eye — Capturing: "${target}"...\n`));
+
+        try {
+          const { SovereignEye } = await import('../src/core/SovereignEye.js');
+          const eye = new SovereignEye(this.configManager.getConfig().projectId);
+
+          // Auto-detect source type from target string
+          let sourceType: 'url' | 'html' | 'rsc' | 'window' | 'file' = 'url';
+          let resolvedTarget = target;
+
+          if (target.toLowerCase() === 'rsc') {
+            sourceType = 'rsc';
+            resolvedTarget = 'game_client';
+          } else if (target.toLowerCase() === 'wrangler') {
+            sourceType = 'url';
+            resolvedTarget = 'http://localhost:8787';
+          } else if (target.startsWith('window:')) {
+            sourceType = 'window';
+            resolvedTarget = target.substring(7);
+          } else if (target.endsWith('.html') || target.endsWith('.htm')) {
+            sourceType = 'html';
+          } else if (target.startsWith('http://') || target.startsWith('https://')) {
+            sourceType = 'url';
+          } else if (target.match(/\.(png|jpg|jpeg|gif|bmp|webp)$/i)) {
+            sourceType = 'file';
+          } else {
+            // Default: treat as URL
+            sourceType = 'url';
+            if (!target.includes('://')) {
+              resolvedTarget = `http://${target}`;
+            }
+          }
+
+          // eslint-disable-next-line no-console
+          console.log(chalk.gray(`Source type: ${sourceType}`));
+          // eslint-disable-next-line no-console
+          console.log(chalk.gray(`Target: ${resolvedTarget}\n`));
+
+          const result = await eye.capture(
+            { type: sourceType, target: resolvedTarget } as any,
+            { width: 1280, height: 720 }
+          );
+
+          if (result.ok) {
+            const capture = result.value;
+            // eslint-disable-next-line no-console
+            console.log(chalk.green('✅ Capture complete!'));
+            if (capture.imagePath) {
+              // eslint-disable-next-line no-console
+              console.log(chalk.cyan(`📸 Screenshot: ${capture.imagePath}`));
+            }
+            if (capture.textContent) {
+              // eslint-disable-next-line no-console
+              console.log(chalk.gray(`\n--- Text Content (first 500 chars) ---`));
+              // eslint-disable-next-line no-console
+              console.log(capture.textContent.substring(0, 500));
+              // eslint-disable-next-line no-console
+              console.log(chalk.gray(`--- End ---\n`));
+            }
+            // eslint-disable-next-line no-console
+            console.log(chalk.gray(`Metadata: ${JSON.stringify(capture.metadata)}\n`));
+          } else {
+            // eslint-disable-next-line no-console
+            console.error(chalk.red(`\n❌ Capture failed: ${result.error.message}\n`));
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error(chalk.red(`\n❌ Sovereign Eye Error: ${(error as Error).message}\n`));
+          logger.error({ error }, 'Sovereign Eye capture failed');
         }
       }
     }
@@ -827,7 +1065,7 @@ export async function main(): Promise<void> {
 
 // Support direct execution
 const currentScript = (process.argv[1] || '').replace(/\\/g, '/');
-if (currentScript.endsWith('cli/index.ts') || currentScript.endsWith('dist/cli.js') || currentScript.endsWith('cli/index.js')) {
+if (currentScript.endsWith('cli/index.ts') || currentScript.endsWith('dist/cli.js') || currentScript.endsWith('dist/cli.cjs') || currentScript.endsWith('cli/index.js')) {
   void main().catch((error) => {
     // eslint-disable-next-line no-console
     console.error('Unhandled error:', error);

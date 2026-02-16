@@ -15,7 +15,7 @@ const mockConfig: VibeConfig = {
 
     // Filling other required properties to satisfy VibeConfig
     pogDir: 'D:\\pog-coder-vibe',
-    projectRoot: '.',
+    rootStack: [], projectRoot: '.',
     wsPort: 8765,
     maxSnapshotAge: 3600,
     circuitBreakerThreshold: 5,
@@ -25,7 +25,8 @@ const mockConfig: VibeConfig = {
     projectId: 'TEST_PROJECT',
     enabledServices: [],
     gutenbergPath: undefined,
-    workspaces: [process.cwd()]
+    workspaces: [process.cwd()],
+    environment: 'local'
 };
 
 async function runTest() {
@@ -36,7 +37,8 @@ async function runTest() {
     process.env['CLOUDFLARE_API_KEY'] = ''; // Ensure Cloudflare SDK fails
     process.env['CLOUDFLARE_API_TOKEN'] = '';
 
-    const executor = new ModelExecutor(mockConfig, undefined);
+    const hexagramManager = { pinCognitiveCard: async () => ({ ok: true, value: undefined }) } as any;
+    const executor = new ModelExecutor(mockConfig, undefined, hexagramManager);
 
     // 2. Attempt a call that should cascade to Sovereign CLI
     console.log('➡️  Triggering Fallback Chain...');
@@ -66,3 +68,4 @@ async function runTest() {
 }
 
 runTest().catch(console.error);
+

@@ -52,7 +52,7 @@ export class OverrideStrategy implements RoutingStrategy {
         // 0. Respect Sovereign User Preference (Explicit Model Request)
         // If the user explicitly names a model, we yield to the Analytical/Selection strategies
         // to avoid overriding their specific command with a general intent override.
-        const explicitRequest = availableModels.find(m => prompt.includes(m.name.toLowerCase()) || prompt.includes(m.id.toLowerCase()));
+        const explicitRequest = availableModels.find(m => prompt.includes(m.name.toLowerCase()));
         if (explicitRequest) {
             return null;
         }

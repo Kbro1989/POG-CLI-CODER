@@ -21,6 +21,7 @@ export const FORGE_TOOLS: LimbTool[] = [
     {
         name: 'digest_component',
         description: 'Generate or absorb a UI component into the project',
+        isAI: true,
         parameters: {
             type: 'object',
             properties: {

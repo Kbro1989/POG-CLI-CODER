@@ -88,8 +88,9 @@ COMPLETION:`;
         const result = await this.executor.callModel(model, prompt);
 
         if (!result.ok) {
-            this.logger.warn({ error: result.error }, 'Inline prediction failed');
-            return { ok: false, error: result.error };
+            const error = (result as { ok: false; error: Error }).error;
+            this.logger.warn({ error }, 'Inline prediction failed');
+            return { ok: false, error };
         }
 
         // 5. Sanitize Output

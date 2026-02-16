@@ -109,7 +109,10 @@ TASK:
             this.config.criticModel || 'gemini-2.0-flash'
         );
 
-        if (!result.ok) return { ok: false, error: result.error };
+        if (!result.ok) {
+            const error = (result as { ok: false; error: Error }).error;
+            return { ok: false, error };
+        }
 
         const cleanedCode = result.value.response.replace(/```tsx?/g, '').replace(/```/g, '').trim();
 

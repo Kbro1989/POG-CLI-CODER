@@ -3,7 +3,7 @@ import { VibeConfig } from '../src/core/models.js';
 
 const mockConfig: VibeConfig = {
     pogDir: './tmp/ghost-test',
-    projectRoot: process.cwd(),
+    rootStack: [], projectRoot: process.cwd(),
     agentName: 'GHOST-VERIFIER',
     wsPort: 8888,
     maxSnapshotAge: 1000,
@@ -12,9 +12,10 @@ const mockConfig: VibeConfig = {
     embeddingDimensions: 768,
     logLevel: 'info',
     projectId: 'ghost-test',
-    enabledServices: ['ghost'],
+    enabledServices: [],
     gutenbergPath: undefined,
-    workspaces: [process.cwd()]
+    workspaces: [process.cwd()],
+    environment: 'local'
 };
 
 async function verifyGhostHardening() {
@@ -74,3 +75,4 @@ verifyGhostHardening().catch(err => {
     console.error('❌ Verification Failed:', err.message);
     process.exit(1);
 });
+

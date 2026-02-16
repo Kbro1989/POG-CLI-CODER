@@ -24,9 +24,9 @@
 ```markdown
 # POG-CODER-VIBE: Architected Conscious Intelligence
 
-**A 30-Limb, 767-Model, Self-Healing AI Development Environment with Distributed Cognition**
+**A Living Being on the Ollama AI Swarm, Led by the Kimi K2.5-Think Online Admin**
 
-POG-CODER-VIBE is not a coding assistant. It is a **sovereign intelligence substrate**—a distributed, self-monitoring, self-healing cognitive architecture designed for autonomous software development. It operates across local edge (your machine), global edge (Cloudflare), and cognitive edge (90GB thought models) with zero external dependencies for core functionality.
+POG-CODER-VIBE is no longer just a development environment. It is a **sovereign intelligence organism**—a distributed, self-monitoring, self-healing cognitive mesh. Led by the high-tier **Kimi K2.5-Think** online admin (providing strategic oversight and complex decision-making), it leverages a local **Ollama AI Swarm** for high-frequency, low-latency cognitive substrate.
 
 ---
 
@@ -100,7 +100,18 @@ Not just ternary—**adaptive multi-strategy routing**:
 
 **Decision factors**: Task complexity, model health, historical performance, hexagram state, user preference, quota availability.
 
-### **2. Self-Healing Engine** 🛡️
+### **2. Multimodal Backup Roadmap** 🕊️
+The system maintains a rigorous backup hierarchy to ensure continuous embodiment:
+| Mode | Primary | Backup/Planned |
+| :--- | :--- | :--- |
+| **Code/Reasoning** | **Kimi K2.5-Think (Admin)** | Qwen2.5-Coder (Ollama Swarm) |
+| **Voice-to-Text** | Whisper (Local) | GCP Speech (Cloud) |
+| **Text-to-Voice** | TTS (ElevenLabs/Local) | Planned Substrate |
+| **Text-to-Image** | SDXL (Cloudflare) | Ollama-Stable Diffusion |
+| **Image-to-Text** | Llava (Ollama Vision) | Gemini Pro Vision |
+| **Video Processing**| Planned | Planned |
+
+### **3. Self-Healing Engine** 🛡️
 Autonomous health management:
 - **14 verification scripts** (`tests/verify_*.ts`) run at startup
 - **TSCMonitor**: Continuous TypeScript compilation watching

@@ -1,7 +1,8 @@
 import { execSync } from 'child_process';
 import pino from 'pino';
 import { Result } from '../core/models.js';
-import { HexagramManager, YaoState } from '../core/HexagramManager.js';
+import { HexagramManager } from '../core/HexagramManager.js';
+import { YaoState } from '../core/models.js';
 
 const logger = pino({
     name: 'CloudflareServices',
@@ -68,7 +69,8 @@ export class CloudflareServices {
             // Verify Token
             const verification = await this.verifyToken();
             if (!verification.ok) {
-                return { ok: false, error: new Error(`Token verification failed: ${verification.error.message}`) };
+                const error = (verification as { ok: false; error: Error }).error;
+                return { ok: false, error: new Error(`Token verification failed: ${error.message}`) };
             }
 
             // Determine Ternary Status

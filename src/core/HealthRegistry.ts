@@ -1,4 +1,13 @@
-import { HealthReport } from './models.js';
+import { HealthReport, ServiceHealthState } from './models.js';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import pino from 'pino';
+
+const execAsync = promisify(exec);
+const logger = pino({
+    name: 'HealthRegistry',
+    base: { hostname: 'POG-VIBE' }
+});
 
 export type HealthProvider = () => HealthReport;
 
@@ -50,5 +59,44 @@ export class HealthRegistry {
             reports[id] = provider();
         }
         return reports;
+    }
+
+    /**
+     * Audit External Dependencies — Environment Probe
+     * 
+     * Probes key external dependencies using real process calls
+     * to determine which tools are available and healthy.
+     * 
+     * Mapped to Hexagram Line 4 (External Environment / Dependencies):
+     *  - All healthy:    YoungYang (⚊ Stable environment)
+     *  - Some degraded:  OldYang   (◯ Moving — partial outage)
+     *  - Critical:       OldYin    (✕ Moving — environment hostile)
+     */
+    public async auditExternalDeps(): Promise<Record<string, ServiceHealthState>> {
+        const probes: Record<string, string> = {
+            ollama: 'ollama list',
+            npm: 'npm --version',
+            git: 'git --version',
+            node: 'node --version'
+        };
+
+        const results: Record<string, ServiceHealthState> = {};
+
+        for (const [name, cmd] of Object.entries(probes)) {
+            try {
+                await execAsync(cmd, { timeout: 5000 });
+                results[name] = 'READY';
+            } catch {
+                results[name] = 'CRITICAL_FAILURE';
+                logger.warn({ dependency: name, command: cmd }, 'External dependency probe failed');
+            }
+        }
+
+        // Summary logging
+        const readyCount = Object.values(results).filter(s => s === 'READY').length;
+        const totalCount = Object.keys(results).length;
+        logger.info({ readyCount, totalCount, results }, 'External dependency audit complete');
+
+        return results;
     }
 }

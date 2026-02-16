@@ -1,0 +1,1100 @@
+
+> pog-coder-vibe@1.0.0 test
+> node --experimental-vm-modules node_modules/jest/bin/jest.js
+
+(node:23104) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/sovereign.spec.ts (5.428 s)
+(node:25768) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":30,"time":1771280028547,"hostname":"POG-VIBE","name":"RSCLimb","username":"admin","msg":"Attempting RSC Login"}
+{"level":30,"time":1771280028613,"hostname":"POG-VIBE","name":"RSCLimb","msg":"Connected to RSC Server, waiting for Session ID"}
+{"level":30,"time":1771280028705,"hostname":"POG-VIBE","name":"DashboardLimb","dashboardDir":"D:\\pog-coder-vibe\\session_dashboards\\TEST_DASH","msg":"Activating dashboard substrate"}
+(node:36868) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":40,"time":1771280029029,"hostname":"POG-VIBE","name":"DashboardLimb","port":8766,"msg":"Non-POG service detected on default dashboard port, finding fallback"}
+{"level":30,"time":1771280029038,"hostname":"POG-VIBE","name":"PreviewServer","projectName":"POG-DASHBOARD","projectPath":"D:\\pog-coder-vibe\\session_dashboards\\TEST_DASH","devCommand":"npx -y http-server . -p 8768","msg":"Starting project preview"}
+{"level":30,"time":1771280029439,"hostname":"POG-VIBE","name":"RSCLimb","sessionIdHex":"21930cc4","msg":"Session ID arrived, sending login"}
+{"level":30,"time":1771280029523,"hostname":"POG-VIBE","name":"RSCLimb","responseCode":3,"msg":"Received login response"}
+PASS tests/verify_rsc_login_tcp.spec.ts (6.979 s)
+  ● Console
+
+    console.log
+      Login Result: {
+        "ok": true,
+        "value": {
+          "output": "RSC Login failed with response code: 3",
+          "data": {
+            "status": "failure",
+            "responseCode": 3
+          }
+        }
+      }
+
+      at Object.<anonymous> (tests/verify_rsc_login_tcp.spec.ts:21:17)
+
+{"level":40,"time":1771280029523,"hostname":"POG-VIBE","name":"RSCLimb","responseCode":3,"msg":"Login failed"}
+{"level":30,"time":1771280029692,"hostname":"POG-VIBE","name":"RSCLimb","msg":"RSC Connection Closed"}
+(node:48044) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/verify_bunker_mode.spec.ts (7.365 s)
+{"level":30,"time":1771280030030,"hostname":"POG-VIBE","name":"Router","pogDir":"./test_pog","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":40,"time":1771280030046,"hostname":"TEST_SOVEREIGN","name":"ModelExecutor","model":"gemini:gemini-2.0-flash","msg":"Offline-First Sovereignty: Blocking explicit cloud call per system state."}
+{"level":40,"time":1771280030065,"hostname":"TEST_SOVEREIGN","name":"ModelExecutor","provider":"gemini","failures":0,"msg":"🔴 CIRCUIT OPEN: gemini disabled after 0 strikes"}
+{"level":30,"time":1771280030075,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280030045,"hostname":"POG-VIBE","name":"Router","pogDir":"./test_pog","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280030055,"hostname":"POG-VIBE","name":"Router","pogDir":"./test_pog","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280030062,"hostname":"POG-VIBE","name":"Router","pogDir":"./test_pog","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280030047,"hostname":"TEST_SOVEREIGN","name":"ModelExecutor","msg":"🧠 Entering Cognitive Bottleneck (Sovereign Oracle)..."}
+{"level":40,"time":1771280030048,"hostname":"TEST_SOVEREIGN","name":"ModelExecutor","error":{},"msg":"Cognitive Bottleneck failed - proceeding raw"}
+{"level":40,"time":1771280030066,"hostname":"TEST_SOVEREIGN","name":"ModelExecutor","model":"gemini:gemini-pro","msg":"Offline-First Sovereignty: Blocking explicit cloud call per system state."}
+{"level":30,"time":1771280030066,"hostname":"TEST_SOVEREIGN","name":"ModelExecutor","msg":"🧠 Entering Cognitive Bottleneck (Sovereign Oracle)..."}
+{"level":40,"time":1771280030066,"hostname":"TEST_SOVEREIGN","name":"ModelExecutor","error":{},"msg":"Cognitive Bottleneck failed - proceeding raw"}
+{"level":30,"time":1771280030297,"pid":25996,"hostname":"DestinyMiller","name":"CompositeStrategy:composite","strategy":"default","model":"qwen2.5-coder:7b","latencyMs":0,"msg":"Terminal strategy executed"}
+{"level":30,"time":1771280030440,"pid":25996,"hostname":"DestinyMiller","name":"CompositeStrategy:composite","strategy":"override","model":"gemini-3-pro-preview","latencyMs":0,"msg":"Strategy matched"}
+(node:25996) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":30,"time":1771280030571,"pid":25996,"hostname":"DestinyMiller","name":"CompositeStrategy:composite","strategy":"default","model":"qwen2.5-coder:7b","latencyMs":0,"msg":"Terminal strategy executed"}
+{"level":30,"time":1771280030297,"hostname":"POG-VIBE","name":"Router","input":"fix typo in hello.ts...","selected":"qwen2.5-coder:7b","reasoning":"Using default local model as terminal fallback","source":"composite/default","complexity":"Yin","hexagram":"The Creative (Qian)","msg":"Sovereign Routing complete"}
+{"level":30,"time":1771280030305,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280030440,"hostname":"POG-VIBE","name":"Router","input":"\n        Architect and design a comprehensive micr...","selected":"gemini-3-pro-preview","reasoning":"Intention: Deep Architecture - Routing to cloud-tier thinking powerhouse","source":"composite/override","complexity":"YinYang","hexagram":"The Creative (Qian)","msg":"Sovereign Routing complete"}
+{"level":30,"time":1771280030446,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280030571,"hostname":"POG-VIBE","name":"Router","input":"generate a function to add two numbers...","selected":"qwen2.5-coder:7b","reasoning":"Using default local model as terminal fallback","source":"composite/default","complexity":"Yin","hexagram":"The Creative (Qian)","msg":"Sovereign Routing complete"}
+{"level":30,"time":1771280030577,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280030583,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280032314,"pid":25996,"hostname":"DestinyMiller","name":"CompositeStrategy:composite","strategy":"override","model":"gemini-2.0-flash","latencyMs":0,"msg":"Strategy matched"}
+{"level":30,"time":1771280032315,"hostname":"POG-VIBE","name":"Router","input":"ping...","selected":"gemini-2.0-flash","reasoning":"Intention: Rapid health/status check - Routing to high-availability edge","source":"composite/override","complexity":"Yin","hexagram":"The Creative (Qian)","msg":"Sovereign Routing complete"}
+{"level":30,"time":1771280032583,"pid":25996,"hostname":"DestinyMiller","name":"AnalyticalStrategy","bestModel":"gemini-2.0-flash","latencyMs":1,"msg":"Cognitive synthesis complete"}
+{"level":30,"time":1771280032584,"pid":25996,"hostname":"DestinyMiller","name":"CompositeStrategy:composite","strategy":"analytical","model":"gemini-2.0-flash","latencyMs":1,"msg":"Strategy matched"}
+PASS tests/router.spec.ts (10.404 s)
+{"level":30,"time":1771280033100,"pid":25996,"hostname":"DestinyMiller","name":"CompositeStrategy:composite","strategy":"default","model":"qwen2.5-coder:7b","latencyMs":0,"msg":"Terminal strategy executed"}
+{"level":30,"time":1771280032321,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280032584,"hostname":"POG-VIBE","name":"Router","input":"design a microservices architecture...","selected":"gemini-2.0-flash","reasoning":"Synthesis of 3 simulations biased by complexity [Yin] and cognitive regrets.","source":"composite/analytical","complexity":"YinYang","hexagram":"The Creative (Qian)","msg":"Sovereign Routing complete"}
+{"level":30,"time":1771280032592,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280033100,"hostname":"POG-VIBE","name":"Router","input":"radiology analysis report...","selected":"qwen2.5-coder:7b","reasoning":"Using default local model as terminal fallback","source":"composite/default","complexity":"Yin","hexagram":"The Creative (Qian)","msg":"Sovereign Routing complete"}
+FAIL tests/dashboard.spec.ts (11.141 s)
+  ● DashboardLimb (Real Integration) › should generate HTML, CSS, and JS assets on activation
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 54 |[39m     })[33m;[39m
+     [90m 55 |[39m
+    [31m[1m>[22m[39m[90m 56 |[39m     it([32m'should generate HTML, CSS, and JS assets on activation'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 57 |[39m         [36mconst[39m result [33m=[39m [36mawait[39m dashboard[33m.[39mactivate()[33m;[39m
+     [90m 58 |[39m
+     [90m 59 |[39m         expect(result[33m.[39mok)[33m.[39mtoBe([36mtrue[39m)[33m;[39m[0m
+
+      at tests/dashboard.spec.ts:56:5
+      at tests/dashboard.spec.ts:17:1
+
+(node:8804) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":30,"time":1771280037356,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280037381,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":30,"time":1771280037615,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":30,"time":1771280037663,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":30,"time":1771280037852,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":30,"time":1771280038681,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280038733,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","projectId":"TEST_ORCH","projectRoot":"C:\\Temp\\pog-orch-test-1771280037323","msg":"Booting ContextBuilder for Sovereign retrieval"}
+{"level":30,"time":1771280038784,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280038801,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","projectId":"TEST_IDLE","projectRoot":"C:\\Temp\\pog-idle-test-1771280037359","msg":"Booting ContextBuilder for Sovereign retrieval"}
+{"level":30,"time":1771280038890,"hostname":"POG-VIBE","name":"StateManager","msg":"StateManager initialized with hybrid defaults"}
+{"level":30,"time":1771280038906,"hostname":"POG-VIBE","name":"StateManager","msg":"StateManager initialized with hybrid defaults"}
+{"level":30,"time":1771280038922,"hostname":"POG-VIBE","name":"FileSystemLimb","msg":"FileSystemLimb initialized — 5 core file operations registered."}
+{"level":30,"time":1771280038923,"hostname":"POG-VIBE","name":"YoloLimb","msg":"YoloLimb initialized — fast execution bypass active."}
+{"level":30,"time":1771280038929,"hostname":"POG-VIBE","name":"FileSystemLimb","msg":"FileSystemLimb initialized — 5 core file operations registered."}
+{"level":30,"time":1771280038931,"hostname":"POG-VIBE","name":"YoloLimb","msg":"YoloLimb initialized — fast execution bypass active."}
+{"level":30,"time":1771280039032,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280039054,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","projectId":"LIMB_HEALTH_TEST","projectRoot":"C:\\Temp\\pog-limbs-test-1771280037423","msg":"Booting ContextBuilder for Sovereign retrieval"}
+{"level":30,"time":1771280039143,"hostname":"POG-VIBE","name":"StateManager","msg":"StateManager initialized with hybrid defaults"}
+{"level":30,"time":1771280039165,"hostname":"POG-VIBE","name":"FileSystemLimb","msg":"FileSystemLimb initialized — 5 core file operations registered."}
+{"level":30,"time":1771280039186,"hostname":"POG-VIBE","name":"YoloLimb","msg":"YoloLimb initialized — fast execution bypass active."}
+{"level":30,"time":1771280040967,"hostname":"POG-VIBE","name":"ProjectPulse","projectName":"POG-VIBE-AGENT","path":"C:\\Temp\\pog-idle-test-1771280037359\\pog.md","msg":"Project manifest initialized"}
+{"level":30,"time":1771280040984,"hostname":"POG-VIBE","name":"PulseMonitor","msg":"PulseMonitor: Biological heart rate established."}
+{"level":30,"time":1771280041103,"hostname":"POG-VIBE","name":"ProjectPulse","projectName":"POG-VIBE-AGENT","path":"C:\\Temp\\pog-orch-test-1771280037323\\pog.md","msg":"Project manifest initialized"}
+{"level":30,"time":1771280041118,"hostname":"POG-VIBE","name":"PulseMonitor","msg":"PulseMonitor: Biological heart rate established."}
+{"level":30,"time":1771280041126,"hostname":"POG-VIBE","name":"ProjectPulse","projectName":"POG-VIBE-AGENT","path":"C:\\Temp\\pog-limbs-test-1771280037423\\pog.md","msg":"Project manifest initialized"}
+{"level":30,"time":1771280041144,"hostname":"POG-VIBE","name":"PulseMonitor","msg":"PulseMonitor: Biological heart rate established."}
+(node:40492) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":30,"time":1771280038801,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","msg":"Initializing CodebaseIndexer for full-project semantic indexing"}
+{"level":30,"time":1771280038963,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","enabled":["gemini","ollama","cloudflare","mcp_gitkraken","healthcare","documentai","vision","mediaforge","gutenberg","dashboard"],"msg":"Selective limb loading active"}
+{"level":30,"time":1771280038966,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","sessionId":"TEST_IDLE_vibe_1771280037403_bp7url","agentName":"POG-VIBE-AGENT","pogDir":"D:\\pog-coder-vibe","adversarialEnabled":true,"msg":"Orchestrator initialized with Sovereign Intelligence"}
+{"level":30,"time":1771280041029,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","msg":"Sovereign Idle Loop initiated"}
+{"level":30,"time":1771280041030,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+(node:27316) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7808) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":30,"time":1771280038734,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","msg":"Initializing CodebaseIndexer for full-project semantic indexing"}
+{"level":30,"time":1771280038964,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","enabled":["gemini","ollama","cloudflare","mcp_gitkraken","healthcare","documentai","vision","mediaforge","gutenberg","dashboard"],"msg":"Selective limb loading active"}
+{"level":30,"time":1771280038967,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","sessionId":"TEST_ORCH_vibe_1771280037339_gtc9y","agentName":"POG-VIBE-AGENT","pogDir":"D:\\pog-coder-vibe","adversarialEnabled":true,"msg":"Orchestrator initialized with Sovereign Intelligence"}
+{"level":30,"time":1771280041161,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","msg":"Sovereign Idle Loop initiated"}
+{"level":30,"time":1771280041162,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280039054,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","msg":"Initializing CodebaseIndexer for full-project semantic indexing"}
+{"level":30,"time":1771280039193,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","enabled":["dashboard","gutenberg_knowledge","webforge"],"msg":"Selective limb loading active"}
+{"level":30,"time":1771280039195,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","sessionId":"LIMB_HEALTH_TEST_vibe_1771280037444_qwes8c","agentName":"POG-VIBE-AGENT","pogDir":"D:\\pog-coder-vibe","adversarialEnabled":true,"msg":"Orchestrator initialized with Sovereign Intelligence"}
+{"level":30,"time":1771280041181,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","msg":"Sovereign Idle Loop initiated"}
+{"level":30,"time":1771280041182,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280042395,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","msg":"Shutting down Orchestrator..."}
+{"level":30,"time":1771280042400,"hostname":"POG-VIBE","name":"ASTWatcher","msg":"Watcher stopped"}
+{"level":30,"time":1771280042697,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":30,"time":1771280042717,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280042801,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","projectId":"TEST_IDLE","projectRoot":"C:\\Temp\\pog-idle-test-1771280042450","msg":"Booting ContextBuilder for Sovereign retrieval"}
+{"level":30,"time":1771280042865,"hostname":"POG-VIBE","name":"FileSystemLimb","msg":"FileSystemLimb initialized — 5 core file operations registered."}
+{"level":30,"time":1771280042866,"hostname":"POG-VIBE","name":"YoloLimb","msg":"YoloLimb initialized — fast execution bypass active."}
+{"level":30,"time":1771280043235,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":40,"time":1771280043383,"hostname":"POG-VIBE","name":"PreviewServer","projectName":"POG-DASHBOARD","msg":"(node:26384) [DEP0066] DeprecationWarning: OutgoingMessage.prototype._headers is deprecated\n(Use `node --trace-deprecation ...` to show where the warning was created)\n"}
+{"level":30,"time":1771280043389,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280043463,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280043480,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","projectId":"TEST_ORCH","projectRoot":"C:\\Temp\\pog-orch-test-1771280042545","msg":"Booting ContextBuilder for Sovereign retrieval"}
+{"level":30,"time":1771280043475,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","port":8765,"msg":"Initializing WebSocket Server..."}
+{"level":50,"time":1771280043572,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":8765},"msg":"WebSocket Server FATAL ERROR"}
+{"level":40,"time":1771280043572,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","msg":"Port in use, falling back to dynamic port..."}
+{"level":30,"time":1771280043584,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","port":0,"msg":"Initializing WebSocket Server..."}
+{"level":30,"time":1771280043726,"hostname":"POG-VIBE","name":"DashboardLimb","dashboardDir":"D:\\pog-coder-vibe\\session_dashboards\\LIMB_HEALTH_TEST","msg":"Activating dashboard substrate"}
+{"level":30,"time":1771280043750,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Temp\\pog-limbs-test-1771280037423","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280043856,"hostname":"POG-VIBE","name":"FileSystemLimb","msg":"FileSystemLimb initialized — 5 core file operations registered."}
+{"level":30,"time":1771280043882,"hostname":"POG-VIBE","name":"YoloLimb","msg":"YoloLimb initialized — fast execution bypass active."}
+{"level":30,"time":1771280044125,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":30,"time":1771280043718,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","port":53355,"msg":"WebSocket Server LISTENING"}
+{"level":30,"time":1771280044495,"hostname":"POG-VIBE","name":"PreviewServer","projectName":"POG-DASHBOARD","projectPath":"D:\\pog-coder-vibe\\session_dashboards\\LIMB_HEALTH_TEST","devCommand":"npx -y http-server . -p 53356","msg":"Starting project preview"}
+{"level":30,"time":1771280045722,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","discovered":11,"msg":"ServiceDiscovery audit complete"}
+{"level":30,"time":1771280045813,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","port":53355,"msg":"WebSocket server started"}
+{"level":30,"time":1771280046110,"hostname":"POG-VIBE","name":"ASTWatcher","msg":"Watcher stopped"}
+{"level":30,"time":1771280047525,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":30,"time":1771280047677,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280047772,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","projectId":"LIMB_HEALTH_TEST","projectRoot":"C:\\Temp\\pog-limbs-test-1771280046602","msg":"Booting ContextBuilder for Sovereign retrieval"}
+{"level":30,"time":1771280047979,"hostname":"POG-VIBE","name":"ProjectPulse","projectName":"POG-VIBE-AGENT","path":"C:\\Temp\\pog-idle-test-1771280042450\\pog.md","msg":"Project manifest initialized"}
+{"level":30,"time":1771280048091,"hostname":"POG-VIBE","name":"PulseMonitor","msg":"PulseMonitor: Biological heart rate established."}
+{"level":30,"time":1771280048288,"hostname":"POG-VIBE","name":"FileSystemLimb","msg":"FileSystemLimb initialized — 5 core file operations registered."}
+{"level":30,"time":1771280048324,"hostname":"POG-VIBE","name":"YoloLimb","msg":"YoloLimb initialized — fast execution bypass active."}
+{"level":30,"time":1771280042802,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","msg":"Initializing CodebaseIndexer for full-project semantic indexing"}
+{"level":30,"time":1771280042870,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","enabled":["gemini","ollama","cloudflare","mcp_gitkraken","healthcare","documentai","vision","mediaforge","gutenberg","dashboard"],"msg":"Selective limb loading active"}
+{"level":30,"time":1771280042871,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","sessionId":"TEST_IDLE_vibe_1771280042519_0v950r","agentName":"POG-VIBE-AGENT","pogDir":"D:\\pog-coder-vibe","adversarialEnabled":true,"msg":"Orchestrator initialized with Sovereign Intelligence"}
+{"level":30,"time":1771280048172,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","msg":"Sovereign Idle Loop initiated"}
+{"level":30,"time":1771280048172,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280048479,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280048502,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","port":8765,"msg":"Initializing WebSocket Server..."}
+FAIL tests/verify_idle_state.spec.ts (26.323 s)
+  ● Idle State & Objectives Verification › should read objectives.md via checkObjectiveProgress
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 18 |[39m     [36mlet[39m objectivesPath[33m:[39m string[33m;[39m
+     [90m 19 |[39m
+    [31m[1m>[22m[39m[90m 20 |[39m     beforeEach([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 21 |[39m         process[33m.[39menv[[32m'ENABLE_MONITOR'[39m] [33m=[39m [32m'false'[39m[33m;[39m
+     [90m 22 |[39m         process[33m.[39menv[[32m'NODE_ENV'[39m] [33m=[39m [32m'test'[39m[33m;[39m [90m// Ensure we use test bypasses[39m
+     [90m 23 |[39m[0m
+
+      at tests/verify_idle_state.spec.ts:20:5
+      at tests/verify_idle_state.spec.ts:15:1
+
+  ● Idle State & Objectives Verification › should expose check_objective_progress tool via SovereignCLILimb
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 18 |[39m     [36mlet[39m objectivesPath[33m:[39m string[33m;[39m
+     [90m 19 |[39m
+    [31m[1m>[22m[39m[90m 20 |[39m     beforeEach([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 21 |[39m         process[33m.[39menv[[32m'ENABLE_MONITOR'[39m] [33m=[39m [32m'false'[39m[33m;[39m
+     [90m 22 |[39m         process[33m.[39menv[[32m'NODE_ENV'[39m] [33m=[39m [32m'test'[39m[33m;[39m [90m// Ensure we use test bypasses[39m
+     [90m 23 |[39m[0m
+
+      at tests/verify_idle_state.spec.ts:20:5
+      at tests/verify_idle_state.spec.ts:15:1
+
+{"level":50,"time":1771280049080,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":8765},"msg":"WebSocket Server FATAL ERROR"}
+{"level":40,"time":1771280049080,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","msg":"Port in use, falling back to dynamic port..."}
+{"level":30,"time":1771280049087,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","port":0,"msg":"Initializing WebSocket Server..."}
+{"level":30,"time":1771280049236,"hostname":"POG-VIBE","name":"ProjectPulse","projectName":"POG-VIBE-AGENT","path":"C:\\Temp\\pog-orch-test-1771280042545\\pog.md","msg":"Project manifest initialized"}
+{"level":30,"time":1771280049239,"hostname":"POG-VIBE","name":"DashboardLimb","dashboardDir":"D:\\pog-coder-vibe\\session_dashboards\\TEST_IDLE","msg":"Activating dashboard substrate"}
+{"level":30,"time":1771280049297,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Temp\\pog-idle-test-1771280037359","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280049367,"hostname":"POG-VIBE","name":"PulseMonitor","msg":"PulseMonitor: Biological heart rate established."}
+{"level":30,"time":1771280049439,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":30,"time":1771280049238,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","port":53816,"msg":"WebSocket Server LISTENING"}
+{"level":30,"time":1771280049523,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","discovered":11,"msg":"ServiceDiscovery audit complete"}
+{"level":30,"time":1771280049599,"hostname":"POG-VIBE","name":"PreviewServer","projectName":"POG-DASHBOARD","projectPath":"D:\\pog-coder-vibe\\session_dashboards\\TEST_IDLE","devCommand":"npx -y http-server . -p 53817","msg":"Starting project preview"}
+{"level":30,"time":1771280049720,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280049720,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","port":8765,"msg":"Initializing WebSocket Server..."}
+{"level":50,"time":1771280049724,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":8765},"msg":"WebSocket Server FATAL ERROR"}
+{"level":40,"time":1771280049724,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","msg":"Port in use, falling back to dynamic port..."}
+{"level":30,"time":1771280049724,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","port":0,"msg":"Initializing WebSocket Server..."}
+{"level":30,"time":1771280049732,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","port":53816,"msg":"WebSocket server started"}
+{"level":30,"time":1771280049764,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","port":59464,"msg":"WebSocket Server LISTENING"}
+{"level":30,"time":1771280049764,"hostname":"POG-VIBE","name":"DashboardLimb","dashboardDir":"D:\\pog-coder-vibe\\session_dashboards\\TEST_IDLE","msg":"Activating dashboard substrate"}
+{"level":30,"time":1771280050003,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Temp\\pog-idle-test-1771280042450","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280042400,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","msg":"Orchestrator cleanup complete."}
+{"level":30,"time":1771280049524,"hostname":"POG-VIBE","name":"ASTWatcher","msg":"Watcher stopped"}
+{"level":30,"time":1771280043499,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","msg":"Initializing CodebaseIndexer for full-project semantic indexing"}
+{"level":30,"time":1771280044101,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","enabled":["gemini","ollama","cloudflare","mcp_gitkraken","healthcare","documentai","vision","mediaforge","gutenberg","dashboard"],"msg":"Selective limb loading active"}
+{"level":30,"time":1771280044104,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","sessionId":"TEST_ORCH_vibe_1771280042580_vyztxn","agentName":"POG-VIBE-AGENT","pogDir":"D:\\pog-coder-vibe","adversarialEnabled":true,"msg":"Orchestrator initialized with Sovereign Intelligence"}
+{"level":30,"time":1771280049443,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","msg":"Sovereign Idle Loop initiated"}
+{"level":30,"time":1771280049443,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280049524,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","msg":"Shutting down Orchestrator..."}
+{"level":30,"time":1771280049524,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","msg":"Orchestrator cleanup complete."}
+{"level":30,"time":1771280050047,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":30,"time":1771280050306,"hostname":"POG-VIBE","name":"PreviewServer","projectName":"POG-DASHBOARD","projectPath":"D:\\pog-coder-vibe\\session_dashboards\\TEST_IDLE","devCommand":"npx -y http-server . -p 59465","msg":"Starting project preview"}
+{"level":30,"time":1771280050598,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","port":59464,"msg":"WebSocket server started"}
+FAIL tests/orchestrator.spec.ts (27.294 s)
+  ● FreeOrchestrator (Real Integration) › should initialize successfully
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 21 |[39m     [36mlet[39m testDir[33m:[39m string[33m;[39m
+     [90m 22 |[39m
+    [31m[1m>[22m[39m[90m 23 |[39m     beforeEach([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 24 |[39m         [90m// Disable MonitorAgent during tests to prevent async leaks from TSC watcher[39m
+     [90m 25 |[39m         process[33m.[39menv[[32m'ENABLE_MONITOR'[39m] [33m=[39m [32m'false'[39m[33m;[39m
+     [90m 26 |[39m[0m
+
+      at tests/orchestrator.spec.ts:23:5
+      at tests/orchestrator.spec.ts:19:1
+
+  ● FreeOrchestrator (Real Integration) › should route conversational intents to fast path
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 21 |[39m     [36mlet[39m testDir[33m:[39m string[33m;[39m
+     [90m 22 |[39m
+    [31m[1m>[22m[39m[90m 23 |[39m     beforeEach([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 24 |[39m         [90m// Disable MonitorAgent during tests to prevent async leaks from TSC watcher[39m
+     [90m 25 |[39m         process[33m.[39menv[[32m'ENABLE_MONITOR'[39m] [33m=[39m [32m'false'[39m[33m;[39m
+     [90m 26 |[39m[0m
+
+      at tests/orchestrator.spec.ts:23:5
+      at tests/orchestrator.spec.ts:19:1
+
+{"level":30,"time":1771280050805,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280050806,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","port":8765,"msg":"Initializing WebSocket Server..."}
+{"level":30,"time":1771280050914,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":50,"time":1771280050890,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":8765},"msg":"WebSocket Server FATAL ERROR"}
+{"level":40,"time":1771280050890,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","msg":"Port in use, falling back to dynamic port..."}
+{"level":30,"time":1771280050903,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","port":0,"msg":"Initializing WebSocket Server..."}
+{"level":30,"time":1771280050949,"hostname":"POG-VIBE","name":"DashboardLimb","dashboardDir":"D:\\pog-coder-vibe\\session_dashboards\\TEST_ORCH","msg":"Activating dashboard substrate"}
+{"level":30,"time":1771280051027,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Temp\\pog-orch-test-1771280037323","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280051361,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":30,"time":1771280050914,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","port":8765,"msg":"Initializing WebSocket Server..."}
+{"level":30,"time":1771280050948,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","port":59476,"msg":"WebSocket Server LISTENING"}
+{"level":50,"time":1771280051400,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":8765},"msg":"WebSocket Server FATAL ERROR"}
+{"level":40,"time":1771280051400,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","msg":"Port in use, falling back to dynamic port..."}
+{"level":30,"time":1771280051414,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","port":0,"msg":"Initializing WebSocket Server..."}
+{"level":30,"time":1771280051530,"hostname":"POG-VIBE","name":"DashboardLimb","dashboardDir":"D:\\pog-coder-vibe\\session_dashboards\\TEST_ORCH","msg":"Activating dashboard substrate"}
+{"level":30,"time":1771280051828,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Temp\\pog-orch-test-1771280042545","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280051837,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":30,"time":1771280051529,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","port":59478,"msg":"WebSocket Server LISTENING"}
+{"level":30,"time":1771280052240,"hostname":"POG-VIBE","name":"PreviewServer","projectName":"POG-DASHBOARD","projectPath":"D:\\pog-coder-vibe\\session_dashboards\\TEST_ORCH","devCommand":"npx -y http-server . -p 59479","msg":"Starting project preview"}
+{"level":40,"time":1771280052373,"hostname":"POG-VIBE","name":"DashboardLimb","port":59477,"msg":"Non-POG service detected on default dashboard port, finding fallback"}
+{"level":30,"time":1771280052432,"hostname":"POG-VIBE","name":"PreviewServer","projectName":"POG-DASHBOARD","projectPath":"D:\\pog-coder-vibe\\session_dashboards\\TEST_ORCH","devCommand":"npx -y http-server . -p 59479","msg":"Starting project preview"}
+{"level":30,"time":1771280052525,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","port":59476,"msg":"WebSocket server started"}
+{"level":30,"time":1771280052526,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","port":59478,"msg":"WebSocket server started"}
+{"level":30,"time":1771280053362,"hostname":"POG-VIBE","name":"ProjectPulse","projectName":"POG-VIBE-AGENT","path":"C:\\Temp\\pog-limbs-test-1771280046602\\pog.md","msg":"Project manifest initialized"}
+{"level":30,"time":1771280053531,"hostname":"POG-VIBE","name":"PulseMonitor","msg":"PulseMonitor: Biological heart rate established."}
+{"level":30,"time":1771280046051,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","msg":"Shutting down Orchestrator..."}
+{"level":30,"time":1771280046110,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","msg":"Orchestrator cleanup complete."}
+{"level":30,"time":1771280047772,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","msg":"Initializing CodebaseIndexer for full-project semantic indexing"}
+{"level":30,"time":1771280048388,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","enabled":["dashboard","gutenberg_knowledge","webforge"],"msg":"Selective limb loading active"}
+{"level":30,"time":1771280048399,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","sessionId":"LIMB_HEALTH_TEST_vibe_1771280046652_6558m","agentName":"POG-VIBE-AGENT","pogDir":"D:\\pog-coder-vibe","adversarialEnabled":true,"msg":"Orchestrator initialized with Sovereign Intelligence"}
+{"level":30,"time":1771280053650,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","msg":"Sovereign Idle Loop initiated"}
+{"level":30,"time":1771280053650,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/orchestrator.spec.ts.
+
+    [0m [90m 151 |[39m                 id[33m:[39m [32m'mcp_gitkraken'[39m[33m,[39m
+     [90m 152 |[39m                 name[33m:[39m [32m'MCP GitKraken'[39m[33m,[39m
+    [31m[1m>[22m[39m[90m 153 |[39m                 status[33m:[39m isActive [33m?[39m [32m'ACTIVE'[39m [33m:[39m [32m'INACTIVE'[39m[33m,[39m
+     [90m     |[39m                                          [31m[1m^[22m[39m
+     [90m 154 |[39m                 type[33m:[39m [32m'MCP'[39m[33m,[39m
+     [90m 155 |[39m                 details[33m:[39m isActive
+     [90m 156 |[39m                     [33m?[39m (isEnabled [33m?[39m [32m'Substrate: READY (Coalesced)'[39m [33m:[39m [32m'Detected: Path Active'[39m)[0m
+
+      at ServiceDiscovery.checkVSCodeExtension (src/core/ServiceDiscovery.ts:153:42)
+      at ServiceDiscovery.auditAll (src/core/ServiceDiscovery.ts:28:49)
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/orchestrator.spec.ts.
+
+
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/verify_idle_state.spec.ts.
+
+    [0m [90m 151 |[39m                 id[33m:[39m [32m'mcp_gitkraken'[39m[33m,[39m
+     [90m 152 |[39m                 name[33m:[39m [32m'MCP GitKraken'[39m[33m,[39m
+    [31m[1m>[22m[39m[90m 153 |[39m                 status[33m:[39m isActive [33m?[39m [32m'ACTIVE'[39m [33m:[39m [32m'INACTIVE'[39m[33m,[39m
+     [90m     |[39m                                          [31m[1m^[22m[39m
+     [90m 154 |[39m                 type[33m:[39m [32m'MCP'[39m[33m,[39m
+     [90m 155 |[39m                 details[33m:[39m isActive
+     [90m 156 |[39m                     [33m?[39m (isEnabled [33m?[39m [32m'Substrate: READY (Coalesced)'[39m [33m:[39m [32m'Detected: Path Active'[39m)[0m
+
+      at ServiceDiscovery.checkVSCodeExtension (src/core/ServiceDiscovery.ts:153:42)
+      at ServiceDiscovery.auditAll (src/core/ServiceDiscovery.ts:28:49)
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/verify_idle_state.spec.ts.
+
+
+{"level":30,"time":1771280054962,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280054962,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","port":8765,"msg":"Initializing WebSocket Server..."}
+{"level":50,"time":1771280054974,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":8765},"msg":"WebSocket Server FATAL ERROR"}
+{"level":40,"time":1771280054974,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","msg":"Port in use, falling back to dynamic port..."}
+{"level":30,"time":1771280054974,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","port":0,"msg":"Initializing WebSocket Server..."}
+{"level":30,"time":1771280055000,"hostname":"POG-VIBE","name":"DashboardLimb","dashboardDir":"D:\\pog-coder-vibe\\session_dashboards\\LIMB_HEALTH_TEST","msg":"Activating dashboard substrate"}
+{"level":30,"time":1771280055039,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Temp\\pog-limbs-test-1771280046602","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280055065,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/orchestrator.spec.ts.
+
+    [0m [90m 151 |[39m                 id[33m:[39m [32m'mcp_gitkraken'[39m[33m,[39m
+     [90m 152 |[39m                 name[33m:[39m [32m'MCP GitKraken'[39m[33m,[39m
+    [31m[1m>[22m[39m[90m 153 |[39m                 status[33m:[39m isActive [33m?[39m [32m'ACTIVE'[39m [33m:[39m [32m'INACTIVE'[39m[33m,[39m
+     [90m     |[39m                                          [31m[1m^[22m[39m
+     [90m 154 |[39m                 type[33m:[39m [32m'MCP'[39m[33m,[39m
+     [90m 155 |[39m                 details[33m:[39m isActive
+     [90m 156 |[39m                     [33m?[39m (isEnabled [33m?[39m [32m'Substrate: READY (Coalesced)'[39m [33m:[39m [32m'Detected: Path Active'[39m)[0m
+
+      at ServiceDiscovery.checkVSCodeExtension (src/core/ServiceDiscovery.ts:153:42)
+      at ServiceDiscovery.auditAll (src/core/ServiceDiscovery.ts:28:49)
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/orchestrator.spec.ts.
+
+
+{"level":30,"time":1771280055000,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","port":52027,"msg":"WebSocket Server LISTENING"}
+{"level":50,"time":1771280055286,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280055286,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":40,"time":1771280055396,"hostname":"POG-VIBE","name":"DashboardLimb","port":52028,"msg":"Non-POG service detected on default dashboard port, finding fallback"}
+{"level":30,"time":1771280055496,"hostname":"POG-VIBE","name":"PreviewServer","projectName":"POG-DASHBOARD","projectPath":"D:\\pog-coder-vibe\\session_dashboards\\LIMB_HEALTH_TEST","devCommand":"npx -y http-server . -p 52029","msg":"Starting project preview"}
+{"level":30,"time":1771280055700,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","port":52027,"msg":"WebSocket server started"}
+{"level":30,"time":1771280055760,"hostname":"POG-VIBE","name":"ASTWatcher","msg":"Watcher stopped"}
+{"level":30,"time":1771280057240,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":30,"time":1771280057516,"hostname":"POG-VIBE","name":"Router","pogDir":"D:\\pog-coder-vibe","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280057749,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","projectId":"LIMB_HEALTH_TEST","projectRoot":"C:\\Temp\\pog-limbs-test-1771280055828","msg":"Booting ContextBuilder for Sovereign retrieval"}
+{"level":30,"time":1771280058517,"hostname":"POG-VIBE","name":"FileSystemLimb","msg":"FileSystemLimb initialized — 5 core file operations registered."}
+{"level":30,"time":1771280058548,"hostname":"POG-VIBE","name":"YoloLimb","msg":"YoloLimb initialized — fast execution bypass active."}
+{"level":50,"time":1771280056724,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280056724,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280058987,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","discovered":11,"msg":"ServiceDiscovery audit complete"}
+{"level":50,"time":1771280059373,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280059801,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280062312,"hostname":"POG-VIBE","name":"ProjectPulse","projectName":"POG-VIBE-AGENT","path":"C:\\Temp\\pog-limbs-test-1771280055828\\pog.md","msg":"Project manifest initialized"}
+{"level":30,"time":1771280062534,"hostname":"POG-VIBE","name":"PulseMonitor","msg":"PulseMonitor: Biological heart rate established."}
+{"level":30,"time":1771280055744,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","msg":"Shutting down Orchestrator..."}
+{"level":30,"time":1771280055760,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","msg":"Orchestrator cleanup complete."}
+{"level":30,"time":1771280057749,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","msg":"Initializing CodebaseIndexer for full-project semantic indexing"}
+{"level":30,"time":1771280058621,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","enabled":["dashboard","gutenberg_knowledge","webforge"],"msg":"Selective limb loading active"}
+{"level":30,"time":1771280058637,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","sessionId":"LIMB_HEALTH_TEST_vibe_1771280055929_mp754l","agentName":"POG-VIBE-AGENT","pogDir":"D:\\pog-coder-vibe","adversarialEnabled":true,"msg":"Orchestrator initialized with Sovereign Intelligence"}
+{"level":30,"time":1771280062674,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","msg":"Sovereign Idle Loop initiated"}
+{"level":30,"time":1771280062675,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280062865,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280046652,"name":"Orchestrator","discovered":11,"msg":"ServiceDiscovery audit complete"}
+{"level":50,"time":1771280061681,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280063639,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280063639,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","port":8765,"msg":"Initializing WebSocket Server..."}
+{"level":50,"time":1771280063659,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":8765},"msg":"WebSocket Server FATAL ERROR"}
+{"level":40,"time":1771280063660,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","msg":"Port in use, falling back to dynamic port..."}
+{"level":30,"time":1771280063660,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","port":0,"msg":"Initializing WebSocket Server..."}
+{"level":30,"time":1771280063718,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","port":60135,"msg":"WebSocket Server LISTENING"}
+{"level":30,"time":1771280063719,"hostname":"POG-VIBE","name":"DashboardLimb","dashboardDir":"D:\\pog-coder-vibe\\session_dashboards\\LIMB_HEALTH_TEST","msg":"Activating dashboard substrate"}
+{"level":30,"time":1771280063813,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Temp\\pog-limbs-test-1771280055828","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280063918,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":40,"time":1771280064349,"hostname":"POG-VIBE","name":"DashboardLimb","port":60136,"msg":"Non-POG service detected on default dashboard port, finding fallback"}
+{"level":30,"time":1771280064576,"hostname":"POG-VIBE","name":"PreviewServer","projectName":"POG-DASHBOARD","projectPath":"D:\\pog-coder-vibe\\session_dashboards\\LIMB_HEALTH_TEST","devCommand":"npx -y http-server . -p 60137","msg":"Starting project preview"}
+{"level":30,"time":1771280064948,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","port":60135,"msg":"WebSocket server started"}
+{"level":30,"time":1771280064958,"hostname":"POG-VIBE","name":"DashboardLimb","service":"media_forge","enabled":true,"msg":"Service status toggled"}
+{"level":30,"time":1771280064995,"hostname":"POG-VIBE","name":"ASTWatcher","msg":"Watcher stopped"}
+{"level":50,"time":1771280063862,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280059375,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280059801,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280061681,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280062114,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","discovered":11,"msg":"ServiceDiscovery audit complete"}
+{"level":50,"time":1771280065440,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280065440,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280062158,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","discovered":11,"msg":"ServiceDiscovery audit complete"}
+{"level":50,"time":1771280065884,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280065885,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+FAIL tests/verify_limbs_startup.spec.ts (44.397 s)
+  ● Limbs Startup & Health Check › should have all 26 core limbs active on startup
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 25
+    Received:    2
+
+    [0m [90m 56 |[39m         expect(state[33m.[39mlimbs)[33m.[39mtoBeDefined()[33m;[39m
+     [90m 57 |[39m         [90m// The current Orchestrator registers 26 limbs[39m
+    [31m[1m>[22m[39m[90m 58 |[39m         expect(state[33m.[39mlimbs[33m.[39mlength)[33m.[39mtoBeGreaterThanOrEqual([35m25[39m)[33m;[39m
+     [90m    |[39m                                    [31m[1m^[22m[39m
+     [90m 59 |[39m
+     [90m 60 |[39m         console[33m.[39mlog([32m`✅ Verified ${state.limbs.length} limbs registered on startup.`[39m)[33m;[39m
+     [90m 61 |[39m     })[33m;[39m[0m
+
+      at Object.<anonymous> (tests/verify_limbs_startup.spec.ts:58:36)
+
+  ● Limbs Startup & Health Check › should gate intentions for disabled limbs
+
+    TypeError: Cannot read properties of undefined (reading 'canHandle')
+
+    [0m [90m 73 |[39m
+     [90m 74 |[39m         [90m// Verify Media is gated[39m
+    [31m[1m>[22m[39m[90m 75 |[39m         [36mconst[39m mDecision [33m=[39m [36mawait[39m media[33m.[39mcanHandle({ prompt[33m:[39m [32m'Generate image'[39m[33m,[39m metadata[33m:[39m {} })[33m;[39m
+     [90m    |[39m                                       [31m[1m^[22m[39m
+     [90m 76 |[39m         expect(mDecision)[33m.[39mtoBe([32m'Yin'[39m)[33m;[39m
+     [90m 77 |[39m
+     [90m 78 |[39m         console[33m.[39mlog([32m'✅ Verified gating logic: Enabled limbs respond, disabled limbs remain inert.'[39m)[33m;[39m[0m
+
+      at Object.<anonymous> (tests/verify_limbs_startup.spec.ts:75:39)
+
+  ● Limbs Startup & Health Check › should reflect toggle changes in real-time
+
+    TypeError: Cannot read properties of undefined (reading 'canHandle')
+
+    [0m [90m 87 |[39m
+     [90m 88 |[39m         [36mconst[39m media [33m=[39m (orchestrator [36mas[39m any)[33m.[39mlimbs[33m.[39mfind((l[33m:[39m any) [33m=>[39m l[33m.[39mid [33m===[39m [32m'media_forge'[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 89 |[39m         [36mconst[39m mDecisionAfter [33m=[39m [36mawait[39m media[33m.[39mcanHandle({ prompt[33m:[39m [32m'Generate image'[39m[33m,[39m metadata[33m:[39m {} })[33m;[39m
+     [90m    |[39m                                            [31m[1m^[22m[39m
+     [90m 90 |[39m         expect(mDecisionAfter)[33m.[39mnot[33m.[39mtoBe([32m'Yin'[39m)[33m;[39m
+     [90m 91 |[39m
+     [90m 92 |[39m         console[33m.[39mlog([32m'✅ Verified dynamic toggle: Service enabled via control plane becomes active.'[39m)[33m;[39m[0m
+
+      at Object.<anonymous> (tests/verify_limbs_startup.spec.ts:89:44)
+
+{"level":30,"time":1771280064952,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","command":"toggleService","data":{"service":"media_forge","enabled":true},"msg":"Dashboard control message dispatch initiating"}
+{"level":30,"time":1771280064992,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","msg":"Shutting down Orchestrator..."}
+{"level":30,"time":1771280064995,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","msg":"Orchestrator cleanup complete."}
+{"level":30,"time":1771280067517,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","cognitiveAxis":2,"state":"YoungYang","msg":"[SOVEREIGN THOUGHT] ✨ Memory Pulse: ToolingSpine: [SOVEREIGN PULSE]: Execution Success: toggle_service"}
+{"level":50,"time":1771280063862,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/verify_limbs_startup.spec.ts.
+
+    [0m [90m 151 |[39m                 id[33m:[39m [32m'mcp_gitkraken'[39m[33m,[39m
+     [90m 152 |[39m                 name[33m:[39m [32m'MCP GitKraken'[39m[33m,[39m
+    [31m[1m>[22m[39m[90m 153 |[39m                 status[33m:[39m isActive [33m?[39m [32m'ACTIVE'[39m [33m:[39m [32m'INACTIVE'[39m[33m,[39m
+     [90m     |[39m                                          [31m[1m^[22m[39m
+     [90m 154 |[39m                 type[33m:[39m [32m'MCP'[39m[33m,[39m
+     [90m 155 |[39m                 details[33m:[39m isActive
+     [90m 156 |[39m                     [33m?[39m (isEnabled [33m?[39m [32m'Substrate: READY (Coalesced)'[39m [33m:[39m [32m'Detected: Path Active'[39m)[0m
+
+      at ServiceDiscovery.checkVSCodeExtension (src/core/ServiceDiscovery.ts:153:42)
+      at ServiceDiscovery.auditAll (src/core/ServiceDiscovery.ts:28:49)
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/verify_limbs_startup.spec.ts.
+
+
+{"level":30,"time":1771280076428,"hostname":"POG-VIBE","name":"PreviewServer","pid":28660,"msg":"Killing process tree on Windows"}
+{"level":50,"time":1771280076833,"hostname":"POG-VIBE","name":"DashboardLimb","error":{},"msg":"Failed to start dashboard server"}
+{"level":30,"time":1771280077417,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","discovered":11,"msg":"ServiceDiscovery audit complete"}
+{"level":50,"time":1771280068682,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280068704,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280075947,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280075947,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280073205,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280073207,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280074855,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280074855,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280076700,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280076700,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280076747,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","category":"CREATIVE","limb":"media_forge","msg":"Sovereign Idle Thought"}
+{"level":50,"time":1771280084444,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280084444,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280083703,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280083703,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280082285,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280082285,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280082994,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280082994,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280086337,"hostname":"POG-VIBE","name":"PreviewServer","pid":53328,"msg":"Killing process tree on Windows"}
+{"level":50,"time":1771280086583,"hostname":"POG-VIBE","name":"DashboardLimb","error":{},"msg":"Failed to start dashboard server"}
+{"level":30,"time":1771280086795,"hostname":"POG-VIBE","name":"PreviewServer","pid":23580,"msg":"Killing process tree on Windows"}
+{"level":50,"time":1771280087351,"hostname":"POG-VIBE","name":"DashboardLimb","error":{},"msg":"Failed to start dashboard server"}
+{"level":50,"time":1771280087624,"hostname":"POG-VIBE","name":"DashboardLimb","error":{},"msg":"Failed to start dashboard server"}
+{"level":50,"time":1771280087633,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280087633,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280087352,"hostname":"POG-VIBE","name":"PreviewServer","pid":26844,"msg":"Killing process tree on Windows"}
+{"level":50,"time":1771280091044,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280091044,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280092741,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","category":"CREATIVE","limb":"gutenberg_knowledge","msg":"Sovereign Idle Thought"}
+{"level":30,"time":1771280092851,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280055929,"name":"Orchestrator","cognitiveAxis":1,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Idle Reflection (CREATIVE): Thinking about CREATIVE (gutenberg_knowledge): {\"id\":\"gutenberg_knowledge\",\"type\":\"analytical\",\"capabilities\":[\"Search or retrieve 60k+ books from ..."}
+{"level":50,"time":1771280093049,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280093049,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280091476,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280091476,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280093752,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280094875,"hostname":"POG-VIBE","name":"PreviewServer","pid":50232,"msg":"Killing process tree on Windows"}
+{"level":50,"time":1771280094919,"hostname":"POG-VIBE","name":"DashboardLimb","error":{},"msg":"Failed to start dashboard server"}
+{"level":50,"time":1771280093752,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280095764,"hostname":"POG-VIBE","name":"PreviewServer","pid":35924,"msg":"Killing process tree on Windows"}
+{"level":50,"time":1771280095866,"hostname":"POG-VIBE","name":"DashboardLimb","error":{},"msg":"Failed to start dashboard server"}
+{"level":50,"time":1771280095955,"hostname":"POG-VIBE","name":"DashboardLimb","error":{},"msg":"Failed to start dashboard server"}
+{"level":30,"time":1771280093206,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","cognitiveAxis":1,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Idle Reflection (CREATIVE): Thinking about CREATIVE (media_forge): {\"id\":\"media_forge\",\"type\":\"creative\",\"capabilities\":[\"Generate images, videos, or audio using speci..."}
+{"level":50,"time":1771280095969,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280095970,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280095867,"hostname":"POG-VIBE","name":"PreviewServer","pid":4508,"msg":"Killing process tree on Windows"}
+{"level":50,"time":1771280097221,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280097221,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280098031,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280098178,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280098802,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280098802,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280101248,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280101248,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280102518,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280102518,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280103944,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280103944,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280104558,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280104558,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280106202,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280106202,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280107712,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280107713,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280108885,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280108887,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280110053,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":50,"time":1771280110324,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280110324,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280110058,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280110863,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280110867,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":50,"time":1771280112055,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280112276,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280112055,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280112514,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":50,"time":1771280112278,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280112655,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280112675,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280112679,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280112871,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","category":"CREATIVE","limb":"gutenberg_knowledge","msg":"Sovereign Idle Thought"}
+{"level":30,"time":1771280113067,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","cognitiveAxis":1,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Idle Reflection (CREATIVE): Thinking about CREATIVE (gutenberg_knowledge): {\"id\":\"gutenberg_knowledge\",\"type\":\"analytical\",\"capabilities\":[\"Search or retrieve 60k+ books from ..."}
+{"level":50,"time":1771280114500,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280114500,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280114963,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280114963,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280115703,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280115703,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280116394,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280116394,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":50,"time":1771280117691,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280117691,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280117978,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280117979,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280119943,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280119943,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280120333,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280120333,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280123458,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280123469,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280123582,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":50,"time":1771280123458,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280124034,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280123469,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/pipeline_integration.spec.ts.
+
+    [0m [90m 21 |[39m [90m * GoogleServices - Unified Google API Substrate[39m
+     [90m 22 |[39m [90m */[39m
+    [31m[1m>[22m[39m[90m 23 |[39m [36mexport[39m [36mclass[39m [33mGoogleServices[39m {
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 24 |[39m     [36mprotected[39m readonly config[33m:[39m [33mGoogleServiceConfig[39m[33m;[39m
+     [90m 25 |[39m     [36mprivate[39m readonly visionClient[33m?[39m[33m:[39m [33mImageAnnotatorClient[39m[33m;[39m
+     [90m 26 |[39m     [36mprivate[39m readonly translateClient[33m?[39m[33m:[39m unknown[33m;[39m[0m
+
+      at new ImageAnnotatorClient (node_modules/@google-cloud/vision/build/src/v1/image_annotator_client.js:122:27)
+      at new GoogleServices (src/services/GoogleServices.ts:23:33)
+      at new GeminiService (src/core/GeminiService.ts:39:9)
+      at new FreeOrchestrator (src/core/Orchestrator.ts:245:30)
+      at Object.<anonymous> (tests/pipeline_integration.spec.ts:33:24)
+{"level":50,"time":1771280124034,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":40,"time":1771280124701,"hostname":"POG-VIBE","name":"GoogleServices","error":"this._gaxModule.GrpcClient is not a constructor","client":"Vision","msg":"GCloud Sensory Client failure - Fallback active"}
+{"level":30,"time":1771280124820,"hostname":"POG-VIBE","name":"Router","pogDir":"C:\\Users\\Destiny\\.pog_test","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280124826,"hostname":"POG-VIBE","projectId":"test-project","sessionStart":1771280123342,"name":"Orchestrator","projectId":"test-project","projectRoot":"C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant","msg":"Booting ContextBuilder for Sovereign retrieval"}
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/pipeline_integration.spec.ts.
+
+    [0m [90m 51 |[39m         }[33m;[39m
+     [90m 52 |[39m         [36mif[39m (process[33m.[39menv[[32m'CLOUDFLARE_WORKER_URL'[39m]) {
+    [31m[1m>[22m[39m[90m 53 |[39m             cfConfig[33m.[39mgatewayUrl [33m=[39m process[33m.[39menv[[32m'CLOUDFLARE_WORKER_URL'[39m][33m;[39m
+     [90m    |[39m         [31m[1m^[22m[39m
+     [90m 54 |[39m         }
+     [90m 55 |[39m         [36mthis[39m[33m.[39mservices [33m=[39m [36mnew[39m [33mCloudflareServices[39m(cfConfig)[33m;[39m
+     [90m 56 |[39m[0m
+
+      at new CloudflareLimb (src/limbs/cloud/CloudflareLimb.ts:53:9)
+      at new FreeOrchestrator (src/core/Orchestrator.ts:289:32)
+      at Object.<anonymous> (tests/pipeline_integration.spec.ts:33:24)
+{"level":30,"time":1771280125241,"hostname":"POG-VIBE","name":"StateManager","msg":"StateManager initialized with hybrid defaults"}
+{"level":30,"time":1771280125469,"hostname":"POG-VIBE","name":"FileSystemLimb","msg":"FileSystemLimb initialized — 5 core file operations registered."}
+{"level":30,"time":1771280125472,"hostname":"POG-VIBE","name":"YoloLimb","msg":"YoloLimb initialized — fast execution bypass active."}
+{"level":50,"time":1771280126547,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280126548,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280127151,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280127151,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":50,"time":1771280127548,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280127549,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280127939,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280127939,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":50,"time":1771280129231,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280129231,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280130883,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280130910,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280130883,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280130910,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280134156,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280134773,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280134156,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280134773,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280136196,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280136400,"hostname":"POG-VIBE","name":"PulseMonitor","msg":"PulseMonitor: Biological heart rate established."}
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/pipeline_integration.spec.ts.
+
+
+{"level":50,"time":1771280136196,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280136663,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+node:internal/vm/module:439
+      throw new ERR_VM_MODULE_NOT_MODULE();
+            ^
+
+Error: Provided module is not an instance of Module
+    at importModuleDynamicallyWrapper (node:internal/vm/module:439:13) {
+  code: 'ERR_VM_MODULE_NOT_MODULE'
+}
+
+Node.js v20.19.6
+{"level":50,"time":1771280136663,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280138100,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","category":"CREATIVE","limb":"gutenberg_knowledge","msg":"Sovereign Idle Thought"}
+{"level":50,"time":1771280139830,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280139838,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","cognitiveAxis":1,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Idle Reflection (CREATIVE): Thinking about CREATIVE (gutenberg_knowledge): {\"id\":\"gutenberg_knowledge\",\"type\":\"analytical\",\"capabilities\":[\"Search or retrieve 60k+ books from ..."}
+{"level":50,"time":1771280139875,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280139831,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280139875,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280141623,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280141937,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280141624,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280141937,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280143302,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280143302,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280143984,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280143984,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280146848,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280146848,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280147360,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280147360,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280148982,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280148982,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280149052,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280149052,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280151820,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280151820,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280151870,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280151870,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280154115,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280154115,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280154307,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280154308,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280156846,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280156847,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280157138,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280157138,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280159164,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280159164,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280159202,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280159202,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280161573,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280161864,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280161573,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280161865,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280164294,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280164296,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280164425,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280164425,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280166582,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280166773,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280166582,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280166773,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280168964,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280168997,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280168964,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280168998,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280170166,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280170170,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280170874,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280170891,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280171194,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280171195,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":50,"time":1771280171214,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280171214,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280171368,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280171369,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280171681,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280171682,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280172540,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280172676,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280172705,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280172708,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280173326,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280173326,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":50,"time":1771280173725,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280173725,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280174489,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280174489,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280175495,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280175496,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":50,"time":1771280176485,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280176487,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+(node:36360) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":30,"time":1771280176666,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280176754,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":50,"time":1771280176897,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280176936,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280178810,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280178718,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280178718,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280178838,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280181174,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280181175,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280181407,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280181408,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280184283,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280184289,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280184289,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280184283,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280186194,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280186194,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280186660,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280186660,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280189409,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280189415,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280189415,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280189420,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280191226,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280191246,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280191537,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280191538,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280194326,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280194332,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280194326,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280194332,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280196210,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280196210,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280196476,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280196476,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280198147,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","category":"CREATIVE","limb":"gutenberg_knowledge","msg":"Sovereign Idle Thought"}
+{"level":30,"time":1771280198176,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","cognitiveAxis":1,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Idle Reflection (CREATIVE): Thinking about CREATIVE (gutenberg_knowledge): {\"id\":\"gutenberg_knowledge\",\"type\":\"analytical\",\"capabilities\":[\"Search or retrieve 60k+ books from ..."}
+{"level":50,"time":1771280199279,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280199282,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280199280,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280199282,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280201218,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280201218,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280201546,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280201547,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280202712,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","category":"CREATIVE","limb":"gutenberg_knowledge","msg":"Sovereign Idle Thought"}
+{"level":30,"time":1771280202814,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","cognitiveAxis":1,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Idle Reflection (CREATIVE): Thinking about CREATIVE (gutenberg_knowledge): {\"id\":\"gutenberg_knowledge\",\"type\":\"analytical\",\"capabilities\":[\"Search or retrieve 60k+ books from ..."}
+{"level":50,"time":1771280204411,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280204412,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280204413,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280204412,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280206218,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280206219,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280206499,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280206500,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280209315,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+{"level":50,"time":1771280209468,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280209506,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280209468,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280209506,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/pipeline_integration.spec.ts.
+
+    [0m [90m 21 |[39m [90m * GoogleServices - Unified Google API Substrate[39m
+     [90m 22 |[39m [90m */[39m
+    [31m[1m>[22m[39m[90m 23 |[39m [36mexport[39m [36mclass[39m [33mGoogleServices[39m {
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 24 |[39m     [36mprotected[39m readonly config[33m:[39m [33mGoogleServiceConfig[39m[33m;[39m
+     [90m 25 |[39m     [36mprivate[39m readonly visionClient[33m?[39m[33m:[39m [33mImageAnnotatorClient[39m[33m;[39m
+     [90m 26 |[39m     [36mprivate[39m readonly translateClient[33m?[39m[33m:[39m unknown[33m;[39m[0m
+
+      at new ImageAnnotatorClient (node_modules/@google-cloud/vision/build/src/v1/image_annotator_client.js:122:27)
+      at new GoogleServices (src/services/GoogleServices.ts:23:33)
+      at new GeminiService (src/core/GeminiService.ts:39:9)
+      at new FreeOrchestrator (src/core/Orchestrator.ts:245:30)
+      at Object.<anonymous> (tests/pipeline_integration.spec.ts:33:24)
+{"level":40,"time":1771280209781,"hostname":"POG-VIBE","name":"GoogleServices","error":"this._gaxModule.GrpcClient is not a constructor","client":"Vision","msg":"GCloud Sensory Client failure - Fallback active"}
+{"level":30,"time":1771280209835,"hostname":"POG-VIBE","name":"Router","pogDir":"C:\\Users\\Destiny\\.pog_test","modelCount":291,"msg":"Modular Router Substrate initialized"}
+{"level":30,"time":1771280209862,"hostname":"POG-VIBE","projectId":"test-project","sessionStart":1771280208947,"name":"Orchestrator","projectId":"test-project","projectRoot":"C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant","msg":"Booting ContextBuilder for Sovereign retrieval"}
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/pipeline_integration.spec.ts.
+
+    [0m [90m 51 |[39m         }[33m;[39m
+     [90m 52 |[39m         [36mif[39m (process[33m.[39menv[[32m'CLOUDFLARE_WORKER_URL'[39m]) {
+    [31m[1m>[22m[39m[90m 53 |[39m             cfConfig[33m.[39mgatewayUrl [33m=[39m process[33m.[39menv[[32m'CLOUDFLARE_WORKER_URL'[39m][33m;[39m
+     [90m    |[39m         [31m[1m^[22m[39m
+     [90m 54 |[39m         }
+     [90m 55 |[39m         [36mthis[39m[33m.[39mservices [33m=[39m [36mnew[39m [33mCloudflareServices[39m(cfConfig)[33m;[39m
+     [90m 56 |[39m[0m
+
+      at new CloudflareLimb (src/limbs/cloud/CloudflareLimb.ts:53:9)
+      at new FreeOrchestrator (src/core/Orchestrator.ts:289:32)
+      at Object.<anonymous> (tests/pipeline_integration.spec.ts:33:24)
+{"level":30,"time":1771280210279,"hostname":"POG-VIBE","name":"StateManager","msg":"StateManager initialized with hybrid defaults"}
+{"level":30,"time":1771280210387,"hostname":"POG-VIBE","name":"FileSystemLimb","msg":"FileSystemLimb initialized — 5 core file operations registered."}
+{"level":30,"time":1771280210391,"hostname":"POG-VIBE","name":"YoloLimb","msg":"YoloLimb initialized — fast execution bypass active."}
+{"level":50,"time":1771280211224,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280211225,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280211520,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280211521,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+
+ReferenceError: You are trying to `import` a file after the Jest environment has been torn down. From tests/pipeline_integration.spec.ts.
+
+
+{"level":30,"time":1771280213415,"hostname":"POG-VIBE","name":"PulseMonitor","msg":"PulseMonitor: Biological heart rate established."}
+node:internal/vm/module:439
+      throw new ERR_VM_MODULE_NOT_MODULE();
+            ^
+
+Error: Provided module is not an instance of Module
+    at importModuleDynamicallyWrapper (node:internal/vm/module:439:13) {
+  code: 'ERR_VM_MODULE_NOT_MODULE'
+}
+
+Node.js v20.19.6
+{"level":50,"time":1771280214471,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280214500,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280214500,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280214471,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280216222,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280216222,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280216522,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280216522,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280219618,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280219620,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280219621,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280219619,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280221232,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280221232,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280221713,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280221713,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280224738,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280224739,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280224913,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280224914,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280226297,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280226297,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280226544,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280226545,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280227051,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","category":"CREATIVE","limb":"gutenberg_knowledge","msg":"Sovereign Idle Thought"}
+{"level":30,"time":1771280227091,"hostname":"POG-VIBE","projectId":"LIMB_HEALTH_TEST","sessionStart":1771280037444,"name":"Orchestrator","cognitiveAxis":1,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Idle Reflection (CREATIVE): Thinking about CREATIVE (gutenberg_knowledge): {\"id\":\"gutenberg_knowledge\",\"type\":\"analytical\",\"capabilities\":[\"Search or retrieve 60k+ books from ..."}
+{"level":50,"time":1771280229928,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280229930,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280229930,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280229928,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280230233,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280230237,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280230897,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280230900,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":50,"time":1771280231249,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280231250,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280231431,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:latest, moondream:1.8b, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280231432,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280231525,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280231525,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":50,"time":1771280231546,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280231546,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":30,"time":1771280232543,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280232683,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280232714,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","narrative":"[GHOST_VOICE][WATCHING][NOMINAL] Substrate metrics: CPU 0%, MEM 0%. Substrate steady. Ghost standing by for failover.","msg":"Sovereign Voice updated (Ghost Failover)"}
+{"level":30,"time":1771280232717,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","msg":"Syncing Sovereign Model Workforce..."}
+{"level":30,"time":1771280232730,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","category":"CREATIVE","limb":"media_forge","msg":"Sovereign Idle Thought"}
+{"level":30,"time":1771280232762,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","cognitiveAxis":1,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Idle Reflection (CREATIVE): Thinking about CREATIVE (media_forge): {\"id\":\"media_forge\",\"type\":\"creative\",\"capabilities\":[\"Generate images, videos, or audio using speci..."}
+{"level":30,"time":1771280233007,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280233007,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":30,"time":1771280233043,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","cognitiveAxis":2,"state":"OldYang","msg":"[SOVEREIGN THOUGHT] ✨ Biological Pulse: TEAM COMPOSITION:\n- Planning: None (Fallback active)\n- Coding: None (Fallback active)\n- Oversight: None (Fallback active)\n- Local Bench: moondream:1.8b, moondream:latest, all-minilm:latest, kimi-k2.5:cloud, qwen2.5-coder:1.5b-instruct-q4_K_M, tinyllama:latest, deepseek-coder:6.7b-instruct-q4_K_M, yi-coder:9b-chat-q5_K_M, qwen2.5-coder:7b-instruct-q4_K_M, qwen2.5-coder:latest, deepseek-coder:latest, deepseek-coder:33b-instruct-q4_K_M, qwen2.5-coder:14b-instruct-q5_K_M\n\nSTATUS: High-Continuity Workforce Active"}
+{"level":30,"time":1771280233044,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","teamSize":13,"msg":"Model Workforce Synced"}
+{"level":50,"time":1771280234972,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280234997,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280234972,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280234997,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+(node:38324) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":30,"time":1771280235798,"hostname":"POG-VIBE","name":"ASTWatcher","projectRoot":"C:\\Users\\Destiny\\Desktop\\Ollama_Code_Editor_Quant","msg":"Initializing AST Watcher"}
+{"level":30,"time":1771280235821,"hostname":"POG-VIBE","name":"VectorDB","dbPath":"D:\\sovereign\\memory\\vibe-learning.db","msg":"Initializing VectorDB"}
+{"level":50,"time":1771280236263,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280236263,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280236552,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280236552,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280239963,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280239963,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280239971,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280239972,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280241260,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280241260,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280241556,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280241556,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280245267,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280245416,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280245417,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280245267,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280246301,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280246301,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280246851,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280246869,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280250377,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280250377,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280250473,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280250473,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280251991,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280252003,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280252003,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280251993,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280255896,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280255901,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280255896,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280255902,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280256958,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280256959,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280257300,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280257301,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280260718,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280260872,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280260718,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280261005,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280262112,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280262132,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280262112,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280262132,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280265424,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280265424,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280042519,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280265636,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280265636,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280042580,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280267054,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280267055,"hostname":"POG-VIBE","projectId":"TEST_ORCH","sessionStart":1771280037339,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280267102,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+{"level":50,"time":1771280267102,"hostname":"POG-VIBE","projectId":"TEST_IDLE","sessionStart":1771280037403,"name":"Orchestrator","error":{},"msg":"Failed to refresh system health metrics"}
+FAIL tests/pipeline_integration.spec.ts (50.582 s)
+  ● Standardized Pipeline Integration › Aggregate tools from multiple limbs
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 28 |[39m     }[33m;[39m
+     [90m 29 |[39m
+    [31m[1m>[22m[39m[90m 30 |[39m     beforeAll([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 31 |[39m         [36mconst[39m watcher [33m=[39m [36mnew[39m [33mASTWatcher[39m(config)[33m;[39m
+     [90m 32 |[39m         watcher[33m.[39minitialize()[33m;[39m [90m// Non-blocking but necessary for setup[39m
+     [90m 33 |[39m[0m
+
+      at tests/pipeline_integration.spec.ts:30:5
+      at tests/pipeline_integration.spec.ts:9:1
+
+  ● Standardized Pipeline Integration › Aggregate Control Plane tools
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 28 |[39m     }[33m;[39m
+     [90m 29 |[39m
+    [31m[1m>[22m[39m[90m 30 |[39m     beforeAll([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 31 |[39m         [36mconst[39m watcher [33m=[39m [36mnew[39m [33mASTWatcher[39m(config)[33m;[39m
+     [90m 32 |[39m         watcher[33m.[39minitialize()[33m;[39m [90m// Non-blocking but necessary for setup[39m
+     [90m 33 |[39m[0m
+
+      at tests/pipeline_integration.spec.ts:30:5
+      at tests/pipeline_integration.spec.ts:9:1
+
+  ● Standardized Pipeline Integration › Route tool call to Orchestrator (Internal)
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 28 |[39m     }[33m;[39m
+     [90m 29 |[39m
+    [31m[1m>[22m[39m[90m 30 |[39m     beforeAll([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 31 |[39m         [36mconst[39m watcher [33m=[39m [36mnew[39m [33mASTWatcher[39m(config)[33m;[39m
+     [90m 32 |[39m         watcher[33m.[39minitialize()[33m;[39m [90m// Non-blocking but necessary for setup[39m
+     [90m 33 |[39m[0m
+
+      at tests/pipeline_integration.spec.ts:30:5
+      at tests/pipeline_integration.spec.ts:9:1
+
+  ● Standardized Pipeline Integration › Route tool call to WebAppForgeLimb
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 28 |[39m     }[33m;[39m
+     [90m 29 |[39m
+    [31m[1m>[22m[39m[90m 30 |[39m     beforeAll([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 31 |[39m         [36mconst[39m watcher [33m=[39m [36mnew[39m [33mASTWatcher[39m(config)[33m;[39m
+     [90m 32 |[39m         watcher[33m.[39minitialize()[33m;[39m [90m// Non-blocking but necessary for setup[39m
+     [90m 33 |[39m[0m
+
+      at tests/pipeline_integration.spec.ts:30:5
+      at tests/pipeline_integration.spec.ts:9:1
+
+  ● Standardized Pipeline Integration › Route tool call to MediaForgeLimb
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 28 |[39m     }[33m;[39m
+     [90m 29 |[39m
+    [31m[1m>[22m[39m[90m 30 |[39m     beforeAll([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 31 |[39m         [36mconst[39m watcher [33m=[39m [36mnew[39m [33mASTWatcher[39m(config)[33m;[39m
+     [90m 32 |[39m         watcher[33m.[39minitialize()[33m;[39m [90m// Non-blocking but necessary for setup[39m
+     [90m 33 |[39m[0m
+
+      at tests/pipeline_integration.spec.ts:30:5
+      at tests/pipeline_integration.spec.ts:9:1
+
+  ● Standardized Pipeline Integration › Route tool call to BioIntelligenceLimb
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 28 |[39m     }[33m;[39m
+     [90m 29 |[39m
+    [31m[1m>[22m[39m[90m 30 |[39m     beforeAll([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 31 |[39m         [36mconst[39m watcher [33m=[39m [36mnew[39m [33mASTWatcher[39m(config)[33m;[39m
+     [90m 32 |[39m         watcher[33m.[39minitialize()[33m;[39m [90m// Non-blocking but necessary for setup[39m
+     [90m 33 |[39m[0m
+
+      at tests/pipeline_integration.spec.ts:30:5
+      at tests/pipeline_integration.spec.ts:9:1
+
+  ● Standardized Pipeline Integration › Route tool call to GutenbergLimb
+
+    thrown: "Exceeded timeout of 5000 ms for a hook.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+    [0m [90m 28 |[39m     }[33m;[39m
+     [90m 29 |[39m
+    [31m[1m>[22m[39m[90m 30 |[39m     beforeAll([36masync[39m () [33m=>[39m {
+     [90m    |[39m     [31m[1m^[22m[39m
+     [90m 31 |[39m         [36mconst[39m watcher [33m=[39m [36mnew[39m [33mASTWatcher[39m(config)[33m;[39m
+     [90m 32 |[39m         watcher[33m.[39minitialize()[33m;[39m [90m// Non-blocking but necessary for setup[39m
+     [90m 33 |[39m[0m
+
+      at tests/pipeline_integration.spec.ts:30:5
+      at tests/pipeline_integration.spec.ts:9:1
+
+{"level":30,"time":1771280269189,"hostname":"POG-VIBE","name":"KeyVault","keyCount":1,"msg":"Key vault loaded"}
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+Test Suites: 5 failed, 4 passed, 9 total
+Tests:       15 failed, 20 passed, 35 total
+Snapshots:   0 total
+Time:        251.386 s
+Ran all test suites.

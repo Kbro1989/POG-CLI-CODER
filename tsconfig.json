@@ -4,12 +4,17 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": [
-      "ES2022"
+      "ES2022",
+      "DOM"
     ],
     "outDir": "./dist",
     "rootDir": ".",
-    "typeRoots": [
-      "./node_modules/@types"
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "vscode",
+      "@cloudflare/workers-types",
+      "jest"
     ],
     "strict": true,
     "noImplicitAny": true,
@@ -27,7 +32,6 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "exactOptionalPropertyTypes": true,
-    "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -59,19 +63,24 @@
   "include": [
     "src/**/*",
     "cli/**/*",
-    "src/**/*.spec.ts",
-    "tests/**/*"
+    "tests/**/*",
+    "test/**/*",
+    "scripts/**/*",
+    "sovereign/**/*",
+    "vscode-extension/src/**/*",
+    "hello-ai-gateway/**/*.ts",
+    "openrsc-repo/**/*.ts",
+    "gemini-test/**/*.ts",
+    "sidecar_verify/**/*.ts",
+    "env_test/**/*.ts",
+    "test_pog/**/*.ts",
+    "temp_pog_test/**/*.ts",
+    "verify_mem/**/*.ts",
+    "*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "vscode-extension",
-    "src/references",
-    "src/workers",
-    "hello-ai-gateway",
-    "gemini-test",
-    "test-project",
-    "temp_pog_test",
-    "~*"
+    "vscode-extension/node_modules",
+    "dist"
   ]
 }
