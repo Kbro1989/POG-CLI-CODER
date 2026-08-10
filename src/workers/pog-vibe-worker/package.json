@@ -16,6 +16,6 @@
         "cloudflare": "^5.2.0",
         "devtools-protocol": "^0.0.1585077",
         "typescript": "^5.9.3",
-        "wrangler": "^4.63.0"
+        "wrangler": "^4.103.0"
     }
 }
